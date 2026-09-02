@@ -1,0 +1,226 @@
+// ============================================================================
+// Import Comparison Platform — Database Schema
+// Phase 1: Database Schema
+//
+// Design principles (per project requirements):
+// - Raw ingestion data is NEVER overwritten — it's an append-only audit trail.
+// - Canonical/matched records are derived, reviewable, and never auto-guessed
+//   when confidence is low (NEEDS_REVIEW exists for a reason — use it).
+// - Price/freight snapshots exist so Redis cache TTLs have a durable backstop
+//   and so "landed cost at time X" is always reconstructable for support/audit.
+// ============================================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ----------------------------------------------------------------------------
+// Enums
+// ----------------------------------------------------------------------------
+
+enum LocalSourceType {
+  JUMIA_SCRAPE
+  JUMIA_SELLER_API
+  MANUAL_CSV
+  SUPPLIER_FEED
+  OWN_DB
+}
+
+enum MatchStatus {
+  UNMATCHED // no candidate AliExpress SKU identified yet
+  AUTO_MATCHED // matched by the system on strong signals (e.g. exact GTIN/barcode)
+  NEEDS_REVIEW // ambiguous — multiple candidates or weak signal match; human must confirm
+  MANUAL_CONFIRMED // a human explicitly confirmed this match
+  REJECTED // a human explicitly reviewed and rejected this candidate match
+}
+
+enum ComparisonRenderMode {
+  IMPORT_ADVANTAGE // Landed Import Price < Local Total Price -> show 2-column comparison
+  LOCAL_ONLY // Landed Import Price >= Local Total Price -> suppress comparison, show local only
+}
+
+// ----------------------------------------------------------------------------
+// Local side — raw ingestion layer (append-only, one row per ingestion event)
+// ----------------------------------------------------------------------------
+
+model LocalListingRaw {
+  id        String          @id @default(cuid())
+  source    LocalSourceType
+  sourceRef String // source-specific identifier (Jumia SKU id, CSV row ref, supplier SKU code, etc.)
+
+  // Data exactly as received — no normalization, no overwriting on re-ingest.
+  title       String
+  description String? @db.Text
+  imageUrls   String[] // raw image URLs as received from the source
+  priceRaw    Decimal  @db.Decimal(12, 2)
+  currency    String   @default("KES")
+  inStock     Boolean?
+  attributesRaw Json? // color/size/spec fields as received, unnormalized
+
+  ingestedAt DateTime @default(now())
+
+  // Optional link once this raw listing has been resolved into a canonical SKU.
+  // Nullable because a raw listing may sit unmatched/unreviewed for a while.
+  localSkuId String?
+  localSku   LocalSKU? @relation(fields: [localSkuId], references: [id])
+
+  @@index([source, sourceRef])
+  @@index([localSkuId])
+  @@index([ingestedAt])
+}
+
+// ----------------------------------------------------------------------------
+// Local side — canonical record used in comparisons
+// ----------------------------------------------------------------------------
+
+model LocalSKU {
+  id          String  @id @default(cuid())
+  sku         String  @unique // internal canonical SKU code
+  title       String
+  description String? @db.Text
+  imageUrls   String[]
+
+  // Variant-level precision fields — matching happens strictly at this level.
+  color String?
+  size  String?
+  specs Json? // normalized spec attributes for variant matching
+
+  currentPrice Decimal  @db.Decimal(12, 2)
+  currency     String   @default("KES")
+  inStock      Boolean  @default(true)
+  updatedAt    DateTime @updatedAt
+  createdAt    DateTime @default(now())
+
+  rawListings LocalListingRaw[]
+  matches     SKUMatch[]
+  priceHistory LocalPriceSnapshot[]
+
+  @@index([color, size])
+}
+
+model LocalPriceSnapshot {
+  id         String   @id @default(cuid())
+  localSkuId String
+  localSku   LocalSKU @relation(fields: [localSkuId], references: [id])
+  price      Decimal  @db.Decimal(12, 2)
+  inStock    Boolean
+  recordedAt DateTime @default(now())
+
+  @@index([localSkuId, recordedAt])
+}
+
+// ----------------------------------------------------------------------------
+// AliExpress side — canonical record, backed by Redis cache but persisted
+// here as the durable source (Redis TTL expiry should never mean data loss).
+// ----------------------------------------------------------------------------
+
+model AliExpressSKU {
+  id           String  @id @default(cuid())
+  productId    String // AliExpress product id
+  skuId        String // AliExpress SKU-level id (variant)
+  title        String
+  description  String? @db.Text
+  imageUrls    String[]
+
+  color String?
+  size  String?
+  specs Json?
+
+  itemPrice Decimal  @db.Decimal(12, 2)
+  currency  String   @default("USD")
+
+  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now())
+
+  matches         SKUMatch[]
+  freightQuotes   FreightSnapshot[]
+  priceHistory    AliExpressPriceSnapshot[]
+
+  @@unique([productId, skuId])
+  @@index([productId])
+}
+
+model AliExpressPriceSnapshot {
+  id              String        @id @default(cuid())
+  aliExpressSkuId String
+  aliExpressSku   AliExpressSKU @relation(fields: [aliExpressSkuId], references: [id])
+  itemPrice       Decimal       @db.Decimal(12, 2)
+  recordedAt      DateTime      @default(now())
+
+  @@index([aliExpressSkuId, recordedAt])
+}
+
+// Freight rates change independently of product price and have their own
+// TTL (6-12h) per the caching spec — kept as a separate snapshot table.
+model FreightSnapshot {
+  id              String        @id @default(cuid())
+  aliExpressSkuId String
+  aliExpressSku   AliExpressSKU @relation(fields: [aliExpressSkuId], references: [id])
+  destination     String // shipping destination code/region used for the quote
+  freightCost     Decimal       @db.Decimal(12, 2)
+  estimatedTaxes  Decimal       @db.Decimal(12, 2)
+  currency        String        @default("USD")
+  etaMinDays      Int
+  etaMaxDays      Int
+  recordedAt      DateTime      @default(now())
+  expiresAt       DateTime // mirrors the Redis TTL so stale rows are identifiable in Postgres too
+
+  @@index([aliExpressSkuId, destination, recordedAt])
+}
+
+// ----------------------------------------------------------------------------
+// Matching — links a local SKU to its AliExpress counterpart.
+// Deliberately conservative: ambiguous matches are flagged, never guessed.
+// ----------------------------------------------------------------------------
+
+model SKUMatch {
+  id String @id @default(cuid())
+
+  localSkuId      String
+  localSku        LocalSKU      @relation(fields: [localSkuId], references: [id])
+  aliExpressSkuId String
+  aliExpressSku   AliExpressSKU @relation(fields: [aliExpressSkuId], references: [id])
+
+  status         MatchStatus @default(UNMATCHED)
+  matchSignal    String? // what triggered the match, e.g. "exact_gtin", "title_similarity_0.92"
+  confidenceNote String? // human-readable note, esp. for NEEDS_REVIEW / REJECTED
+
+  reviewedBy String? // user/admin identifier who confirmed or rejected, if applicable
+  reviewedAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // The resolved comparison, computed and cached once the match is confirmed.
+  comparison ComparisonResult?
+
+  @@unique([localSkuId, aliExpressSkuId])
+  @@index([status])
+}
+
+// ----------------------------------------------------------------------------
+// The actual landed-cost comparison result — this is what the UI reads.
+// Recomputed whenever underlying price/freight snapshots change; stored so
+// the render decision (2-column vs local-only) doesn't need recomputation
+// on every page load.
+// ----------------------------------------------------------------------------
+
+model ComparisonResult {
+  id         String   @id @default(cuid())
+  skuMatchId String   @unique
+  skuMatch   SKUMatch @relation(fields: [skuMatchId], references: [id])
+
+  landedImportPrice Decimal              @db.Decimal(12, 2)
+  localTotalPrice   Decimal              @db.Decimal(12, 2)
+  renderMode        ComparisonRenderMode
+  currency          String               @default("KES")
+
+  computedAt DateTime @default(now())
+
+  @@index([renderMode])
+}
