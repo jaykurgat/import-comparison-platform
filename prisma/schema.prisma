@@ -45,6 +45,65 @@ enum ComparisonRenderMode {
   LOCAL_ONLY // Landed Import Price >= Local Total Price -> suppress comparison, show local only
 }
 
+enum CategorySourceType {
+  ALIEXPRESS
+  JUMIA
+}
+
+// ----------------------------------------------------------------------------
+// Categories — hierarchical canonical taxonomy + a crosswalk mapping each
+// source platform's own category system onto it.
+//
+// Neither AliExpress nor Jumia's category data is populated yet (schema
+// shape only, per project decision — real category IDs/names get filled in
+// once API/scrape access exists, not designed from imagination now).
+//
+// Why this exists: category is a hard GATE for matching, not just a signal.
+// Two products should only be considered for SKU matching (or shown as
+// "similar/alternative") if they resolve to the same canonical Category —
+// this is what prevents e.g. "Nike sport shoes" from being matched or
+// compared against "Nike" products that aren't shoes at all. Brand is a
+// separate attribute (see LocalSKU/AliExpressSKU specs/title) that can
+// strengthen a match WITHIN a category, but should never substitute for a
+// category match.
+// ----------------------------------------------------------------------------
+
+model Category {
+  id       String    @id @default(cuid())
+  name     String // canonical name, e.g. "Sport Shoes" — TBD once real data exists
+  parentId String?
+  parent   Category? @relation("CategoryHierarchy", fields: [parentId], references: [id])
+  children Category[] @relation("CategoryHierarchy")
+
+  localSkus      LocalSKU[]
+  aliExpressSkus AliExpressSKU[]
+  mappings       CategoryMapping[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([parentId])
+}
+
+// The crosswalk: each row links ONE source platform's own category
+// identifier to ONE canonical Category. E.g. AliExpress category id
+// "200003482" and Jumia category slug "sports-shoes-men" might both map to
+// the same canonical Category("Sport Shoes").
+model CategoryMapping {
+  id         String             @id @default(cuid())
+  categoryId String
+  category   Category           @relation(fields: [categoryId], references: [id])
+
+  source             CategorySourceType
+  sourceCategoryId   String // raw category id/slug exactly as the platform provides it
+  sourceCategoryName String? // raw label, kept for human debugging/audit — not used for matching
+
+  createdAt DateTime @default(now())
+
+  @@unique([source, sourceCategoryId])
+  @@index([categoryId])
+}
+
 // ----------------------------------------------------------------------------
 // Local side — raw ingestion layer (append-only, one row per ingestion event)
 // ----------------------------------------------------------------------------
@@ -97,11 +156,19 @@ model LocalSKU {
   updatedAt    DateTime @updatedAt
   createdAt    DateTime @default(now())
 
+  // Nullable: category data isn't populated yet (schema shape only, see
+  // Category model comment). Matching/similarity logic should treat a
+  // missing category as "cannot be matched or compared" rather than
+  // guessing — consistent with the conservative-matching approach.
+  categoryId String?
+  category   Category? @relation(fields: [categoryId], references: [id])
+
   rawListings LocalListingRaw[]
   matches     SKUMatch[]
   priceHistory LocalPriceSnapshot[]
 
   @@index([color, size])
+  @@index([categoryId])
 }
 
 model LocalPriceSnapshot {
@@ -138,12 +205,17 @@ model AliExpressSKU {
   updatedAt DateTime @updatedAt
   createdAt DateTime @default(now())
 
+  // See LocalSKU.categoryId comment — same nullable-until-populated approach.
+  categoryId String?
+  category   Category? @relation(fields: [categoryId], references: [id])
+
   matches         SKUMatch[]
   freightQuotes   FreightSnapshot[]
   priceHistory    AliExpressPriceSnapshot[]
 
   @@unique([productId, skuId])
   @@index([productId])
+  @@index([categoryId])
 }
 
 model AliExpressPriceSnapshot {
@@ -177,6 +249,12 @@ model FreightSnapshot {
 // ----------------------------------------------------------------------------
 // Matching — links a local SKU to its AliExpress counterpart.
 // Deliberately conservative: ambiguous matches are flagged, never guessed.
+//
+// IMPORTANT for the matching engine (Phase 3): category match is a hard
+// precondition, not a scored signal. Never create a SKUMatch (even
+// NEEDS_REVIEW) across two SKUs whose categoryId doesn't resolve to the
+// same canonical Category. Brand/title/spec similarity only apply to
+// narrow down candidates WITHIN a shared category.
 // ----------------------------------------------------------------------------
 
 model SKUMatch {
@@ -220,6 +298,12 @@ model ComparisonResult {
   localTotalPrice   Decimal              @db.Decimal(12, 2)
   renderMode        ComparisonRenderMode
   currency          String               @default("KES")
+
+  // Staleness tracking: when the underlying price data actually last refreshed
+  // (not when this row was computed), and whether it came from a live cache
+  // hit or a fallback to the last known snapshot after an AliExpress failure.
+  priceDataAsOf DateTime
+  isStale       Boolean  @default(false)
 
   computedAt DateTime @default(now())
 
