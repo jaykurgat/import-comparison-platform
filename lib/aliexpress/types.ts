@@ -103,7 +103,7 @@ export interface AliExpressAddressNode {
 }
 
 export interface AliExpressAddressGetResult {
-  ret: boolean
+  ret: boolean | string
   code?: string
   msg?: string
   data?: AliExpressAddressNode[]
