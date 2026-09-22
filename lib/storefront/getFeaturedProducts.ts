@@ -28,10 +28,11 @@ export async function getFeaturedProducts(limit = 8): Promise<ProductTeaser[]> {
         include: { comparison: true },
       },
     },
-    take: limit,
+    orderBy: { createdAt: 'desc' },
   })
 
   return products
     .filter(isCatalogEligible)
+    .slice(0, limit)
     .map((product) => toProductTeaser(product, product.matches))
 }
