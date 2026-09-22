@@ -23,6 +23,13 @@ export default function SiteHeader() {
         <Link href="/products" className="hidden text-sm font-semibold text-slate-700 lg:block">Categories</Link>
         <Link href="/products" className="hidden text-sm font-semibold text-slate-700 lg:block">Deals</Link>
       </div>
+      <div className="px-4 pb-3 md:hidden">
+        <form action="/products" className="flex">
+          <label htmlFor="mobile-site-search" className="sr-only">Search products</label>
+          <input id="mobile-site-search" name="q" placeholder="Search products..." className="h-10 min-w-0 flex-1 rounded-l-lg border border-slate-300 bg-slate-50 px-3 text-sm outline-none focus:border-[#0f5132] focus:bg-white" />
+          <button className="h-10 rounded-r-lg bg-[#f59e0b] px-4 text-sm font-bold text-slate-950">Search</button>
+        </form>
+      </div>
       <nav className="border-t border-slate-100 bg-white">
         <div className="mx-auto flex max-w-[1400px] gap-6 overflow-x-auto px-4 py-3 text-sm font-medium text-slate-600 sm:px-6">
           {categories.map((category) => (
