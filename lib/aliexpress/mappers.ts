@@ -8,8 +8,14 @@ import type { AliExpressItemSkuInfoDto, AliExpressProductGetResult } from './typ
 
 export interface MappedAliExpressSku {
   skuId: string
+  /** API origin SKU/supplier price before promotional sale pricing. */
+  skuPrice: number
+  /** API promotional/offer price when supplied. */
+  offerSalePrice: number
   itemPrice: number
   currency: string
+  priceIncludeTax: boolean
+  skuCode?: string
   color?: string
   size?: string
   specs: Record<string, string>
@@ -19,9 +25,9 @@ export interface MappedAliExpressSku {
 export interface MappedAliExpressProduct {
   productId: string
   title: string
+  rawCategoryId: string
   description: string
   imageUrls: string[]
-  rawCategoryId: string // AliExpress's own category id — not yet mapped to a canonical Category (see schema comment on CategoryMapping)
   skus: MappedAliExpressSku[]
 }
 
@@ -68,8 +74,12 @@ export function mapProductResult(result: AliExpressProductGetResult): MappedAliE
 
     return {
       skuId: sku.sku_id,
-      itemPrice: Number(sku.offer_sale_price),
+      skuPrice: Number(sku.sku_price),
+      offerSalePrice: Number(sku.offer_sale_price),
+      itemPrice: Number(sku.offer_sale_price || sku.sku_price),
       currency: sku.currency_code,
+      priceIncludeTax: sku.price_include_tax ?? false,
+      skuCode: sku.sku_code,
       color: extractSkuAttribute(sku, 'color'),
       size: extractSkuAttribute(sku, 'size'),
       specs,
