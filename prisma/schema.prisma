@@ -207,8 +207,15 @@ model AliExpressSKU {
   size  String?
   specs Json?
 
-  itemPrice Decimal  @db.Decimal(12, 2)
-  currency  String   @default("USD")
+  // skuPrice is the API's Origin SKU price; offerSalePrice is the API's
+  // promotional/offer price. itemPrice remains the effective price used by
+  // the existing comparison engine and defaults to offerSalePrice when present.
+  skuPrice       Decimal @db.Decimal(12, 2)
+  offerSalePrice Decimal @db.Decimal(12, 2)
+  itemPrice      Decimal @db.Decimal(12, 2)
+  currency       String  @default("USD")
+  priceIncludeTax Boolean @default(false)
+  skuCode        String?
 
   updatedAt DateTime @updatedAt
   createdAt DateTime @default(now())
@@ -224,6 +231,8 @@ model AliExpressSKU {
   // See LocalSKU.categoryId comment — same nullable-until-populated approach.
   categoryId String?
   category   Category? @relation(fields: [categoryId], references: [id])
+  rawCategoryId String?
+  shipFromCountry String?
 
   matches         SKUMatch[]
   freightQuotes   FreightSnapshot[]
