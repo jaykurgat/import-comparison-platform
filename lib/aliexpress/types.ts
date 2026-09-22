@@ -19,15 +19,12 @@ export interface AliExpressItemSkuInfoDto {
   sku_id: string
   offer_sale_price: string
   offer_bulk_sale_price?: string
-  offer_bulk_sale_price?: string
   sku_price: string
   currency_code: string
   price_include_tax?: boolean
   sku_code?: string
-  price_include_tax?: boolean
   sku_available_stock?: number
   sku_bulk_order?: number
-  sku_code?: string
   sku_attr?: string
   wholesale_price_tiers?: unknown
   ae_sku_property_dtos?: {
