@@ -1,7 +1,7 @@
 import { prisma } from '@/lib/prisma'
 import { getAliExpressFreight } from '@/lib/aliexpress/freight'
 import { resolveAliExpressAddress } from '@/lib/aliexpress/addressResolver'
-import { createAliExpressDsOrder } from '@/lib/aliexpress/order'
+import { createStripeCheckoutSession } from '@/lib/payments/stripe'
 
 export interface ImportCheckoutInput {
   productId: string
@@ -15,19 +15,18 @@ export interface ImportCheckoutInput {
   address: string
   address2?: string
   zip?: string
-  placeOrder?: boolean
 }
 
 export interface ImportCheckoutResult {
   orderId: string
-  status: 'READY' | 'SUBMITTED'
+  status: 'PAYMENT_PENDING'
+  checkoutUrl: string
   customerTotal: number
   currency: string
   freight: number
   freightCurrency: string
   etaMinDays: number
   etaMaxDays: number
-  supplierOrderIds: string[]
 }
 
 export async function createImportCheckout(input: ImportCheckoutInput): Promise<ImportCheckoutResult> {
@@ -60,18 +59,16 @@ export async function createImportCheckout(input: ImportCheckoutInput): Promise<
     currency: 'USD',
   })
 
-  if (freight.data.options.length === 0) {
+  const option = freight.data.options[0]
+  if (!option || option.currency !== 'USD') {
     throw new Error('No valid AliExpress delivery option is available for this address.')
   }
 
-  const option = freight.data.options[0]
-  if (option.currency !== 'USD') {
-    throw new Error('The selected delivery quote is not in USD.')
-  }
-
+  const customerTotal = Number(sku.importListingPrice.sellPrice) * input.quantity
   const order = await prisma.importOrder.create({
     data: {
       outOrderId: `ICP-${crypto.randomUUID()}`,
+      status: 'PAYMENT_PENDING',
       country: resolved.country,
       province: resolved.province,
       city: resolved.city,
@@ -80,7 +77,7 @@ export async function createImportCheckout(input: ImportCheckoutInput): Promise<
       fullName: input.fullName.trim(),
       mobileNo: input.mobileNo.trim(),
       zip: input.zip?.trim() || null,
-      customerTotal: Number(sku.importListingPrice.sellPrice) * input.quantity,
+      customerTotal,
       items: {
         create: {
           aliExpressSkuId: sku.id,
@@ -91,60 +88,39 @@ export async function createImportCheckout(input: ImportCheckoutInput): Promise<
         },
       },
     },
+    include: { items: true },
   })
 
-  if (!input.placeOrder) {
-    return {
-      orderId: order.id,
-      status: 'READY',
-      customerTotal: Number(sku.importListingPrice.sellPrice) * input.quantity,
-      currency: sku.importListingPrice.currency,
-      freight: option.freightCost,
-      freightCurrency: option.currency,
-      etaMinDays: option.minDays,
-      etaMaxDays: option.maxDays,
-      supplierOrderIds: [],
-    }
-  }
-
   try {
-    const supplier = await createAliExpressDsOrder({
-      outOrderId: order.outOrderId,
-      address: {
-        address: input.address.trim(),
-        ...(input.address2?.trim() ? { address2: input.address2.trim() } : {}),
-        city: resolved.city,
-        contact_person: input.fullName.trim(),
-        country: resolved.country,
-        full_name: input.fullName.trim(),
-        mobile_no: input.mobileNo.trim(),
-        province: resolved.province,
-        ...(input.zip?.trim() ? { zip: input.zip.trim() } : {}),
-      },
-      items: [{
-        product_count: input.quantity,
-        product_id: Number(input.productId),
-        ...(option.code ? { logistics_service_name: option.code } : {}),
-      }],
-      payCurrency: 'USD',
-      tryToPay: false,
+    const session = await createStripeCheckoutSession({
+      orderId: order.id,
+      amountKes: Math.round(customerTotal),
+      productName: sku.title,
+      quantity: input.quantity,
     })
 
-    await prisma.importOrder.update({
-      where: { id: order.id },
-      data: { status: 'SUBMITTED', supplierOrderIds: supplier.orderIds },
+    await prisma.importPayment.create({
+      data: {
+        orderId: order.id,
+        provider: 'STRIPE',
+        status: 'PENDING',
+        checkoutSessionId: session.id,
+        paymentIntentId: typeof session.payment_intent === 'string' ? session.payment_intent : null,
+        amount: customerTotal,
+        currency: 'KES',
+      },
     })
 
     return {
       orderId: order.id,
-      status: 'SUBMITTED',
-      customerTotal: Number(sku.importListingPrice.sellPrice) * input.quantity,
-      currency: sku.importListingPrice.currency,
+      status: 'PAYMENT_PENDING',
+      checkoutUrl: session.url,
+      customerTotal,
+      currency: 'KES',
       freight: option.freightCost,
       freightCurrency: option.currency,
       etaMinDays: option.minDays,
       etaMaxDays: option.maxDays,
-      supplierOrderIds: supplier.orderIds,
     }
   } catch (error) {
     await prisma.importOrder.update({
