@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { getImportProductPageData } from '@/lib/product/getImportProductPageData'
 import SiteHeader from '@/components/SiteHeader'
 import SiteFooter from '@/components/SiteFooter'
+import { ImportCheckoutForm } from './ImportCheckoutForm'
 
 export default async function ImportProductPage({ params }: { params: Promise<{ productId: string; skuId: string }> }) {
   const { productId, skuId } = await params
@@ -32,6 +33,8 @@ export default async function ImportProductPage({ params }: { params: Promise<{ 
                 <div className="flex justify-between text-sm"><span className="font-bold">Import fulfillment</span><span className="font-bold text-[#0f5132]">7–14 days</span></div>
                 <p className="mt-1 text-xs leading-5 text-slate-500">Price reflects the current landed-cost estimate and markup. Freight and exchange rates can change.</p>
               </div>
+
+              <ImportCheckoutForm productId={data.productId} skuId={data.skuId} />
 
               <a href={data.aliExpressUrl} target="_blank" rel="noopener noreferrer" className="mt-6 inline-flex w-full items-center justify-center rounded-lg bg-[#0f5132] px-5 py-3 text-sm font-bold text-white hover:bg-[#0b4128]">View supplier listing →</a>
               {data.description && <div className="mt-7 border-t border-slate-100 pt-6 text-sm leading-6 text-slate-600" dangerouslySetInnerHTML={{ __html: data.description }} />}
