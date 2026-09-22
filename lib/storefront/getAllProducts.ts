@@ -1,7 +1,9 @@
 import { prisma } from '../prisma'
 import { toProductTeaser, toImportProductTeaser, type ProductTeaser } from './productTeaser'
 
-export async function getAllProducts(): Promise<ProductTeaser[]> {
+export async function getAllProducts(query = ''): Promise<ProductTeaser[]> {
+  const q = query.trim()
+  const textFilter = q ? { contains: q, mode: 'insensitive' as const } : undefined
   const localProducts = await prisma.localSKU.findMany({
     include: {
       matches: {
