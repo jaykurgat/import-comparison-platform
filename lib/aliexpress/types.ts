@@ -19,8 +19,11 @@ export interface AliExpressItemSkuInfoDto {
   sku_id: string
   offer_sale_price: string
   offer_bulk_sale_price?: string
+  offer_bulk_sale_price?: string
   sku_price: string
   currency_code: string
+  price_include_tax?: boolean
+  sku_code?: string
   price_include_tax?: boolean
   sku_available_stock?: number
   sku_bulk_order?: number
@@ -38,6 +41,10 @@ export interface AliExpressItemBaseInfoDto {
   category_id: number
   product_id: number
   currency_code?: string
+  product_status?: string
+  sales?: number
+  rating?: number
+  seller_store_name?: string
 }
 
 export interface AliExpressProductGetResult {
@@ -148,4 +155,17 @@ export interface AliExpressDsOrderCreateResult {
 
 export interface AliExpressDsOrderCreateResponse {
   aliexpress_ds_order_create_response?: { result: AliExpressDsOrderCreateResult }
+}
+
+// ---- aliexpress.ds.text.search / aliexpress.ds.image.searchV2 ----
+export interface AliExpressSearchCandidate {
+  productId: string
+  title: string
+  itemUrl?: string
+  imageUrl?: string
+  salePrice?: number
+  originalPrice?: number
+  currency?: string
+  similarityScore?: number
+  orders?: number
 }
