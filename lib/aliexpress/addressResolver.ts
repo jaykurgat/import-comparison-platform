@@ -1,4 +1,5 @@
 import { getAliExpressAddressTree } from './address'
+import type { AliExpressAddressNode } from './types'
 
 export interface ResolveAliExpressAddressInput {
   countryCode: string
@@ -49,10 +50,10 @@ function normalize(value: string): string {
 }
 
 function findNode(
-  nodes: Array<{ country: string; type: string; children?: string | Array<{ country: string; type: string; children?: string | unknown[] }> }>,
+  nodes: AliExpressAddressNode[],
   wanted: string,
   allowedTypes: string[],
-): { country: string; type: string; children?: string | Array<{ country: string; type: string; children?: string | unknown[] }> } | undefined {
+): AliExpressAddressNode | undefined {
   return nodes.find((node) => {
     const type = node.type.toLowerCase()
     return allowedTypes.includes(type) && normalize(node.country) === wanted
