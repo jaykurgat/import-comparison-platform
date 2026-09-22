@@ -5,10 +5,10 @@ export async function getAllProducts(query = ''): Promise<ProductTeaser[]> {
   const q = query.trim()
   const textFilter = q ? { contains: q, mode: 'insensitive' as const } : undefined
   const localProducts = await prisma.localSKU.findMany({
+    where: textFilter ? { title: textFilter } : undefined,
     include: {
       matches: {
-        where: {
-      ...(textFilter ? { title: textFilter } : {}), status: { in: ['AUTO_MATCHED', 'MANUAL_CONFIRMED'] } },
+        where: { status: { in: ['AUTO_MATCHED', 'MANUAL_CONFIRMED'] } },
         include: { comparison: true },
       },
     },
