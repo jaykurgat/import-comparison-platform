@@ -156,6 +156,14 @@ model LocalSKU {
   updatedAt    DateTime @updatedAt
   createdAt    DateTime @default(now())
 
+  // Homepage "featured" control: null (default) means "use automatic logic"
+  // (currently: feature if this product has a confirmed IMPORT_ADVANTAGE
+  // comparison). true forces it featured regardless; false forces it
+  // excluded even if it would otherwise qualify. Edit directly in Prisma
+  // Studio — no dedicated admin UI for this yet, per explicit decision to
+  // keep this low-effort until a real need for one arises.
+  featuredOverride Boolean?
+
   // Nullable: category data isn't populated yet (schema shape only, see
   // Category model comment). Matching/similarity logic should treat a
   // missing category as "cannot be matched or compared" rather than
@@ -205,6 +213,14 @@ model AliExpressSKU {
   updatedAt DateTime @updatedAt
   createdAt DateTime @default(now())
 
+  // Explicit publish control: false by default. An AliExpress SKU only
+  // becomes a real, browsable/sellable product on the storefront once
+  // this is flipped to true — nothing goes live automatically just
+  // because it's been fetched (e.g. during testing or matching). Same
+  // low-effort pattern as LocalSKU.featuredOverride: edit directly in
+  // Prisma Studio for now, no dedicated admin UI yet.
+  isPublished Boolean @default(false)
+
   // See LocalSKU.categoryId comment — same nullable-until-populated approach.
   categoryId String?
   category   Category? @relation(fields: [categoryId], references: [id])
@@ -212,6 +228,7 @@ model AliExpressSKU {
   matches         SKUMatch[]
   freightQuotes   FreightSnapshot[]
   priceHistory    AliExpressPriceSnapshot[]
+  importListingPrice ImportListingPrice?
 
   @@unique([productId, skuId])
   @@index([productId])
@@ -294,7 +311,8 @@ model ComparisonResult {
   skuMatchId String   @unique
   skuMatch   SKUMatch @relation(fields: [skuMatchId], references: [id])
 
-  landedImportPrice Decimal              @db.Decimal(12, 2)
+  landedImportPrice Decimal              @db.Decimal(12, 2) // true cost, before markup
+  sellPrice         Decimal              @db.Decimal(12, 2) // landedImportPrice + tiered markup — what the customer actually pays
   localTotalPrice   Decimal              @db.Decimal(12, 2)
   renderMode        ComparisonRenderMode
   currency          String               @default("KES")
@@ -308,4 +326,35 @@ model ComparisonResult {
   computedAt DateTime @default(now())
 
   @@index([renderMode])
+}
+
+// Cached sell price for a STANDALONE AliExpress product — one with no local
+// match at all. Same role as ComparisonResult (avoids recomputing live on
+// every listing/page view) but for products with nothing to compare
+// against. One row per AliExpressSKU.
+model ImportListingPrice {
+  id              String        @id @default(cuid())
+  aliExpressSkuId String        @unique
+  aliExpressSku   AliExpressSKU @relation(fields: [aliExpressSkuId], references: [id])
+
+  landedImportPrice Decimal @db.Decimal(12, 2) // true cost, before markup
+  sellPrice         Decimal @db.Decimal(12, 2) // landedImportPrice + tiered markup
+  markup            Decimal @db.Decimal(12, 2)
+  currency          String  @default("KES")
+
+  priceDataAsOf DateTime
+  isStale       Boolean  @default(false)
+  computedAt    DateTime @default(now())
+}
+
+// Durable backstop for exchange rates, same pattern as AliExpressPriceSnapshot —
+// so a Redis cache miss + API outage still has a last-known rate to fall back on.
+model ExchangeRateSnapshot {
+  id            String   @id @default(cuid())
+  baseCurrency  String // e.g. "USD"
+  quoteCurrency String // e.g. "KES"
+  rate          Decimal  @db.Decimal(14, 6)
+  recordedAt    DateTime @default(now())
+
+  @@index([baseCurrency, quoteCurrency, recordedAt])
 }

@@ -1,0 +1,6 @@
+Product Name,Price,SKU,Description,Image URLs,Currency,In Stock,Color,Size
+Cotton Crew Neck T-Shirt,1200,TEST-LOCAL-001,Soft cotton t-shirt for everyday wear,https://example.com/tshirt-1.jpg;https://example.com/tshirt-2.jpg,KES,yes,White,M
+Running Sneakers,4500,TEST-LOCAL-002,Lightweight sneakers for jogging and gym,https://example.com/sneakers-1.jpg,KES,yes,Black,42
+Wireless Bluetooth Earbuds,3200,TEST-LOCAL-003,Noise-cancelling earbuds with charging case,https://example.com/earbuds-1.jpg,KES,no,White,
+Men's Denim Jacket,5800,TEST-LOCAL-004,Classic denim jacket for men,https://example.com/jacket-1.jpg,KES,yes,Blue,L
+Stainless Steel Water Bottle,,TEST-LOCAL-005,1 litre insulated water bottle,https://example.com/bottle-1.jpg,KES,yes,Silver,
