@@ -76,7 +76,7 @@ async function fetchProductFallback(
       title: first.title,
       description: first.description ?? '',
       imageUrls: first.imageUrls,
-      rawCategoryId: first.rawCategoryId ?? ''
+      rawCategoryId: first.rawCategoryId ?? '',
       skus: skus.map((sku) => ({
         skuId: sku.skuId,
         skuPrice: Number(sku.skuPrice),
@@ -88,7 +88,7 @@ async function fetchProductFallback(
         color: sku.color ?? undefined,
         size: sku.size ?? undefined,
         specs: (sku.specs as Record<string, string>) ?? {},
-        stock: 0, // stock isn't tracked historically — a fallback genuinely cannot know current stock
+        stock: sku.availableStock,
       })),
     },
     asOf,
@@ -123,6 +123,7 @@ async function persistProduct(data: MappedAliExpressProduct): Promise<void> {
         currency: sku.currency,
         priceIncludeTax: sku.priceIncludeTax,
         skuCode: sku.skuCode,
+        availableStock: sku.stock,
       },
       update: {
         title: data.title,
@@ -138,8 +139,7 @@ async function persistProduct(data: MappedAliExpressProduct): Promise<void> {
         currency: sku.currency,
         priceIncludeTax: sku.priceIncludeTax,
         skuCode: sku.skuCode,
-        priceIncludeTax: sku.priceIncludeTax,
-        skuCode: sku.skuCode,
+        availableStock: sku.stock,
       },
     })
 
