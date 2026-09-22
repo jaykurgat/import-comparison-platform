@@ -1,5 +1,6 @@
 import { prisma } from '../prisma'
 import { toProductTeaser, toImportProductTeaser, type ProductTeaser } from './productTeaser'
+import { isCatalogEligible } from './catalogEligibility'
 
 export async function getAllProducts(query = ''): Promise<ProductTeaser[]> {
   const q = query.trim()
@@ -14,12 +15,13 @@ export async function getAllProducts(query = ''): Promise<ProductTeaser[]> {
     },
     orderBy: { createdAt: 'desc' },
   })
-  const localTeasers = localProducts.map((product) => toProductTeaser(product, product.matches))
 
-  // Standalone import products: published, AND with no confirmed match at
-  // all. If a published AliExpress SKU DOES have a confirmed match, it's
-  // already represented via that local product's card above — showing it
-  // again here would be a confusing duplicate.
+  // Matching is enrichment, not catalog eligibility. A local product remains
+  // listable without an AliExpress match, while incomplete records stay hidden.
+  const localTeasers = localProducts
+    .filter(isCatalogEligible)
+    .map((product) => toProductTeaser(product, product.matches))
+
   const standaloneImportSkus = await prisma.aliExpressSKU.findMany({
     where: {
       ...(textFilter ? { title: textFilter } : {}),
