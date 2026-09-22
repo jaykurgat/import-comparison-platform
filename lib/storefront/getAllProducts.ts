@@ -7,7 +7,8 @@ export async function getAllProducts(query = ''): Promise<ProductTeaser[]> {
   const localProducts = await prisma.localSKU.findMany({
     include: {
       matches: {
-        where: { status: { in: ['AUTO_MATCHED', 'MANUAL_CONFIRMED'] } },
+        where: {
+      ...(textFilter ? { title: textFilter } : {}), status: { in: ['AUTO_MATCHED', 'MANUAL_CONFIRMED'] } },
         include: { comparison: true },
       },
     },
@@ -21,6 +22,7 @@ export async function getAllProducts(query = ''): Promise<ProductTeaser[]> {
   // again here would be a confusing duplicate.
   const standaloneImportSkus = await prisma.aliExpressSKU.findMany({
     where: {
+      ...(textFilter ? { title: textFilter } : {}),
       isPublished: true,
       matches: { none: { status: { in: ['AUTO_MATCHED', 'MANUAL_CONFIRMED'] } } },
     },
