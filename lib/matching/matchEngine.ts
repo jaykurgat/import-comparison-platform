@@ -47,7 +47,8 @@ export interface MatchRunResult {
  *
  * Never overwrites a match a human has already reviewed (MANUAL_CONFIRMED
  * or REJECTED) — those are left untouched regardless of what a re-run
- * computes.
+ * computes. REJECTED pairs are also excluded from candidate selection so
+ * they cannot be recreated on a later run.
  */
 export async function runMatchingEngine(): Promise<MatchRunResult> {
   const localSkus = await prisma.localSKU.findMany()
@@ -64,9 +65,24 @@ export async function runMatchingEngine(): Promise<MatchRunResult> {
   }
 
   for (const local of localSkus) {
+    // A rejected local/remote pair is a durable human decision. Exclude it
+    // from candidate selection on every future run so the engine does not
+    // recreate the same rejected match.
+    const priorDecisions = await prisma.sKUMatch.findMany({
+      where: { localSkuId: local.id },
+      select: { aliExpressSkuId: true, status: true },
+    })
+    const rejectedRemoteIds = new Set(
+      priorDecisions
+        .filter((match) => match.status === 'REJECTED')
+        .map((match) => match.aliExpressSkuId),
+    )
+
     let best: { remoteId: string; score: ReturnType<typeof scoreMatch> } | null = null
 
     for (const remote of aliExpressSkus) {
+      if (rejectedRemoteIds.has(remote.id)) continue
+
       const score = scoreMatch(local, remote)
       if (!best || score.confidence > best.score.confidence) {
         best = { remoteId: remote.id, score }
