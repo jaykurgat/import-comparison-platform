@@ -359,6 +359,48 @@ model ImportListingPrice {
 
 // Durable backstop for exchange rates, same pattern as AliExpressPriceSnapshot —
 // so a Redis cache miss + API outage still has a last-known rate to fall back on.
+enum ImportOrderStatus {
+  READY
+  SUBMITTED
+  FAILED
+}
+
+model ImportOrder {
+  id               String            @id @default(cuid())
+  outOrderId       String            @unique
+  status           ImportOrderStatus @default(READY)
+  country          String
+  province         String
+  city             String
+  address          String
+  address2         String?
+  fullName         String?
+  mobileNo         String?
+  zip              String?
+  currency         String            @default("KES")
+  customerTotal    Decimal           @db.Decimal(12, 2)
+  supplierOrderIds String[]          @default([])
+  errorMessage     String?
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  items            ImportOrderItem[]
+  @@index([status, createdAt])
+}
+
+model ImportOrderItem {
+  id              String      @id @default(cuid())
+  orderId         String
+  order           ImportOrder @relation(fields: [orderId], references: [id])
+  aliExpressSkuId String
+  productId       String
+  skuId           String
+  quantity        Int
+  unitSellPrice   Decimal     @db.Decimal(12, 2)
+  createdAt       DateTime    @default(now())
+  @@index([orderId])
+  @@index([aliExpressSkuId])
+}
+
 model ExchangeRateSnapshot {
   id            String   @id @default(cuid())
   baseCurrency  String // e.g. "USD"
