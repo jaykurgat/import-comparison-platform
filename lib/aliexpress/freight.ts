@@ -83,13 +83,28 @@ export async function getAliExpressFreight({
         tracking: opt.tracking,
       }))
 
-      return { destination: shipToCountry, options }
+      return { destination: shipToCountry, options: selectPreferredFreightOptions(options) }
     },
 
     fetchFallback: async () => fetchFreightFallback(productId, skuId, shipToCountry),
 
     persistFresh: async (data) => persistFreight(productId, skuId, data),
   })
+}
+
+function selectPreferredFreightOptions(options: MappedFreightOption[]): MappedFreightOption[] {
+  const valid = options.filter(
+    (option) =>
+      Number.isFinite(option.freightCost) &&
+      option.freightCost >= 0 &&
+      typeof option.currency === 'string' &&
+      option.currency.length > 0
+  )
+  if (valid.length === 0) return []
+
+  const free = valid.filter((option) => option.freeShipping || option.freightCost === 0)
+  const pool = free.length > 0 ? free : valid
+  return [...pool].sort((a, b) => a.freightCost - b.freightCost)
 }
 
 async function fetchFreightFallback(
