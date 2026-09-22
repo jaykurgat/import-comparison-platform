@@ -1,23 +1,9 @@
 import { prisma } from '../prisma'
-
-/**
- * NOTE on outbound links: this project has no cart/checkout system built
- * (nothing in the schema for orders/payments), so this treats LandedCompare
- * as a comparison/discovery layer that sends users to the actual retailer
- * to complete purchase — same model as Google Shopping or PriceRunner, not
- * a full in-house marketplace. If you actually want in-house checkout,
- * that's a much bigger separate build (cart, payments, order management)
- * — flag it if so, this assumption shouldn't be silently locked in.
- *
- * Also: local products have no captured source URL (LocalListingRaw/
- * LocalSKU don't store one, and the CSV importer never asked for one), so
- * there's no "View on Jumia" link for the local side yet — only the
- * AliExpress side has a real, constructible URL (from its productId).
- */
+import { isCatalogEligible } from '../storefront/catalogEligibility'
 
 export interface ProductPageComparison {
   renderMode: 'IMPORT_ADVANTAGE' | 'LOCAL_ONLY'
-  sellPrice: number // what the customer actually pays for the import option — landed cost + markup
+  sellPrice: number
   localTotalPrice: number
   isStale: boolean
   priceDataAsOf: Date
@@ -47,7 +33,7 @@ export interface ProductPageData {
 
 export async function getProductPageData(sku: string): Promise<ProductPageData | null> {
   const localSku = await prisma.localSKU.findUnique({ where: { sku } })
-  if (!localSku) return null
+  if (!localSku || !isCatalogEligible(localSku)) return null
 
   const local = {
     sku: localSku.sku,
@@ -60,10 +46,9 @@ export async function getProductPageData(sku: string): Promise<ProductPageData |
     size: localSku.size,
   }
 
-  // Only a confirmed match with an already-computed comparison is shown —
-  // consistent with the Landed Cost Engine's own eligibility rule. If no
-  // one has confirmed a match (or run the landed cost calc) yet, the page
-  // just shows the local product with no comparison section.
+  // Comparison is enrichment only. A catalog-eligible local product remains
+  // available here even when it has no candidate, a weak/rejected candidate,
+  // or no computed landed-cost result.
   const confirmedMatch = await prisma.sKUMatch.findFirst({
     where: {
       localSkuId: localSku.id,
