@@ -216,6 +216,7 @@ model AliExpressSKU {
   currency       String  @default("USD")
   priceIncludeTax Boolean @default(false)
   skuCode        String?
+  availableStock Int     @default(0)
 
   updatedAt DateTime @updatedAt
   createdAt DateTime @default(now())
