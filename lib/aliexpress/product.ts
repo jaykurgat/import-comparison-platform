@@ -79,8 +79,12 @@ async function fetchProductFallback(
       rawCategoryId: '', // not persisted separately yet — see CategoryMapping note in schema
       skus: skus.map((sku) => ({
         skuId: sku.skuId,
+        skuPrice: Number(sku.skuPrice),
+        offerSalePrice: Number(sku.offerSalePrice),
         itemPrice: Number(sku.priceHistory?.[0]?.itemPrice ?? sku.itemPrice),
         currency: sku.currency,
+        priceIncludeTax: sku.priceIncludeTax,
+        skuCode: sku.skuCode ?? undefined,
         color: sku.color ?? undefined,
         size: sku.size ?? undefined,
         specs: (sku.specs as Record<string, string>) ?? {},
@@ -112,8 +116,12 @@ async function persistProduct(data: MappedAliExpressProduct): Promise<void> {
         color: sku.color,
         size: sku.size,
         specs: sku.specs,
+        skuPrice: sku.skuPrice,
+        offerSalePrice: sku.offerSalePrice,
         itemPrice: sku.itemPrice,
         currency: sku.currency,
+        priceIncludeTax: sku.priceIncludeTax,
+        skuCode: sku.skuCode,
       },
       update: {
         title: data.title,
