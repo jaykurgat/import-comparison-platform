@@ -360,15 +360,29 @@ model ImportListingPrice {
 // Durable backstop for exchange rates, same pattern as AliExpressPriceSnapshot —
 // so a Redis cache miss + API outage still has a last-known rate to fall back on.
 enum ImportOrderStatus {
-  READY
+  PAYMENT_PENDING
+  PAID
+  SUBMITTING
   SUBMITTED
   FAILED
+  CANCELLED
+}
+
+enum ImportPaymentStatus {
+  PENDING
+  PAID
+  FAILED
+  EXPIRED
+}
+
+enum PaymentProvider {
+  STRIPE
 }
 
 model ImportOrder {
   id               String            @id @default(cuid())
   outOrderId       String            @unique
-  status           ImportOrderStatus @default(READY)
+  status           ImportOrderStatus @default(PAYMENT_PENDING)
   country          String
   province         String
   city             String
@@ -383,7 +397,25 @@ model ImportOrder {
   errorMessage     String?
   createdAt        DateTime          @default(now())
   updatedAt        DateTime          @updatedAt
+  payment          ImportPayment?
   items            ImportOrderItem[]
+  @@index([status, createdAt])
+}
+
+model ImportPayment {
+  id                String              @id @default(cuid())
+  orderId           String              @unique
+  order             ImportOrder        @relation(fields: [orderId], references: [id])
+  provider          PaymentProvider     @default(STRIPE)
+  status            ImportPaymentStatus @default(PENDING)
+  checkoutSessionId String              @unique
+  paymentIntentId   String?
+  amount            Decimal             @db.Decimal(12, 2)
+  currency          String              @default("KES")
+  paidAt            DateTime?
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+
   @@index([status, createdAt])
 }
 
