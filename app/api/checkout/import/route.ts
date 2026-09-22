@@ -18,8 +18,6 @@ export async function POST(request: Request) {
       address: String(body.address ?? ''),
       address2: body.address2 ? String(body.address2) : undefined,
       zip: body.zip ? String(body.zip) : undefined,
-      // Live supplier order creation is opt-in. Quote/validation is the default.
-      placeOrder: body.placeOrder === true,
     })
 
     return NextResponse.json(result)
