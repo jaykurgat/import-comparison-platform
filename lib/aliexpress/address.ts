@@ -32,7 +32,7 @@ export async function getAliExpressAddressTree(
         getAliExpressCredentials(),
       )
       const result = response.aliexpress_ds_address_get_response?.result
-      if (!result?.ret) {
+      if (result?.ret !== true && result?.ret !== 'true') {
         throw new Error(`AliExpress address lookup failed for ${normalizedCountry}: ${result?.msg ?? result?.code ?? 'unknown error'}`)
       }
       return {
