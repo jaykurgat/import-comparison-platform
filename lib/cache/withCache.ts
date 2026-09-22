@@ -60,7 +60,7 @@ export async function withCache<T>(options: WithCacheOptions<T>): Promise<CacheR
   const circuitOpen = await isCircuitOpen(serviceName)
   if (circuitOpen) {
     console.warn(`[withCache] Circuit open for "${serviceName}" — using fallback for ${cacheKey}.`)
-    return useFallback(cacheKey, fetchFallback)
+    return resolveFallback(cacheKey, fetchFallback)
   }
 
   const gotLock = await redis.set(lockKey, lockToken, { nx: true, ex: lockTtlSeconds })
@@ -79,7 +79,7 @@ export async function withCache<T>(options: WithCacheOptions<T>): Promise<CacheR
       }
     }
     console.warn(`[withCache] Timed out waiting for concurrent fetch of ${cacheKey} — using fallback.`)
-    return useFallback(cacheKey, fetchFallback)
+    return resolveFallback(cacheKey, fetchFallback)
   }
 
   try {
@@ -104,10 +104,8 @@ export async function withCache<T>(options: WithCacheOptions<T>): Promise<CacheR
   } catch (err) {
     console.error(`[withCache] Fresh fetch failed for ${cacheKey}:`, err)
     await recordFailure(serviceName)
-    return useFallback(cacheKey, fetchFallback)
+    return resolveFallback(cacheKey, fetchFallback)
   } finally {
-    // Only the lock owner may release this lock. Upstash Redis supports
-    // EVAL, allowing an atomic compare-and-delete operation.
     try {
       await redis.eval(
         `if redis.call("get", KEYS[1]) == ARGV[1] then return redis.call("del", KEYS[1]) else return 0 end`,
@@ -120,7 +118,7 @@ export async function withCache<T>(options: WithCacheOptions<T>): Promise<CacheR
   }
 }
 
-async function useFallback<T>(
+async function resolveFallback<T>(
   cacheKey: string,
   fetchFallback: () => Promise<{ data: T; asOf: Date } | null>
 ): Promise<CacheResult<T>> {
