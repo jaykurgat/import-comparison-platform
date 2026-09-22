@@ -3,6 +3,7 @@ import { isCatalogEligible } from '../storefront/catalogEligibility'
 import { getAliExpressFreight } from './freight'
 import { discoverAliExpressProducts } from './discovery'
 import { getAliExpressProduct } from './product'
+import { repriceImportSku } from '../pricing/repriceImportSku'
 
 export interface CatalogSyncOptions {
   limit?: number
@@ -19,7 +20,8 @@ export interface CatalogSyncResult {
   productsFetched: number
   skusPersisted: number
   freightQuotesFetched: number
-  errors: Array<{ localSku: string; productId?: string; message: string }>
+  pricesComputed: number
+  errors: Array<{ localSku: string; productId?: string; skuId?: string; message: string }>
 }
 
 /**
@@ -29,9 +31,9 @@ export interface CatalogSyncResult {
  * durable AliExpressSKU records with isPublished=false. Matching and human
  * review can then decide whether a supplier SKU is appropriate.
  *
- * Text discovery is used here because it is already implemented and requires
- * no invented feed name. Feed-based discovery can be added independently when
- * a verified feed name is available to the application.
+ * After a representative Kenya freight quote is persisted, the same SKU is
+ * repriced from durable snapshots so the supplier catalog has a usable KES
+ * sell price without rediscovering the product.
  */
 export async function syncAliExpressCatalog(
   options: CatalogSyncOptions = {},
@@ -55,6 +57,7 @@ export async function syncAliExpressCatalog(
     productsFetched: 0,
     skusPersisted: 0,
     freightQuotesFetched: 0,
+    pricesComputed: 0,
     errors: [],
   }
 
@@ -101,11 +104,26 @@ export async function syncAliExpressCatalog(
 
               if (freight.data.options.length > 0) {
                 result.freightQuotesFetched++
+
+                if (shipToCountry === 'KE' && currency === 'USD') {
+                  try {
+                    await repriceImportSku(product.data.productId, sku.skuId)
+                    result.pricesComputed++
+                  } catch (error) {
+                    result.errors.push({
+                      localSku: local.sku,
+                      productId: candidate.productId,
+                      skuId: sku.skuId,
+                      message: error instanceof Error ? error.message : String(error),
+                    })
+                  }
+                }
               }
             } catch (error) {
               result.errors.push({
                 localSku: local.sku,
                 productId: candidate.productId,
+                skuId: sku.skuId,
                 message: error instanceof Error ? error.message : String(error),
               })
             }

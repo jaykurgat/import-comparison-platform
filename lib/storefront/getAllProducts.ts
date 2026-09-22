@@ -22,10 +22,14 @@ export async function getAllProducts(query = ''): Promise<ProductTeaser[]> {
     .filter(isCatalogEligible)
     .map((product) => toProductTeaser(product, product.matches))
 
+  // An import listing is sellable only while at least one persisted SKU has
+  // stock. Hydrated supplier data can remain unpublished/out of stock without
+  // leaking into the customer catalog.
   const standaloneImportSkus = await prisma.aliExpressSKU.findMany({
     where: {
       ...(textFilter ? { title: textFilter } : {}),
       isPublished: true,
+      availableStock: { gt: 0 },
       matches: { none: { status: { in: ['AUTO_MATCHED', 'MANUAL_CONFIRMED'] } } },
     },
     include: { importListingPrice: true },

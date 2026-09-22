@@ -24,9 +24,14 @@ export async function getImportProductPageData(
     include: { importListingPrice: true },
   })
 
-  // Not found, not published, or not yet priced — all treated the same:
-  // there's nothing valid to show.
-  if (!aliExpressSku || !aliExpressSku.isPublished || !aliExpressSku.importListingPrice) {
+  // Not found, not published, out of stock, or not yet priced — all treated
+  // the same: there is no valid sellable import listing to show.
+  if (
+    !aliExpressSku ||
+    !aliExpressSku.isPublished ||
+    aliExpressSku.availableStock <= 0 ||
+    !aliExpressSku.importListingPrice
+  ) {
     return null
   }
 

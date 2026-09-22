@@ -8,3 +8,4 @@ export { discoverAliExpressProducts, fetchDiscoveredProducts } from './discovery
 export { getAliExpressFeedItemIds } from './feed'
 export { resolveAliExpressAddress } from './addressResolver'
 export { syncAliExpressCatalog } from './catalogSync'
+export { repriceImportSku, repriceImportCatalog } from '../pricing'
