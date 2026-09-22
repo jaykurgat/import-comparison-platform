@@ -31,7 +31,7 @@ export async function createStripeCheckoutSession(input: {
   body.set('line_items[0][price_data][currency]', 'kes')
   body.set('line_items[0][price_data][product_data][name]', input.productName.slice(0, 250))
   body.set('line_items[0][price_data][unit_amount]', String(input.amountKes * 100))
-  body.set('line_items[0][quantity]', String(input.quantity))
+  body.set('line_items[0][quantity]', '1')
   body.set('metadata[order_id]', input.orderId)
   body.set('payment_intent_data[metadata][order_id]', input.orderId)
 
