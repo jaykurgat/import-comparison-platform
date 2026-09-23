@@ -12,12 +12,14 @@ export async function POST(request: Request) {
   }
 
   const body = await request.json().catch(() => ({}))
+  const clamp = (value: unknown, fallback: number, max: number) =>
+    typeof value === 'number' && Number.isFinite(value) ? Math.max(1, Math.min(Math.floor(value), max)) : fallback
   const result = await syncAliExpressCatalog({
-    limit: typeof body.limit === 'number' ? body.limit : 20,
+    limit: clamp(body.limit, 20, 100),
     candidatesPerLocal:
-      typeof body.candidatesPerLocal === 'number' ? body.candidatesPerLocal : 5,
+      clamp(body.candidatesPerLocal, 5, 20),
     freightSkusPerProduct:
-      typeof body.freightSkusPerProduct === 'number' ? body.freightSkusPerProduct : 1,
+      clamp(body.freightSkusPerProduct, 1, 5),
     shipToCountry: typeof body.shipToCountry === 'string' ? body.shipToCountry : 'KE',
     currency: typeof body.currency === 'string' ? body.currency : 'USD',
   })
