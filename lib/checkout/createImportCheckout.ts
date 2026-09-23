@@ -1,7 +1,7 @@
 import { prisma } from '@/lib/prisma'
 import { getAliExpressFreight } from '@/lib/aliexpress/freight'
 import { resolveAliExpressAddress } from '@/lib/aliexpress/addressResolver'
-import { createStripeCheckoutSession } from '@/lib/payments/stripe'
+import { createDarajaStkPush } from '@/lib/payments/daraja'
 
 export interface ImportCheckoutInput {
   productId: string
@@ -21,6 +21,7 @@ export interface ImportCheckoutResult {
   orderId: string
   status: 'PAYMENT_PENDING'
   checkoutUrl: string
+  paymentMessage: string
   customerTotal: number
   currency: string
   freight: number
@@ -92,20 +93,20 @@ export async function createImportCheckout(input: ImportCheckoutInput): Promise<
   })
 
   try {
-    const session = await createStripeCheckoutSession({
-      orderId: order.id,
+    const payment = await createDarajaStkPush({
       amountKes: Math.round(customerTotal),
-      productName: sku.title,
-      quantity: input.quantity,
+      phoneNumber: input.mobileNo,
+      accountReference: order.outOrderId,
+      transactionDesc: sku.title,
     })
 
     await prisma.importPayment.create({
       data: {
         orderId: order.id,
-        provider: 'STRIPE',
+        provider: 'DARAJA',
         status: 'PENDING',
-        checkoutSessionId: session.id,
-        paymentIntentId: typeof session.payment_intent === 'string' ? session.payment_intent : null,
+        checkoutRequestId: payment.checkoutRequestId,
+        merchantRequestId: payment.merchantRequestId,
         amount: customerTotal,
         currency: 'KES',
       },
@@ -114,7 +115,8 @@ export async function createImportCheckout(input: ImportCheckoutInput): Promise<
     return {
       orderId: order.id,
       status: 'PAYMENT_PENDING',
-      checkoutUrl: session.url,
+      checkoutUrl: `/checkout/import/success?orderId=${order.id}`,
+      paymentMessage: payment.customerMessage ?? 'Check your phone and enter your M-PESA PIN to complete payment.',
       customerTotal,
       currency: 'KES',
       freight: option.freightCost,
