@@ -17,7 +17,7 @@ export async function confirmMatch(matchId: string): Promise<void> {
     where: { id: matchId },
     data: {
       status: 'MANUAL_CONFIRMED',
-      reviewedBy: 'admin'
+      reviewedBy: 'admin',
       reviewedAt: new Date(),
     },
   })
