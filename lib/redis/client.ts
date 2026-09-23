@@ -1,18 +1,33 @@
 import { Redis } from '@upstash/redis'
 
-// Upstash's REST-based client is safe to instantiate fresh each time (it's
-// just an HTTP client under the hood, not a persistent socket) but we still
-// centralize it here so every part of the app reads env vars the same way,
-// and so we get a clear, single error if credentials are missing.
+let client: Redis | null = null
 
-if (!process.env.UPSTASH_REDIS_REST_URL || !process.env.UPSTASH_REDIS_REST_TOKEN) {
-  throw new Error(
-    'Missing UPSTASH_REDIS_REST_URL or UPSTASH_REDIS_REST_TOKEN. ' +
-      'Add both to your .env file — see prisma/README.md or lib/cache/README.md for setup steps.'
-  )
+function getRedisClient(): Redis {
+  if (client) return client
+
+  const url = process.env.UPSTASH_REDIS_REST_URL
+  const token = process.env.UPSTASH_REDIS_REST_TOKEN
+
+  if (!url || !token) {
+    throw new Error(
+      'Missing UPSTASH_REDIS_REST_URL or UPSTASH_REDIS_REST_TOKEN. ' +
+        'Add both to your .env file — see prisma/README.md or lib/cache/README.md for setup steps.'
+    )
+  }
+
+  client = new Redis({ url, token })
+  return client
 }
 
-export const redis = new Redis({
-  url: process.env.UPSTASH_REDIS_REST_URL,
-  token: process.env.UPSTASH_REDIS_REST_TOKEN,
+/**
+ * Keep Redis configuration lazy so Next.js can compile and inspect routes
+ * during a production build without requiring deployment secrets at build time.
+ * The first real cache operation still fails clearly if the runtime is
+ * misconfigured.
+ */
+export const redis = new Proxy({} as Redis, {
+  get(_target, property, receiver) {
+    const value = Reflect.get(getRedisClient() as object, property, receiver)
+    return typeof value === 'function' ? value.bind(getRedisClient()) : value
+  },
 })
