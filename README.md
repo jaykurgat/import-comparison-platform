@@ -10,7 +10,7 @@ The storefront has two independent catalog paths:
 - **Supplier catalog:** an AliExpress SKU is customer-visible only after it is published, has stock, and has a current persisted storefront price.
 - **Matching:** enriches local products; it never determines whether a valid local product exists in the catalog.
 - **Product detail:** local products remain usable as local-only listings when no valid comparison exists.
-- **Import checkout:** validates supplier listing, stock, price, and delivery address, then initiates a Daraja STK Push. Callback handling is idempotent, but it does not yet reconcile successful callbacks with Daraja's transaction query API or complete AliExpress supplier payment. Keep production checkout disabled until those safeguards and end-to-end sandbox verification are complete.
+- **Import checkout:** validates supplier listing, stock, price, and delivery address, then initiates a Daraja STK Push. Both callback routes now share an idempotent handler that independently queries Daraja and checks the payment amount, customer phone, and receipt before allowing an import order to proceed. Daraja sandbox end-to-end verification and AliExpress supplier payment/fulfillment are still outstanding. Keep production checkout disabled until those steps are complete.
 
 This separation is covered by automated tests so later storefront work does not accidentally restore the old behavior where unmatched local products disappear.
 
