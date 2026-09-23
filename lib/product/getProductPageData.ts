@@ -29,12 +29,13 @@ export interface ProductPageData {
     color: string | null
     size: string | null
     inStock: boolean
+    categoryName: string | null
   }
   comparison: ProductPageComparison | null
 }
 
 export async function getProductPageData(sku: string): Promise<ProductPageData | null> {
-  const localSku = await prisma.localSKU.findUnique({ where: { sku } })
+  const localSku = await prisma.localSKU.findUnique({ where: { sku }, include: { category: true } })
   if (!localSku || !isCatalogEligible(localSku)) return null
 
   const local = {
@@ -48,6 +49,7 @@ export async function getProductPageData(sku: string): Promise<ProductPageData |
     color: localSku.color,
     size: localSku.size,
     inStock: localSku.inStock,
+    categoryName: localSku.category?.name ?? null,
   }
 
   // Comparison is enrichment only. A catalog-eligible local product remains
