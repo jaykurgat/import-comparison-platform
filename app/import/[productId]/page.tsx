@@ -43,22 +43,10 @@ export default async function ImportProductGroupPage({ params }: { params: Promi
   const highPrice = Math.max(...prices)
   const hasStock = data.variants.some((variant) => variant.availableStock > 0)
   const currency = data.variants[0]?.currency ?? 'KES'
-  const categoryId = data.variants.length > 0 ? (
-    await (async () => {
-      const firstSku = data.variants[0]
-      const row = await import('@/lib/prisma').then(({ prisma }) =>
-        prisma.aliExpressSKU.findUnique({
-          where: { productId_skuId: { productId, skuId: firstSku.skuId } },
-          select: { categoryId: true },
-        }),
-      )
-      return row?.categoryId ?? null
-    })()
-  ) : null
 
   const [comparableLocals, relatedProducts] = await Promise.all([
     getComparableLocalsForImportProduct(productId, 4),
-    getRelatedProductsForImport(productId, categoryId, data.title, null, null, null, 6),
+    getRelatedProductsForImport(productId, data.categoryId, data.title, null, null, null, 6),
   ])
 
   return (
