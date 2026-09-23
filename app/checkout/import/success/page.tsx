@@ -11,15 +11,17 @@ export default function ImportCheckoutSuccessPage() {
   const [orderCurrency, setOrderCurrency] = useState('KES')
 
   useEffect(() => {
-    const orderId = new URLSearchParams(window.location.search).get('orderId')
-    if (!orderId) return
+    const params = new URLSearchParams(window.location.search)
+    const orderId = params.get('orderId')
+    const accessToken = params.get('token')
+    if (!orderId || !accessToken) return
 
     let stopped = false
     let timer: ReturnType<typeof setTimeout> | undefined
 
     const poll = async () => {
       try {
-        const response = await fetch(`/api/checkout/import/status?orderId=${encodeURIComponent(orderId)}`, {
+        const response = await fetch(`/api/checkout/import/status?orderId=${encodeURIComponent(orderId)}&token=${encodeURIComponent(accessToken)}`, {
           cache: 'no-store',
         })
         const body = await response.json()
