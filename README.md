@@ -1,36 +1,72 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Import Comparison Platform
 
-## Getting Started
+Next.js marketplace application that keeps the original local-product storefront while adding AliExpress supplier discovery, matching, landed-cost comparison, supplier catalog operations, and an import checkout boundary.
 
-First, run the development server:
+## V4/V5 integration contract
+
+The storefront has two independent catalog paths:
+
+- **Local catalog:** every valid `LocalSKU` remains eligible for `/products` even when it has no AliExpress candidate, match, comparison, image, or description.
+- **Supplier catalog:** an AliExpress SKU is customer-visible only after it is published, has stock, and has a current persisted storefront price.
+- **Matching:** enriches local products; it never determines whether a valid local product exists in the catalog.
+- **Product detail:** local products remain usable as local-only listings when no valid comparison exists.
+- **Import checkout:** remains behind the persisted supplier-price/stock/address validation boundary. Payment execution is intentionally paused.
+
+This separation is covered by automated tests so later storefront work does not accidentally restore the old behavior where unmatched local products disappear.
+
+## Local development
+
+Install dependencies and run the normal checks:
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm ci
+npx prisma generate
+npm run lint
+npm run typecheck
+npm test
+npm run build
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Create your local `.env` from `.env.example`. Keep secrets out of Git.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+For the V5 admin surface, configure `ADMIN_PASSWORD` and `ADMIN_SESSION_SECRET` locally. Supplier catalog machine endpoints additionally use `CATALOG_SYNC_SECRET`.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Database
 
-## Learn More
+Prisma migrations are ordered under `prisma/migrations/`. A synced V5 checkout must run:
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+npx prisma migrate deploy
+npx prisma generate
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Do not assume an older local V4 checkout has the V5 migration history merely because its existing migrations are already applied to Neon.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## CI
 
-## Deploy on Vercel
+The GitHub Actions CI workflow runs linting, Prisma client generation, TypeScript type checking, and the automated Node test suite on pull requests and the V5 hardening branch. GitHub Actions runs the workflow version associated with the triggering commit, so CI results should be checked against the exact branch/commit being changed.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Deployment
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+The application can be deployed as a Next.js application. Before exposing the admin/catalog operations publicly, configure the required database, Redis, AliExpress, admin, and catalog-sync secrets. Daraja remains sandbox/paused until payment execution is explicitly reopened.
+
+## Project structure
+
+- `app/products` — customer catalog
+- `app/product/[sku]` — local product detail/comparison
+- `app/import/[productId]/[skuId]` — supplier import checkout
+- `app/admin/import` — local CSV ingestion
+- `app/admin/review` — match review
+- `app/admin/catalog` — supplier catalog operations
+- `app/admin/health` — catalog health
+- `lib/matching` — matching and review decision rules
+- `lib/pricing` — supplier landed-cost/repricing logic
+- `lib/aliexpress` — AliExpress API, discovery, freight, address, and catalog sync
+- `lib/storefront` — storefront eligibility and product composition
+- `tests` — automated regression coverage
+
+## Learn more
+
+- [Next.js](https://nextjs.org/docs)
+- [Prisma](https://www.prisma.io/docs)
+- [GitHub Actions](https://docs.github.com/en/actions)
