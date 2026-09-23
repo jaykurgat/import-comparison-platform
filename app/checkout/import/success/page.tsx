@@ -2,10 +2,13 @@
 
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
+import { trackPurchase } from '@/lib/analytics/events'
 
 export default function ImportCheckoutSuccessPage() {
   const [status, setStatus] = useState('PAYMENT_PENDING')
   const [message, setMessage] = useState('Waiting for the M-PESA payment confirmation…')
+  const [orderTotal, setOrderTotal] = useState<number | null>(null)
+  const [orderCurrency, setOrderCurrency] = useState('KES')
 
   useEffect(() => {
     const orderId = new URLSearchParams(window.location.search).get('orderId')
@@ -23,8 +26,22 @@ export default function ImportCheckoutSuccessPage() {
         if (stopped) return
 
         setStatus(body.status ?? 'PAYMENT_PENDING')
+        if (typeof body.customerTotal === 'number') setOrderTotal(body.customerTotal)
+        if (typeof body.currency === 'string') setOrderCurrency(body.currency)
+        if (body.payment?.status === 'PAID' && typeof body.customerTotal === 'number') {
+          const key = `kijijicart_purchase_tracked_${orderId}`
+          if (!window.localStorage.getItem(key)) {
+            trackPurchase({ transaction_id: orderId, value: body.customerTotal, currency: body.currency ?? 'KES' })
+            window.localStorage.setItem(key, '1')
+          }
+        }
         if (body.status === 'SUBMITTED') {
           setMessage('Payment confirmed and your supplier order has been submitted.')
+          return
+        }
+        if (body.status === 'SUBMITTING') {
+          setMessage('Payment confirmed. Submitting your supplier order…')
+          timer = setTimeout(poll, 2500)
           return
         }
         if (body.status === 'FAILED') {
@@ -65,6 +82,7 @@ export default function ImportCheckoutSuccessPage() {
           {status === 'SUBMITTED' ? 'Your import order is confirmed' : 'Complete your M-PESA payment'}
         </h1>
         <p className="mt-4 text-sm leading-6 text-slate-600">{message}</p>
+        {orderTotal !== null && <p className="mt-3 text-sm font-bold text-slate-900">Order total: {orderCurrency} {orderTotal.toLocaleString()}</p>}
         <Link href="/products" className="mt-6 inline-flex rounded-lg bg-[#0f5132] px-5 py-3 text-sm font-bold text-white">
           Continue shopping
         </Link>
