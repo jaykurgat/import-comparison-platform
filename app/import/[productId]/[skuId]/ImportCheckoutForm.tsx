@@ -6,9 +6,11 @@ import { trackBeginCheckout } from '@/lib/analytics/events'
 export function ImportCheckoutForm({
   productId,
   skuId,
+  sellPrice,
 }: {
   productId: string
   skuId: string
+  sellPrice: number
 }) {
   const [quantity, setQuantity] = useState(1)
   const [message, setMessage] = useState<string | null>(null)
@@ -17,7 +19,7 @@ export function ImportCheckoutForm({
   async function submit(formData: FormData) {
     setPending(true)
     setMessage(null)
-    trackBeginCheckout([{ item_id: `${productId}-${skuId}`, item_name: productId, quantity, currency: 'KES' }], 0, 'KES')
+    trackBeginCheckout([{ item_id: `${productId}-${skuId}`, item_name: productId, quantity, price: sellPrice, currency: 'KES' }], sellPrice * quantity, 'KES')
 
     try {
       const response = await fetch('/api/checkout/import', {
