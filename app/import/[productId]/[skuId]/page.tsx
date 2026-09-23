@@ -1,11 +1,30 @@
 export const dynamic = 'force-dynamic'
 
 import { notFound } from 'next/navigation'
+import type { Metadata } from 'next'
 import Link from 'next/link'
 import { getImportProductPageData } from '@/lib/product/getImportProductPageData'
 import SiteHeader from '@/components/SiteHeader'
 import SiteFooter from '@/components/SiteFooter'
 import { ImportCheckoutForm } from './ImportCheckoutForm'
+
+export async function generateMetadata({ params }: { params: Promise<{ productId: string; skuId: string }> }): Promise<Metadata> {
+  const { productId, skuId } = await params
+  const data = await getImportProductPageData(productId, skuId)
+  if (!data) return { title: 'Import product not found | KijijiCart' }
+  const description = data.description?.replace(/<[^>]*>/g, '').slice(0, 155) || `Buy ${data.title} through the KijijiCart import marketplace.`
+  return {
+    title: `${data.title} | KijijiCart Import`,
+    description,
+    alternates: { canonical: `/import/${encodeURIComponent(productId)}/${encodeURIComponent(skuId)}` },
+    openGraph: {
+      title: data.title,
+      description,
+      type: 'website',
+      images: data.imageUrls[0] ? [{ url: data.imageUrls[0], alt: data.title }] : undefined,
+    },
+  }
+}
 
 export default async function ImportProductPage({ params }: { params: Promise<{ productId: string; skuId: string }> }) {
   const { productId, skuId } = await params
