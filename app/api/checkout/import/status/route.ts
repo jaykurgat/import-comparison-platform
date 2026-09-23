@@ -23,7 +23,7 @@ export async function GET(request: Request) {
 
   if (!order) return NextResponse.json({ error: 'Order not found.' }, { status: 404 })
   return NextResponse.json(
-    { ...order, customerTotal: Number(order.customerTotal), items: order.items.map((item) => ({ item_id: `${item.productId}-${item.skuId}`, item_name: item.aliExpressSku.title, quantity: item.quantity, price: Number(item.unitSellPrice), currency: order.currency })) },
+    { ...order, customerTotal: Number(order.customerTotal), items: order.items.map((item) => ({ item_id: `${item.productId}-${item.skuId}`, item_name: `Imported product ${item.productId}`, quantity: item.quantity, price: Number(item.unitSellPrice), currency: order.currency })) },
     { headers: { 'Cache-Control': 'no-store' } },
   )
 }
