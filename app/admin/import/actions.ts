@@ -25,7 +25,7 @@ export async function importLocalCsv(_previous: ImportState, formData: FormData)
     return { ok: false, message: 'Choose a CSV file first.' }
   }
 
-  const mapping = {
+  if (file.size > 10 * 1024 * 1024) {\n    return { ok: false, message: 'CSV files are limited to 10 MB.' }\n  }\n\n  const mapping = {
     title: String(formData.get('title') ?? '').trim(),
     price: String(formData.get('price') ?? '').trim(),
     sourceRef: String(formData.get('sourceRef') ?? '').trim() || undefined,
