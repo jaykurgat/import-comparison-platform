@@ -23,6 +23,7 @@ export interface ProductPageComparison {
 
 export interface ProductPageData {
   local: {
+    id: string
     sku: string
     title: string
     description: string
@@ -33,6 +34,7 @@ export interface ProductPageData {
     currency: string
     color: string | null
     size: string | null
+    specs: unknown
     inStock: boolean
     categoryId: string | null
     categoryName: string | null
@@ -55,6 +57,7 @@ export async function getProductPageData(sku: string): Promise<ProductPageData |
   })
 
   const local = {
+    id: localSku.id,
     sku: localSku.sku,
     title: localSku.title,
     description: description.overview,
@@ -65,6 +68,7 @@ export async function getProductPageData(sku: string): Promise<ProductPageData |
     currency: localSku.currency,
     color: localSku.color,
     size: localSku.size,
+    specs: localSku.specs,
     inStock: localSku.inStock,
     categoryId: localSku.categoryId,
     categoryName: localSku.category?.name ?? null,
