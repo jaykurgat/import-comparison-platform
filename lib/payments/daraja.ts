@@ -89,6 +89,56 @@ export async function createDarajaStkPush(input: {
   }
 }
 
+export interface DarajaStkQueryResult {
+  checkoutRequestId: string
+  resultCode: string | null
+  resultDescription: string
+}
+
+interface StkQueryResponse {
+  ResponseCode?: string
+  ResponseDescription?: string
+  CheckoutRequestID?: string
+  ResultCode?: string | number
+  ResultDesc?: string
+}
+
+export async function queryDarajaStkPush(checkoutRequestId: string): Promise<DarajaStkQueryResult> {
+  const config = getConfig()
+  const timestamp = getDarajaTimestamp()
+  const password = Buffer.from(`${config.shortcode}${config.passkey}${timestamp}`).toString('base64')
+  const token = await getAccessToken(config)
+
+  const response = await fetch(`${config.baseUrl}/mpesa/stkpushquery/v1/query`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      BusinessShortCode: config.shortcode,
+      Password: password,
+      Timestamp: timestamp,
+      CheckoutRequestID: checkoutRequestId,
+    }),
+    cache: 'no-store',
+  })
+
+  const body = await response.json() as StkQueryResponse & { errorMessage?: string }
+  if (!response.ok || body.ResponseCode !== '0') {
+    throw new Error(body.errorMessage || body.ResponseDescription || 'Daraja STK query failed.')
+  }
+  if (body.CheckoutRequestID && body.CheckoutRequestID !== checkoutRequestId) {
+    throw new Error('Daraja STK query returned a different checkout request.')
+  }
+
+  return {
+    checkoutRequestId,
+    resultCode: body.ResultCode === undefined ? null : String(body.ResultCode),
+    resultDescription: body.ResultDesc ?? body.ResponseDescription ?? 'Daraja has not reported a final payment result.',
+  }
+}
+
 export function parseDarajaCallback(payload: DarajaCallback) {
   const callback = payload.Body?.stkCallback
   if (!callback?.CheckoutRequestID) throw new Error('Invalid Daraja callback payload.')
@@ -105,6 +155,8 @@ export function parseDarajaCallback(payload: DarajaCallback) {
     resultCode: callback.ResultCode ?? -1,
     resultDescription: callback.ResultDesc ?? 'Unknown Daraja result.',
     mpesaReceiptNumber: valueToString(metadata.get('MpesaReceiptNumber')),
+    amount: valueToNumber(metadata.get('Amount')),
+    phoneNumber: valueToString(metadata.get('PhoneNumber')),
   }
 }
 
@@ -175,6 +227,12 @@ function getDarajaTimestamp(): string {
 
 function valueToString(value: string | number | undefined): string | null {
   return value === undefined ? null : String(value)
+}
+
+function valueToNumber(value: string | number | undefined): number | null {
+  if (value === undefined) return null
+  const result = Number(value)
+  return Number.isFinite(result) ? result : null
 }
 
 function required(name: keyof NodeJS.ProcessEnv): string {
