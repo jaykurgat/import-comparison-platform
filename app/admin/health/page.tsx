@@ -1,6 +1,7 @@
 import { requireAdmin } from '@/lib/admin/auth'
 import { logoutAdmin } from '../actions'
 import { getCatalogHealth } from '@/lib/admin/getCatalogHealth'
+import Link from 'next/link'
 
 function Metric({ label, value, tone = 'neutral' }: { label: string; value: number; tone?: 'neutral' | 'warning' | 'danger' }) {
   const cls = tone === 'danger'
@@ -32,6 +33,13 @@ export default async function CatalogHealthPage() {
           <form action={logoutAdmin}>
             <button type="submit" className="rounded border border-[#D8D8D3] px-4 py-2 text-sm font-medium hover:bg-white">Sign out</button>
           </form>
+        </div>
+
+        <div className="mt-6 flex flex-wrap gap-2">
+          <Link href="/admin/import" className="rounded border border-[#D8D8D3] bg-white px-4 py-2 text-sm font-medium hover:bg-[#F7F7F5]">Import local data</Link>
+          <Link href="/admin/catalog" className="rounded border border-[#D8D8D3] bg-white px-4 py-2 text-sm font-medium hover:bg-[#F7F7F5]">Manage supplier catalog</Link>
+          <Link href="/admin/review" className="rounded border border-[#D8D8D3] bg-white px-4 py-2 text-sm font-medium hover:bg-[#F7F7F5]">Review matches</Link>
+          <Link href="/products" className="rounded border border-[#D8D8D3] bg-white px-4 py-2 text-sm font-medium hover:bg-[#F7F7F5]">View storefront</Link>
         </div>
 
         <section className="mt-8">
