@@ -24,6 +24,7 @@ export async function ingestCsv(csvContent: string, mapping: CsvColumnMapping): 
         source: 'MANUAL_CSV',
         sourceRef: row.sourceRef,
         title: row.title,
+        sourceUrl: row.sourceUrl,
         description: row.description,
         imageUrls: row.imageUrls,
         priceRaw: row.priceRaw,
