@@ -1,11 +1,14 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { verifyOrderAccessToken } from '@/lib/checkout/orderAccess'
 
 export const runtime = 'nodejs'
 
 export async function GET(request: Request) {
   const orderId = new URL(request.url).searchParams.get('orderId')?.trim()
-  if (!orderId) return NextResponse.json({ error: 'orderId is required.' }, { status: 400 })
+  const accessToken = new URL(request.url).searchParams.get('token')
+  if (!orderId || !accessToken) return NextResponse.json({ error: 'orderId and token are required.' }, { status: 400 })
+  if (!verifyOrderAccessToken(orderId, accessToken)) return NextResponse.json({ error: 'Invalid order access token.' }, { status: 403 })
 
   const order = await prisma.importOrder.findUnique({
     where: { id: orderId },
