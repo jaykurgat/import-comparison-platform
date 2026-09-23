@@ -23,6 +23,9 @@ export async function POST(request: Request) {
     // Empty body is valid; defaults are used.
   }
 
-  const result = await repriceImportCatalog(body)
+  const result = await repriceImportCatalog({
+    ...body,
+    limit: typeof body.limit === 'number' ? Math.max(1, Math.min(Math.floor(body.limit), 500)) : undefined,
+  })
   return NextResponse.json(result)
 }
