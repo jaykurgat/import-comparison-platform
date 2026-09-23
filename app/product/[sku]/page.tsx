@@ -53,6 +53,7 @@ export default async function ProductPage({ params }: { params: Promise<{ sku: s
                 <p className="mt-1 text-xs leading-5 text-slate-500">This listing is the local retail reference used for the comparison.</p>
               </div>
               {local.description && <p className="mt-6 text-sm leading-6 text-slate-600">{local.description}</p>}
+              {local.sourceUrl && <a href={local.sourceUrl} target="_blank" rel="noopener noreferrer" className="mt-4 inline-flex text-sm font-semibold text-[#0f5132] hover:underline">View original local listing →</a>}
             </section>
           </div>
 
