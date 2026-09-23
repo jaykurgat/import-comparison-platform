@@ -25,6 +25,7 @@ npm run lint
 npm run typecheck
 npm test
 npm run build
+npm run smoke:production -- # requires SMOKE_BASE_URL
 ```
 
 Create your local `.env` from `.env.example`. Keep secrets out of Git.
@@ -44,11 +45,95 @@ Do not assume an older local V4 checkout has the V5 migration history merely bec
 
 ## CI
 
-The GitHub Actions CI workflow runs linting, Prisma client generation, TypeScript type checking, and the automated Node test suite on pull requests and the V5 hardening branch. GitHub Actions runs the workflow version associated with the triggering commit, so CI results should be checked against the exact branch/commit being changed.
+The GitHub Actions CI workflow runs linting, Prisma client generation, TypeScript type checking, the automated Node test suite, and the production build on pull requests and the V5 hardening branch. GitHub Actions runs the workflow version associated with the triggering commit, so CI results should be checked against the exact branch/commit being changed.
 
 ## Deployment
 
-The application can be deployed as a Next.js application. Before exposing the admin/catalog operations publicly, configure the required database, Redis, AliExpress, admin, and catalog-sync secrets. Daraja remains sandbox/paused until payment execution is explicitly reopened.
+The application can be deployed as a Next.js application. The repository deliberately does not assume a specific hosting vendor. The production application URL is supplied to GitHub Actions as `PRODUCTION_APP_URL`.
+
+Before exposing the admin/catalog operations publicly, configure the required database, Redis, AliExpress, admin, and catalog-sync secrets. Daraja remains sandbox/paused until payment execution is explicitly reopened.
+
+## Production operations
+
+### 1. Database migration
+
+Use the manual **Production Database Migration** GitHub Actions workflow against the production environment. It runs:
+
+```bash
+npm ci
+npx prisma migrate deploy
+npx prisma migrate status
+```
+
+The workflow does not run migrations as part of the application build. Configure these GitHub Actions production secrets:
+
+- `DATABASE_URL`
+- `DIRECT_URL` when required by the Prisma datasource/provider
+
+Review the migration output before deploying the corresponding application version.
+
+### 2. Application deployment
+
+Deploy the exact commit that passed CI. Configure the application's runtime environment with:
+
+- `DATABASE_URL`
+- `ADMIN_PASSWORD`
+- `ADMIN_SESSION_SECRET`
+- `CATALOG_SYNC_SECRET`
+- Redis/AliExpress variables when supplier operations are enabled
+- `NEXT_PUBLIC_APP_URL` as the public HTTPS origin
+- analytics and Google verification variables as needed
+- Daraja variables only when payment execution is being enabled
+
+Keep `DARAJA_ENVIRONMENT=sandbox` until live M-PESA payment execution has been explicitly enabled and the production callback URL has been verified.
+
+### 3. Scheduled supplier operations
+
+The **Supplier Operations** workflow is provider-neutral and calls the protected production API:
+
+- catalog discovery/hydration: daily at 02:17 UTC
+- supplier repricing: every 6 hours at 47 minutes past the hour
+- manual dispatch supports `all`, `sync`, or `reprice`
+
+Configure these GitHub Actions production secrets:
+
+- `PRODUCTION_APP_URL`
+- `CATALOG_SYNC_SECRET`
+
+Supplier synchronization only persists supplier data; it does not publish AliExpress SKUs automatically. Publishing remains an explicit admin operation.
+
+### 4. Production smoke validation
+
+After deployment and after every schema-changing release, run the manual **Production Smoke Validation** workflow. It checks:
+
+- `/api/health`
+- `/products`
+- `/robots.txt`
+- `/sitemap.xml`
+- the protected supplier endpoint rejects requests without the catalog-sync secret
+
+The smoke script is also available locally as:
+
+```bash
+SMOKE_BASE_URL=https://your-production-origin.example npm run smoke:production
+```
+
+Do not use a customer payment to perform a smoke test while Daraja is sandbox/paused. Payment validation should be a separate controlled M-PESA acceptance test after live credentials and callback routing are explicitly enabled.
+
+## First-release sequence
+
+1. Ensure the production database has a verified backup/PITR posture.
+2. Run the manual production migration workflow.
+3. Deploy the exact CI-green application commit.
+4. Confirm `/api/health` is healthy.
+5. Run production smoke validation.
+6. Log in to `/admin` and verify catalog health, order recovery, and supplier readiness.
+7. Confirm local products are visible independently of matching state.
+8. If supplier operations are enabled, run one manual supplier sync and reprice, review the resulting admin catalog data, and only then leave the schedule enabled.
+9. Keep supplier SKUs unpublished until title, image, stock, and current sell price are verified.
+10. Keep Daraja sandbox/paused until a separate controlled live-payment acceptance test has passed.
+
+Do not run Prisma migrations as part of the Next.js build command. The production build should remain a deterministic application build, while database schema changes are applied explicitly with `prisma migrate deploy`.
 
 ## Project structure
 
@@ -64,24 +149,10 @@ The application can be deployed as a Next.js application. Before exposing the ad
 - `lib/aliexpress` — AliExpress API, discovery, freight, address, and catalog sync
 - `lib/storefront` — storefront eligibility and product composition
 - `tests` — automated regression coverage
+- `scripts/smoke-production.mjs` — non-destructive production smoke checks
 
 ## Learn more
 
 - [Next.js](https://nextjs.org/docs)
 - [Prisma](https://www.prisma.io/docs)
 - [GitHub Actions](https://docs.github.com/en/actions)
-
-## Production release checklist
-
-Before the first public deployment:
-
-1. Run `npx prisma migrate deploy` against the production database, then `npx prisma generate`.
-2. Configure `DATABASE_URL`, `ADMIN_PASSWORD`, `ADMIN_SESSION_SECRET`, and `CATALOG_SYNC_SECRET`.
-3. Configure the Redis and AliExpress variables before enabling supplier synchronization.
-4. Keep `DARAJA_ENVIRONMENT=sandbox` until live M-PESA payment execution has been explicitly enabled and the production callback URL has been verified.
-5. Set `NEXT_PUBLIC_APP_URL` to the public HTTPS origin and configure analytics/verification variables as needed.
-6. Confirm `/api/health` returns a healthy database/configuration response after deployment. The endpoint intentionally does not disclose missing secret names.
-7. Verify an admin login, local catalog browsing, supplier catalog visibility rules, and the order/payment recovery dashboard before opening customer traffic.
-8. Keep database backups and point-in-time recovery enabled at the database provider; migrations should be deployed separately from the application build.
-
-Do not run Prisma migrations as part of the Next.js build command. The production build should remain a deterministic application build, while database schema changes are applied explicitly with `prisma migrate deploy`.
