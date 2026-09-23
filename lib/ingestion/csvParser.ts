@@ -17,6 +17,7 @@ export interface CsvColumnMapping {
   price: string
   /** CSV column name for a unique reference per row (SKU code, supplier ID, etc). Optional — auto-generated from row number if not provided. */
   sourceRef?: string
+  sourceUrl?: string
   description?: string
   /** CSV column name containing image URLs, semicolon-separated if multiple. */
   imageUrls?: string
@@ -30,6 +31,7 @@ export interface ParsedCsvRow {
   rowNumber: number // 1-indexed, matches what you'd see if you opened the CSV in a spreadsheet (header = row 1)
   sourceRef: string
   title: string
+  sourceUrl?: string
   description?: string
   imageUrls: string[]
   priceRaw: number
