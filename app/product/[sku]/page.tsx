@@ -114,13 +114,7 @@ export default async function ProductPage({ params }: { params: Promise<{ sku: s
               </div>
 
               {local.description && <p className="mt-6 text-sm leading-7 text-slate-600">{local.description}</p>}
-
-              {local.sourceUrl && (
-                <a href={local.sourceUrl} target="_blank" rel="noopener noreferrer" className="mt-5 inline-flex text-sm font-bold text-emerald-800 hover:underline">
-                  View original local listing →
-                </a>
-              )}
-            </section>
+</section>
           </div>
 
           <section className="mt-6 rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
@@ -153,9 +147,18 @@ export default async function ProductPage({ params }: { params: Promise<{ sku: s
                   </div>
                   <p className="mt-3 text-3xl font-black tabular-nums">{local.currency} {comparison.sellPrice.toLocaleString()}</p>
                   <p className="mt-2 text-sm leading-6 text-slate-500">Landed-cost estimate plus marketplace markup. Supplier freight and exchange rates can change.</p>
-                  <a href={comparison.remote.url} target="_blank" rel="noopener noreferrer" className="mt-5 inline-flex rounded-xl bg-[#123f2b] px-5 py-3 text-sm font-black text-white transition hover:bg-[#0d3021]">
-                    View import option →
-                  </a>
+                  {comparison.remote.orderable ? (
+                    <Link
+                      href={`/import/${encodeURIComponent(comparison.remote.productId)}/${encodeURIComponent(comparison.remote.skuId)}`}
+                      className="mt-5 inline-flex rounded-xl bg-[#123f2b] px-5 py-3 text-sm font-black text-white transition hover:bg-[#0d3021]"
+                    >
+                      Buy this import from KijijiCart →
+                    </Link>
+                  ) : (
+                    <p className="mt-5 text-sm text-slate-500">
+                      This import option is not currently available to buy through KijijiCart.
+                    </p>
+                  )}
                 </div>
               </div>
             )}
