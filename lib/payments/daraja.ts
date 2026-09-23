@@ -98,12 +98,14 @@ export function parseDarajaCallback(payload: DarajaCallback) {
       .filter((item) => item.Name)
       .map((item) => [item.Name, item.Value]),
   )
+  const amount = Number(metadata.get('Amount'))
 
   return {
     merchantRequestId: callback.MerchantRequestID ?? null,
     checkoutRequestId: callback.CheckoutRequestID,
     resultCode: callback.ResultCode ?? -1,
     resultDescription: callback.ResultDesc ?? 'Unknown Daraja result.',
+    amount: Number.isFinite(amount) ? amount : null,
     mpesaReceiptNumber: valueToString(metadata.get('MpesaReceiptNumber')),
   }
 }
