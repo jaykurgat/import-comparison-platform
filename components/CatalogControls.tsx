@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
 
 export type CatalogSort = 'featured' | 'newest' | 'price_asc' | 'price_desc' | 'name'
 
@@ -15,18 +15,15 @@ export default function CatalogControls({
   source: string
   sort: CatalogSort
 }) {
-  const [value, setValue] = useState(sort)
-
-  useEffect(() => setValue(sort), [sort])
+  const router = useRouter()
 
   function submit(nextSort: CatalogSort) {
-    setValue(nextSort)
     const params = new URLSearchParams()
     if (query) params.set('q', query)
     if (categoryId) params.set('category', categoryId)
     if (source && source !== 'all') params.set('source', source)
     if (nextSort !== 'featured') params.set('sort', nextSort)
-    window.location.assign(`/products?${params.toString()}`)
+    router.push(`/products?${params.toString()}`)
   }
 
   return (
@@ -44,11 +41,10 @@ export default function CatalogControls({
           if (categoryId) params.set('category', categoryId)
           if (key !== 'all') params.set('source', key)
           if (sort !== 'featured') params.set('sort', sort)
-          const href = `/products?${params.toString()}`
           return (
             <a
               key={key}
-              href={href}
+              href={`/products?${params.toString()}`}
               className={`whitespace-nowrap rounded-full px-3.5 py-2 text-xs font-black transition ${active ? 'bg-[#123f2b] text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
             >
               {label}
@@ -60,7 +56,7 @@ export default function CatalogControls({
       <label className="flex shrink-0 items-center gap-2 text-xs font-bold text-slate-500">
         Sort
         <select
-          value={value}
+          defaultValue={sort}
           onChange={(event) => submit(event.target.value as CatalogSort)}
           className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-700 outline-none focus:border-[#123f2b]"
           aria-label="Sort products"
