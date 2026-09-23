@@ -1,16 +1,28 @@
+import { requireAdmin } from '@/lib/admin/auth'
+import { logoutAdmin } from '../actions'
 import { getReviewQueue } from '@/lib/matching/getReviewQueue'
 import { confirmMatch, rejectMatch } from './actions'
 
 export default async function ReviewPage() {
+  await requireAdmin()
   const queue = await getReviewQueue()
 
   return (
     <main className="min-h-screen bg-[#F7F7F5] px-6 py-10 text-[#1C1C1E]">
       <div className="mx-auto max-w-3xl">
-        <h1 className="text-2xl font-semibold tracking-tight">Product Match Review</h1>
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-semibold tracking-tight">Product Match Review</h1>
         <p className="mt-1 text-sm text-[#6B6B6E]">
-          {queue.length} match{queue.length === 1 ? '' : 'es'} pending review
-        </p>
+              {queue.length} match{queue.length === 1 ? '' : 'es'} pending review
+            </p>
+          </div>
+          <form action={logoutAdmin}>
+            <button type="submit" className="rounded border border-[#D8D8D3] px-4 py-2 text-sm font-medium hover:bg-white">
+              Sign out
+            </button>
+          </form>
+        </div>
 
         {queue.length === 0 ? (
           <div className="mt-10 rounded-lg border border-[#E3E3DF] bg-white px-6 py-10 text-center text-[#6B6B6E]">
