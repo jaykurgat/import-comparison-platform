@@ -28,6 +28,7 @@ export interface ProductPageData {
     currency: string
     color: string | null
     size: string | null
+    inStock: boolean
   }
   comparison: ProductPageComparison | null
 }
@@ -46,6 +47,7 @@ export async function getProductPageData(sku: string): Promise<ProductPageData |
     currency: localSku.currency,
     color: localSku.color,
     size: localSku.size,
+    inStock: localSku.inStock,
   }
 
   // Comparison is enrichment only. A catalog-eligible local product remains
