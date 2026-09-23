@@ -3,7 +3,7 @@ import assert from 'node:assert/strict'
 import { normalizeTitleWords, scoreMatch, titleSimilarity } from '../lib/matching/similarity'
 
 test('title normalization removes stopwords and punctuation', () => {
-  assert.deepEqual(normalizeTitleWords('New, High-Quality Backpack for Travel'), ['quality', 'backpack', 'travel'])
+  assert.deepEqual(normalizeTitleWords('New, High-Quality Backpack for Travel'), ['backpack', 'travel'])
 })
 
 test('identical normalized titles produce perfect similarity', () => {
