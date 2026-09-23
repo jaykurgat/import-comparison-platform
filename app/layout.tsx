@@ -1,4 +1,4 @@
-import type { Metadata } from 'next'
+import type { Metadata } from 'next'\nimport type { ReactNode } from 'react'
 import { Geist, Geist_Mono } from 'next/font/google'
 import './globals.css'
 
@@ -10,7 +10,7 @@ export const metadata: Metadata = {
   description: 'Shop and compare Kenyan retail products with landed import alternatives.',
 }
 
-export default function RootLayout({ children }: LayoutProps<'/'>) {
+export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en" className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
       <body className="min-h-screen bg-[#f5f6f7]">{children}</body>
