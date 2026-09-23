@@ -1,11 +1,30 @@
 export const dynamic = 'force-dynamic'
 
 import { notFound } from 'next/navigation'
+import type { Metadata } from 'next'
 import Link from 'next/link'
 import { getProductPageData } from '@/lib/product/getProductPageData'
 import SiteHeader from '@/components/SiteHeader'
 import SiteFooter from '@/components/SiteFooter'
 import TrackProductView from '@/components/TrackProductView'
+
+export async function generateMetadata({ params }: { params: Promise<{ sku: string }> }): Promise<Metadata> {
+  const { sku } = await params
+  const data = await getProductPageData(sku)
+  if (!data) return { title: 'Product not found | KijijiCart' }
+  const description = data.local.description?.slice(0, 155) || `Compare ${data.local.title} locally with available import pricing on KijijiCart.`
+  return {
+    title: `${data.local.title} | KijijiCart`,
+    description,
+    alternates: { canonical: `/product/${encodeURIComponent(data.local.sku)}` },
+    openGraph: {
+      title: data.local.title,
+      description,
+      type: 'website',
+      images: data.local.imageUrls[0] ? [{ url: data.local.imageUrls[0], alt: data.local.title }] : undefined,
+    },
+  }
+}
 
 export default async function ProductPage({ params }: { params: Promise<{ sku: string }> }) {
   const { sku } = await params
@@ -20,6 +39,27 @@ export default async function ProductPage({ params }: { params: Promise<{ sku: s
     <>
       <TrackProductView sku={local.sku} title={local.title} price={local.price} currency={local.currency} category={local.categoryName} />
       <SiteHeader />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            '@context': 'https://schema.org',
+            '@type': 'Product',
+            name: local.title,
+            description: local.description ?? undefined,
+            image: local.imageUrls,
+            sku: local.sku,
+            category: local.categoryName ?? undefined,
+            offers: {
+              '@type': 'Offer',
+              priceCurrency: local.currency,
+              price: local.price,
+              availability: local.inStock ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
+              url: `${process.env.NEXT_PUBLIC_APP_URL ?? ''}/product/${encodeURIComponent(local.sku)}`,
+            },
+          }),
+        }}
+      />
       <main className="min-h-screen bg-[#f7f7f3] text-slate-950">
         <div className="mx-auto max-w-[1440px] px-4 py-6 sm:px-6 lg:py-9">
           <div className="mb-5 flex flex-wrap items-center gap-2 text-xs text-slate-500">
