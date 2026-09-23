@@ -3,7 +3,7 @@ import { isCatalogEligible } from './catalogEligibility'
 import { titleSimilarity } from '../matching/similarity'
 import type { ProductTeaser } from './productTeaser'
 
-const CONFIRMED_MATCH_STATUSES = ['AUTO_MATCHED', 'MANUAL_CONFIRMED']
+const CONFIRMED_MATCH_STATUSES = ['AUTO_MATCHED', 'MANUAL_CONFIRMED'] as const
 
 interface RelatedCandidate {
   product: ProductTeaser
