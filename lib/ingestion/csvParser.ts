@@ -1,25 +1,12 @@
 import { parse } from 'csv-parse/sync'
 
-/**
- * Pure parsing layer: turns raw CSV text into validated row objects, with
- * no database access. Kept separate from ingestCsv.ts so this logic can be
- * tested on its own without needing Neon connected.
- *
- * Per the conservative-matching approach: a row with a missing required
- * field is NOT guessed at or defaulted silently — it's collected as an
- * error and skipped, so a human can look at exactly what went wrong.
- */
-
 export interface CsvColumnMapping {
-  /** CSV column name containing the product title. Required. */
   title: string
-  /** CSV column name containing the price. Required. */
   price: string
-  /** CSV column name for a unique reference per row (SKU code, supplier ID, etc). Optional — auto-generated from row number if not provided. */
+  category?: string
   sourceRef?: string
   sourceUrl?: string
   description?: string
-  /** CSV column name containing image URLs, semicolon-separated if multiple. */
   imageUrls?: string
   currency?: string
   inStock?: string
@@ -28,7 +15,7 @@ export interface CsvColumnMapping {
 }
 
 export interface ParsedCsvRow {
-  rowNumber: number // 1-indexed, matches what you'd see if you opened the CSV in a spreadsheet (header = row 1)
+  rowNumber: number
   sourceRef: string
   title: string
   sourceUrl?: string
@@ -58,7 +45,7 @@ function parseInStock(value: string | undefined): boolean | undefined {
   const normalized = value.trim().toLowerCase()
   if (['yes', 'true', '1', 'in stock', 'available'].includes(normalized)) return true
   if (['no', 'false', '0', 'out of stock', 'unavailable'].includes(normalized)) return false
-  return undefined // unrecognized value — leave unset rather than guess
+  return undefined
 }
 
 export function parseCsv(csvContent: string, mapping: CsvColumnMapping): CsvParseResult {
@@ -72,7 +59,7 @@ export function parseCsv(csvContent: string, mapping: CsvColumnMapping): CsvPars
   const errors: CsvParseError[] = []
 
   records.forEach((record, index) => {
-    const rowNumber = index + 2 // +1 for 0-index, +1 because row 1 is the header
+    const rowNumber = index + 2
 
     const title = record[mapping.title]?.trim()
     if (!title) {
@@ -102,6 +89,7 @@ export function parseCsv(csvContent: string, mapping: CsvColumnMapping): CsvPars
       : []
 
     const attributesRaw: Record<string, string> = {}
+    if (mapping.category && record[mapping.category]) attributesRaw.category = record[mapping.category].trim()
     if (mapping.color && record[mapping.color]) attributesRaw.color = record[mapping.color].trim()
     if (mapping.size && record[mapping.size]) attributesRaw.size = record[mapping.size].trim()
 
