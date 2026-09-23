@@ -19,7 +19,7 @@ export default async function CatalogAdminPage() {
             <h1 className="text-2xl font-semibold tracking-tight">Import Catalog</h1>
             <p className="mt-1 text-sm text-[#6B6B6E]">
               {catalog.length} persisted supplier SKU{catalog.length === 1 ? '' : 's'}.
-              Discovery stays unpublished until explicitly approved.
+              Supplier stock is synchronized from AliExpress and is not manually overridden here.
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
@@ -41,7 +41,7 @@ export default async function CatalogAdminPage() {
           <table className="w-full min-w-[980px] text-sm">
             <thead className="border-b border-[#E3E3DF] bg-[#FAFAF9] text-left text-xs uppercase tracking-wide text-[#8A8A8E]">
               <tr>
-                <th className="px-4 py-3">Product</th>
+                <th className="px-4 py-3">Product / variant</th>
                 <th className="px-4 py-3">Supplier</th>
                 <th className="px-4 py-3">Stock</th>
                 <th className="px-4 py-3">Landed</th>
@@ -95,7 +95,7 @@ export default async function CatalogAdminPage() {
                     )}
                   </td>
                   <td className="px-4 py-4">
-                    <PublishToggle id={item.id} published={item.isPublished} canPublish={item.stock > 0 && item.price !== null && !item.price.isStale && Boolean(item.title.trim()) && Boolean(item.imageUrl)} />
+                    <PublishToggle id={item.id} published={item.isPublished} canPublish={Boolean(item.price) && !item.price?.isStale && Boolean(item.title.trim()) && Boolean(item.imageUrl)} />
                   </td>
                 </tr>
               ))}
