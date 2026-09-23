@@ -54,9 +54,9 @@ enum CategorySourceType {
 // Categories — hierarchical canonical taxonomy + a crosswalk mapping each
 // source platform's own category system onto it.
 //
-// Neither AliExpress nor Jumia's category data is populated yet (schema
-// shape only, per project decision — real category IDs/names get filled in
-// once API/scrape access exists, not designed from imagination now).
+// Products are assigned to this controlled canonical taxonomy automatically
+// when strong title/spec/source-category evidence exists. Source-specific
+// category mappings are retained so reviewed mappings remain authoritative.
 //
 // Why this exists: category is a hard GATE for matching, not just a signal.
 // Two products should only be considered for SKU matching (or shown as
@@ -166,10 +166,9 @@ model LocalSKU {
   // keep this low-effort until a real need for one arises.
   featuredOverride Boolean?
 
-  // Nullable: category data isn't populated yet (schema shape only, see
-  // Category model comment). Matching/similarity logic should treat a
-  // missing category as "cannot be matched or compared" rather than
-  // guessing — consistent with the conservative-matching approach.
+  // Category assignment is automatic when evidence is strong; null means the
+  // classifier could not establish a safe category and matching/relationship
+  // logic must not guess across that boundary.
   categoryId String?
   category   Category? @relation(fields: [categoryId], references: [id])
 
@@ -231,7 +230,8 @@ model AliExpressSKU {
   // Prisma Studio for now, no dedicated admin UI yet.
   isPublished Boolean @default(false)
 
-  // See LocalSKU.categoryId comment — same nullable-until-populated approach.
+  // See LocalSKU.categoryId comment — null means the product remains outside
+  // category-gated comparison/related-product logic until classified safely.
   categoryId String?
   category   Category? @relation(fields: [categoryId], references: [id])
   rawCategoryId String?
