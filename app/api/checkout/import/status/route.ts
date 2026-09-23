@@ -16,13 +16,14 @@ export async function GET(request: Request) {
       customerTotal: true,
       currency: true,
       supplierOrderIds: true,
+      items: { select: { productId: true, skuId: true, quantity: true, unitSellPrice: true, aliExpressSku: { select: { title: true } } } },
       payment: { select: { status: true, mpesaReceiptNumber: true, paidAt: true } },
     },
   })
 
   if (!order) return NextResponse.json({ error: 'Order not found.' }, { status: 404 })
   return NextResponse.json(
-    { ...order, customerTotal: Number(order.customerTotal) },
+    { ...order, customerTotal: Number(order.customerTotal), items: order.items.map((item) => ({ item_id: `${item.productId}-${item.skuId}`, item_name: item.aliExpressSku.title, quantity: item.quantity, price: Number(item.unitSellPrice), currency: order.currency })) },
     { headers: { 'Cache-Control': 'no-store' } },
   )
 }
