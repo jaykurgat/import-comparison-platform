@@ -46,6 +46,7 @@ export async function promoteLocalListings(): Promise<PromoteResult> {
     const canonicalData = {
       sku: sourceRef,
       title: latest.title,
+      sourceUrl: latest.sourceUrl,
       description: latest.description,
       imageUrls: latest.imageUrls,
       color: attrs.color,
