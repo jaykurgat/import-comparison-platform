@@ -2,6 +2,7 @@ import { prisma } from '@/lib/prisma'
 import { getAliExpressFreight } from '@/lib/aliexpress/freight'
 import { resolveAliExpressAddress } from '@/lib/aliexpress/addressResolver'
 import { createDarajaStkPush } from '@/lib/payments/daraja'
+import { createOrderAccessToken } from './orderAccess'
 
 export interface ImportCheckoutInput {
   productId: string
@@ -19,6 +20,7 @@ export interface ImportCheckoutInput {
 
 export interface ImportCheckoutResult {
   orderId: string
+  accessToken: string
   status: 'PAYMENT_PENDING'
   checkoutUrl: string
   paymentMessage: string
@@ -114,6 +116,7 @@ export async function createImportCheckout(input: ImportCheckoutInput): Promise<
 
     return {
       orderId: order.id,
+      accessToken: createOrderAccessToken(order.id),
       status: 'PAYMENT_PENDING',
       checkoutUrl: `/checkout/import/success?orderId=${order.id}`,
       paymentMessage: payment.customerMessage ?? 'Check your phone and enter your M-PESA PIN to complete payment.',
