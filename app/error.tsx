@@ -7,8 +7,7 @@ export default function Error({ reset }: { error: Error & { digest?: string }; r
   useEffect(() => {
     // Keep the production UI generic; server-side logging/observability can use
     // the framework's runtime logging without exposing internal details here.
-    console.error(error)
-  }, [error])
+  }, [])
 
   return (
     <main className="flex min-h-screen items-center justify-center bg-[#F7F7F5] px-6 py-16 text-[#1C1C1E]">
