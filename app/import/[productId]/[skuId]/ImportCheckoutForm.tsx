@@ -43,10 +43,11 @@ export function ImportCheckoutForm({
       }
 
       if (!body.checkoutUrl) {
-        setMessage('Payment checkout could not be started.')
+        setMessage('M-PESA payment could not be started.')
         return
       }
 
+      setMessage(body.paymentMessage ?? 'Check your phone and enter your M-PESA PIN to complete payment.')
       window.location.assign(body.checkoutUrl)
     } catch {
       setMessage('Unable to connect to checkout. Please try again.')
@@ -59,7 +60,7 @@ export function ImportCheckoutForm({
     <div className="mt-6 rounded-xl border border-slate-200 p-4">
       <div className="text-sm font-bold">Checkout</div>
       <p className="mt-1 text-xs leading-5 text-slate-500">
-        Confirm your delivery details. You will be sent to secure payment checkout before the supplier order is submitted.
+        Confirm your delivery details. We will send an M-PESA payment prompt to the mobile number you provide before the supplier order is submitted.
       </p>
 
       <form
