@@ -9,11 +9,14 @@ export interface ProductPageComparison {
   priceDataAsOf: Date
   remote: {
     productId: string
+    skuId: string
     title: string
     imageUrls: string[]
     color: string | null
     size: string | null
     url: string
+    isPublished: boolean
+    availableStock: number
   }
 }
 
@@ -29,6 +32,7 @@ export interface ProductPageData {
     color: string | null
     size: string | null
     inStock: boolean
+    categoryId: string | null
     categoryName: string | null
   }
   comparison: ProductPageComparison | null
@@ -49,12 +53,10 @@ export async function getProductPageData(sku: string): Promise<ProductPageData |
     color: localSku.color,
     size: localSku.size,
     inStock: localSku.inStock,
+    categoryId: localSku.categoryId,
     categoryName: localSku.category?.name ?? null,
   }
 
-  // Comparison is enrichment only. A catalog-eligible local product remains
-  // available here even when it has no candidate, a weak/rejected candidate,
-  // or no computed landed-cost result.
   const confirmedMatch = await prisma.sKUMatch.findFirst({
     where: {
       localSkuId: localSku.id,
@@ -63,9 +65,7 @@ export async function getProductPageData(sku: string): Promise<ProductPageData |
     include: { aliExpressSku: true, comparison: true },
   })
 
-  if (!confirmedMatch || !confirmedMatch.comparison) {
-    return { local, comparison: null }
-  }
+  if (!confirmedMatch || !confirmedMatch.comparison) return { local, comparison: null }
 
   const { comparison, aliExpressSku } = confirmedMatch
 
@@ -79,11 +79,14 @@ export async function getProductPageData(sku: string): Promise<ProductPageData |
       priceDataAsOf: comparison.priceDataAsOf,
       remote: {
         productId: aliExpressSku.productId,
+        skuId: aliExpressSku.skuId,
         title: aliExpressSku.title,
         imageUrls: aliExpressSku.imageUrls,
         color: aliExpressSku.color,
         size: aliExpressSku.size,
         url: `https://www.aliexpress.com/item/${aliExpressSku.productId}.html`,
+        isPublished: aliExpressSku.isPublished,
+        availableStock: aliExpressSku.availableStock,
       },
     },
   }

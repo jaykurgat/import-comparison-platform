@@ -2,46 +2,65 @@ import { prisma } from '../prisma'
 import { toProductTeaser, toImportProductTeaser, type ProductTeaser } from './productTeaser'
 import { isCatalogEligible } from './catalogEligibility'
 
-export async function getAllProducts(query = '', categoryId = ''): Promise<ProductTeaser[]> {
+export type CatalogSourceFilter = 'all' | 'local' | 'import' | 'deals'
+export type CatalogSort = 'featured' | 'newest' | 'price_asc' | 'price_desc' | 'name'
+
+export async function getAllProducts(
+  query = '',
+  categoryId = '',
+  source: CatalogSourceFilter = 'all',
+  sort: CatalogSort = 'featured',
+): Promise<ProductTeaser[]> {
   const q = query.trim()
   const textFilter = q ? { contains: q, mode: 'insensitive' as const } : undefined
-  const localProducts = await prisma.localSKU.findMany({
-    where: {
-      ...(textFilter ? { title: textFilter } : {}),
-      ...(categoryId ? { categoryId } : {}),
-    },
-    include: {
-      matches: {
-        where: { status: { in: ['AUTO_MATCHED', 'MANUAL_CONFIRMED'] } },
-        include: { comparison: true },
-      },
-    },
-    orderBy: { createdAt: 'desc' },
-  })
 
-  // Matching is enrichment, not catalog eligibility. A local product remains
-  // listable without an AliExpress match, while incomplete records stay hidden.
+  const localProducts = source === 'import'
+    ? []
+    : await prisma.localSKU.findMany({
+        where: {
+          ...(textFilter ? { title: textFilter } : {}),
+          ...(categoryId ? { categoryId } : {}),
+        },
+        include: {
+          category: true,
+          matches: {
+            where: { status: { in: ['AUTO_MATCHED', 'MANUAL_CONFIRMED'] } },
+            include: { comparison: true },
+          },
+        },
+      })
+
   const localTeasers = localProducts
     .filter(isCatalogEligible)
     .map((product) => toProductTeaser(product, product.matches))
+    .filter((product) => source !== 'deals' || product.hasDeal)
 
-  // An import listing is sellable only while at least one persisted SKU has
-  // stock. Hydrated supplier data can remain unpublished/out of stock without
-  // leaking into the customer catalog.
-  const standaloneImportSkus = await prisma.aliExpressSKU.findMany({
-    where: {
-      ...(textFilter ? { title: textFilter } : {}),
-      ...(categoryId ? { categoryId } : {}),
-      isPublished: true,
-      availableStock: { gt: 0 },
-      matches: { none: { status: { in: ['AUTO_MATCHED', 'MANUAL_CONFIRMED'] } } },
-    },
-    include: { importListingPrice: true },
-    orderBy: { createdAt: 'desc' },
-  })
+  const standaloneImportSkus = source === 'local' || source === 'deals'
+    ? []
+    : await prisma.aliExpressSKU.findMany({
+        where: {
+          ...(textFilter ? { title: textFilter } : {}),
+          ...(categoryId ? { categoryId } : {}),
+          isPublished: true,
+          availableStock: { gt: 0 },
+          matches: { none: { status: { in: ['AUTO_MATCHED', 'MANUAL_CONFIRMED'] } } },
+        },
+        include: { category: true, importListingPrice: true },
+      })
+
   const importTeasers = standaloneImportSkus
     .map((sku) => toImportProductTeaser(sku))
     .filter((t): t is ProductTeaser => t !== null)
 
-  return [...localTeasers, ...importTeasers]
+  const products = [...localTeasers, ...importTeasers]
+
+  products.sort((a, b) => {
+    if (sort === 'price_asc') return a.price - b.price || a.title.localeCompare(b.title)
+    if (sort === 'price_desc') return b.price - a.price || a.title.localeCompare(b.title)
+    if (sort === 'name') return a.title.localeCompare(b.title)
+    if (sort === 'newest') return b.createdAt.getTime() - a.createdAt.getTime()
+    return Number(b.hasDeal) - Number(a.hasDeal) || b.createdAt.getTime() - a.createdAt.getTime()
+  })
+
+  return products
 }
