@@ -27,11 +27,11 @@ export default async function ImportProductPage({ params }: { params: Promise<{ 
               <span className="rounded-full bg-[#e7f3ee] px-2.5 py-1 text-[11px] font-bold uppercase tracking-wider text-[#0f5132]">Direct import</span>
               <h1 className="mt-4 text-2xl font-black leading-tight sm:text-3xl">{data.title}</h1>
               <div className="mt-5 text-3xl font-black tabular-nums">{data.currency} {data.sellPrice.toLocaleString()}</div>
-              <p className="mt-2 text-sm text-slate-500">Landed import price with marketplace markup · estimated 7–14 days</p>
+              <p className="mt-2 text-sm text-slate-500">Landed import price with marketplace markup · delivery estimate varies by supplier and destination</p>
 
               <div className="mt-6 rounded-xl border border-slate-200 p-4">
-                <div className="flex justify-between text-sm"><span className="font-bold">Import fulfillment</span><span className="font-bold text-[#0f5132]">7–14 days</span></div>
-                <p className="mt-1 text-xs leading-5 text-slate-500">Price reflects the current landed-cost estimate and markup. Freight and exchange rates can change.</p>
+                <div className="text-sm font-bold">Import fulfillment</div>
+                <p className="mt-1 text-xs leading-5 text-slate-500">Price reflects the current landed-cost estimate and markup. Delivery timing, freight, and exchange rates can change.</p>
               </div>
 
               <ImportCheckoutForm productId={data.productId} skuId={data.skuId} />
