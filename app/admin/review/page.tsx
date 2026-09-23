@@ -26,6 +26,11 @@ export default async function ReviewPage() {
           </form>
         </div>
 
+        <div className="mt-6 flex gap-2">
+          <a href="/admin" className="rounded border border-[#D8D8D3] bg-white px-4 py-2 text-sm font-medium hover:bg-[#F7F7F5]">Dashboard</a>
+          <a href="/admin/health" className="rounded border border-[#D8D8D3] bg-white px-4 py-2 text-sm font-medium hover:bg-[#F7F7F5]">Health</a>
+        </div>
+
         {queue.length === 0 ? (
           <div className="mt-10 rounded-lg border border-[#E3E3DF] bg-white px-6 py-10 text-center text-[#6B6B6E]">
             Nothing to review right now. Run the matching engine to generate new candidates.
