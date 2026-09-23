@@ -18,70 +18,102 @@ export default async function ProductPage({ params }: { params: Promise<{ sku: s
   return (
     <>
       <SiteHeader />
-      <main className="min-h-screen bg-[#f5f6f7] text-slate-950">
-        <div className="mx-auto max-w-[1400px] px-4 py-5 sm:px-6 lg:py-8">
-          <div className="mb-4 text-xs text-slate-500">
-            <Link href="/products" className="font-semibold hover:text-[#0f5132]">Products</Link>
-            <span className="mx-1">/</span>{local.title}
+      <main className="min-h-screen bg-[#f7f7f3] text-slate-950">
+        <div className="mx-auto max-w-[1440px] px-4 py-6 sm:px-6 lg:py-9">
+          <div className="mb-5 flex flex-wrap items-center gap-2 text-xs text-slate-500">
+            <Link href="/products" className="font-bold text-emerald-800 hover:underline">Products</Link>
+            <span>/</span>
+            <span className="truncate">{local.title}</span>
           </div>
 
-          <div className="grid gap-6 lg:grid-cols-[1.05fr_.95fr]">
-            <section className="rounded-2xl bg-white p-4 shadow-sm sm:p-6">
-              <div className="grid gap-3 sm:grid-cols-[84px_1fr]">
+          <div className="grid gap-6 lg:grid-cols-[1.08fr_.92fr]">
+            <section className="rounded-[2rem] border border-slate-200 bg-white p-4 shadow-sm sm:p-6">
+              <div className="grid gap-4 sm:grid-cols-[88px_1fr]">
                 <div className="order-2 flex gap-2 overflow-x-auto sm:order-1 sm:flex-col">
                   {images.slice(0, 6).map((src, i) => src ? (
-                    <div key={src + i} className="h-16 w-16 shrink-0 overflow-hidden rounded-lg border border-slate-200 bg-slate-50 sm:h-20 sm:w-20">
+                    <div key={src + i} className="h-16 w-16 shrink-0 overflow-hidden rounded-xl border border-slate-200 bg-[#f1f2ee] sm:h-20 sm:w-20">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img src={src} alt="" className="h-full w-full object-cover" loading="lazy" />
                     </div>
                   ) : null)}
                 </div>
-                <div className="order-1 aspect-square overflow-hidden rounded-xl bg-slate-50 sm:order-2">
-                  {images[0] ? <img src={images[0]} alt={local.title} className="h-full w-full object-contain" /> : <div className="flex h-full items-center justify-center text-sm text-slate-400">No image available</div>}
+                <div className="order-1 aspect-square overflow-hidden rounded-2xl bg-[#f1f2ee] sm:order-2">
+                  {images[0] ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={images[0]} alt={local.title} className="h-full w-full object-contain" />
+                  ) : (
+                    <div className="flex h-full items-center justify-center text-sm font-semibold text-slate-400">Image unavailable</div>
+                  )}
                 </div>
               </div>
             </section>
 
-            <section className="rounded-2xl bg-white p-5 shadow-sm sm:p-7">
-              <div className="flex flex-wrap gap-2 text-[11px] font-bold uppercase tracking-wider">
-                <span className="rounded-full bg-slate-100 px-2.5 py-1 text-slate-600">Local product</span>
-                {importIsBetter && <span className="rounded-full bg-amber-100 px-2.5 py-1 text-amber-800">Import alternative</span>}
+            <section className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
+              <div className="flex flex-wrap gap-2 text-[10px] font-black uppercase tracking-[0.16em]">
+                <span className="rounded-full bg-slate-100 px-3 py-1.5 text-slate-600">Local listing</span>
+                {importIsBetter && <span className="rounded-full bg-emerald-50 px-3 py-1.5 text-emerald-800">Import alternative</span>}
               </div>
-              <h1 className="mt-4 text-2xl font-black leading-tight sm:text-3xl">{local.title}</h1>
-              <div className="mt-5 text-3xl font-black tabular-nums">{local.currency} {local.price.toLocaleString()}</div>
-              <div className="mt-2 text-sm text-slate-500">{local.color ?? 'Standard'}{local.size ? ' · ' + local.size : ''}</div>
 
-              <div className="mt-6 rounded-xl border border-slate-200 p-4">
-                <div className="flex items-center justify-between"><span className="text-sm font-bold">Local availability</span><span className={local.inStock ? 'text-xs font-bold text-[#0f5132]' : 'text-xs font-bold text-slate-500'}>{local.inStock ? 'Available' : 'Out of stock'}</span></div>
-                <p className="mt-1 text-xs leading-5 text-slate-500">This listing is the local retail reference used for the comparison.</p>
+              <h1 className="mt-5 text-3xl font-black leading-[1.08] tracking-[-0.035em] sm:text-4xl">{local.title}</h1>
+
+              <div className="mt-6 flex flex-wrap items-end gap-x-3 gap-y-1">
+                <span className="text-3xl font-black tabular-nums">{local.currency} {local.price.toLocaleString()}</span>
+                <span className={local.inStock ? 'text-sm font-bold text-emerald-700' : 'text-sm font-bold text-slate-500'}>
+                  {local.inStock ? 'In stock' : 'Out of stock'}
+                </span>
               </div>
-              {local.description && <p className="mt-6 text-sm leading-6 text-slate-600">{local.description}</p>}
-              {local.sourceUrl && <a href={local.sourceUrl} target="_blank" rel="noopener noreferrer" className="mt-4 inline-flex text-sm font-semibold text-[#0f5132] hover:underline">View original local listing →</a>}
+
+              <div className="mt-6 rounded-2xl bg-[#f7f7f3] p-4">
+                <div className="flex items-center justify-between gap-4">
+                  <span className="text-sm font-black">Local availability</span>
+                  <span className="text-xs font-bold text-slate-500">{local.inStock ? 'Available now' : 'Currently unavailable'}</span>
+                </div>
+                <p className="mt-2 text-xs leading-5 text-slate-500">This local listing is the retail reference used by the comparison engine.</p>
+              </div>
+
+              {local.description && <p className="mt-6 text-sm leading-7 text-slate-600">{local.description}</p>}
+
+              {local.sourceUrl && (
+                <a href={local.sourceUrl} target="_blank" rel="noopener noreferrer" className="mt-5 inline-flex text-sm font-bold text-emerald-800 hover:underline">
+                  View original local listing →
+                </a>
+              )}
             </section>
           </div>
 
-          <section className="mt-6 rounded-2xl bg-white p-5 shadow-sm sm:p-7">
-            <div className="flex flex-wrap items-end justify-between gap-3">
+          <section className="mt-6 rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
+            <div className="flex flex-wrap items-end justify-between gap-4">
               <div>
-                <p className="text-xs font-bold uppercase tracking-wider text-[#0f5132]">Price comparison</p>
-                <h2 className="mt-1 text-2xl font-black">Local vs. direct import</h2>
+                <p className="text-xs font-black uppercase tracking-[0.18em] text-emerald-700">Price comparison</p>
+                <h2 className="mt-2 text-2xl font-black tracking-tight sm:text-3xl">Local vs. direct import</h2>
               </div>
-              {comparison?.isStale && <span className="text-xs text-slate-400">Last confirmed {comparison.priceDataAsOf.toLocaleDateString()}</span>}
+              {comparison?.isStale && (
+                <span className="text-xs font-semibold text-slate-400">Last confirmed {comparison.priceDataAsOf.toLocaleDateString()}</span>
+              )}
             </div>
 
             {!comparison ? (
-              <div className="mt-5 rounded-xl border border-dashed border-slate-300 bg-slate-50 p-6 text-sm text-slate-600">No verified import alternative is available for this product yet.</div>
+              <div className="mt-6 rounded-2xl border border-dashed border-slate-300 bg-[#f7f7f3] p-7 text-sm leading-6 text-slate-600">
+                No verified import alternative is available for this product yet. The local listing remains available while matching data is reviewed.
+              </div>
             ) : (
-              <div className="mt-5 grid gap-4 md:grid-cols-2">
-                <div className="rounded-xl border border-slate-200 p-5">
-                  <p className="text-xs font-bold uppercase tracking-wide text-slate-500">Buy locally</p>
-                  <p className="mt-2 text-2xl font-black tabular-nums">{local.currency} {comparison.localTotalPrice.toLocaleString()}</p>
-                  <p className="mt-1 text-sm text-slate-500">Local retail option</p>
+              <div className="mt-6 grid gap-4 md:grid-cols-2">
+                <div className="rounded-2xl border border-slate-200 p-6">
+                  <p className="text-xs font-black uppercase tracking-wider text-slate-500">Buy locally</p>
+                  <p className="mt-3 text-3xl font-black tabular-nums">{local.currency} {comparison.localTotalPrice.toLocaleString()}</p>
+                  <p className="mt-2 text-sm text-slate-500">Local retail option</p>
                 </div>
-                <div className={importIsBetter ? 'rounded-xl border-2 border-[#0f5132] bg-[#f2f8f5] p-5' : 'rounded-xl border border-slate-200 p-5'}>
-                  <p className="text-xs font-bold uppercase tracking-wide text-[#0f5132]">Direct import</p>
-                  <p className="mt-2 text-2xl font-black tabular-nums">{local.currency} {comparison.sellPrice.toLocaleString()}</p>
-                  <p className="mt-1 text-sm text-slate-500">Landed cost + marketplace markup · shipping estimate varies by supplier and destination</p>
-                  <a href={comparison.remote.url} target="_blank" rel="noopener noreferrer" className="mt-4 inline-flex rounded-lg bg-[#0f5132] px-4 py-2 text-sm font-bold text-white hover:bg-[#0b4128]">View import option →</a>
+
+                <div className={importIsBetter ? 'rounded-2xl border-2 border-emerald-800 bg-[#f2f8f5] p-6' : 'rounded-2xl border border-slate-200 p-6'}>
+                  <div className="flex items-center justify-between gap-3">
+                    <p className="text-xs font-black uppercase tracking-wider text-emerald-800">Direct import</p>
+                    {importIsBetter && <span className="rounded-full bg-emerald-800 px-2.5 py-1 text-[10px] font-black text-white">LOWER ESTIMATED COST</span>}
+                  </div>
+                  <p className="mt-3 text-3xl font-black tabular-nums">{local.currency} {comparison.sellPrice.toLocaleString()}</p>
+                  <p className="mt-2 text-sm leading-6 text-slate-500">Landed-cost estimate plus marketplace markup. Supplier freight and exchange rates can change.</p>
+                  <a href={comparison.remote.url} target="_blank" rel="noopener noreferrer" className="mt-5 inline-flex rounded-xl bg-[#123f2b] px-5 py-3 text-sm font-black text-white transition hover:bg-[#0d3021]">
+                    View import option →
+                  </a>
                 </div>
               </div>
             )}
