@@ -15,7 +15,6 @@ export interface ProductPageComparison {
     imageUrls: string[]
     color: string | null
     size: string | null
-    url: string
   }
 }
 
@@ -82,7 +81,10 @@ export async function getProductPageData(sku: string): Promise<ProductPageData |
       remote: {
         productId: aliExpressSku.productId,
         skuId: aliExpressSku.skuId,
-        orderable: aliExpressSku.isPublished && aliExpressSku.availableStock > 0 && Boolean(aliExpressSku.importListingPrice) && !aliExpressSku.importListingPrice?.isStale,
+        orderable:
+          aliExpressSku.isPublished &&
+          aliExpressSku.availableStock > 0 &&
+          Boolean(aliExpressSku.importListingPrice && !aliExpressSku.importListingPrice.isStale),
         title: aliExpressSku.title,
         imageUrls: aliExpressSku.imageUrls,
         color: aliExpressSku.color,
