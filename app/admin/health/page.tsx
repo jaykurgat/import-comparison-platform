@@ -38,6 +38,7 @@ export default async function CatalogHealthPage() {
         </div>
 
         <div className="mt-6 flex flex-wrap gap-2">
+          <Link href="/admin" className="rounded border border-[#D8D8D3] bg-white px-4 py-2 text-sm font-medium hover:bg-[#F7F7F5]">Dashboard</Link>
           <Link href="/admin/orders" className="rounded border border-[#D8D8D3] bg-white px-4 py-2 text-sm font-medium hover:bg-[#F7F7F5]">Import orders</Link>
           <Link href="/admin/import" className="rounded border border-[#D8D8D3] bg-white px-4 py-2 text-sm font-medium hover:bg-[#F7F7F5]">Import local data</Link>
           <Link href="/admin/catalog" className="rounded border border-[#D8D8D3] bg-white px-4 py-2 text-sm font-medium hover:bg-[#F7F7F5]">Manage supplier catalog</Link>
