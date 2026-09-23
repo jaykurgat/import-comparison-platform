@@ -12,7 +12,6 @@ export interface ImportProductPageData {
   currency: string
   isStale: boolean
   priceDataAsOf: Date
-  aliExpressUrl: string
 }
 
 export async function getImportProductPageData(
@@ -30,7 +29,8 @@ export async function getImportProductPageData(
     !aliExpressSku ||
     !aliExpressSku.isPublished ||
     aliExpressSku.availableStock <= 0 ||
-    !aliExpressSku.importListingPrice
+    !aliExpressSku.importListingPrice ||
+    aliExpressSku.importListingPrice.isStale
   ) {
     return null
   }
@@ -47,6 +47,5 @@ export async function getImportProductPageData(
     currency: aliExpressSku.importListingPrice.currency,
     isStale: aliExpressSku.importListingPrice.isStale,
     priceDataAsOf: aliExpressSku.importListingPrice.priceDataAsOf,
-    aliExpressUrl: `https://www.aliexpress.com/item/${aliExpressSku.productId}.html`,
   }
 }
