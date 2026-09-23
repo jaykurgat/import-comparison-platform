@@ -9,6 +9,8 @@ export interface ProductPageComparison {
   priceDataAsOf: Date
   remote: {
     productId: string
+    skuId: string
+    orderable: boolean
     title: string
     imageUrls: string[]
     color: string | null
@@ -60,7 +62,7 @@ export async function getProductPageData(sku: string): Promise<ProductPageData |
       localSkuId: localSku.id,
       status: { in: ['AUTO_MATCHED', 'MANUAL_CONFIRMED'] },
     },
-    include: { aliExpressSku: true, comparison: true },
+    include: { aliExpressSku: { include: { importListingPrice: true } }, comparison: true },
   })
 
   if (!confirmedMatch || !confirmedMatch.comparison) {
@@ -79,11 +81,12 @@ export async function getProductPageData(sku: string): Promise<ProductPageData |
       priceDataAsOf: comparison.priceDataAsOf,
       remote: {
         productId: aliExpressSku.productId,
+        skuId: aliExpressSku.skuId,
+        orderable: aliExpressSku.isPublished && aliExpressSku.availableStock > 0 && Boolean(aliExpressSku.importListingPrice) && !aliExpressSku.importListingPrice?.isStale,
         title: aliExpressSku.title,
         imageUrls: aliExpressSku.imageUrls,
         color: aliExpressSku.color,
         size: aliExpressSku.size,
-        url: `https://www.aliexpress.com/item/${aliExpressSku.productId}.html`,
       },
     },
   }
