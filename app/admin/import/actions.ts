@@ -1,6 +1,7 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
+import { requireAdmin } from '@/lib/admin/auth'
 import { ingestCsv } from '@/lib/ingestion/ingestCsv'
 import { promoteLocalListings } from '@/lib/matching/promoteLocalSku'
 
@@ -13,6 +14,7 @@ export type ImportState = {
     created: number
     updated: number
     rawRowsLinked: number
+    categorized: number
   }
 }
 
