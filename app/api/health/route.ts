@@ -18,11 +18,11 @@ export async function GET() {
         status,
         database: 'ok',
         configuration: readiness.ready ? 'ok' : 'incomplete',
-        missingRequiredConfig: readiness.missing,
-        warnings: readiness.warnings,
+        configuration: readiness.ready ? 'ok' : 'incomplete',
+        warnings: readiness.warnings.length,
         uptimeMs: Date.now() - startedAt,
       },
-      { status: readiness.ready ? 200 : 503 },
+      { status: readiness.ready ? 200 : 503, headers: { 'Cache-Control': 'no-store' } },
     )
   } catch {
     return NextResponse.json(
@@ -34,7 +34,7 @@ export async function GET() {
         warnings: readiness.warnings,
         uptimeMs: Date.now() - startedAt,
       },
-      { status: 503 },
+      { status: 503, headers: { 'Cache-Control': 'no-store' } },
     )
   }
 }
