@@ -29,6 +29,7 @@ export async function promoteLocalListings(): Promise<PromoteResult> {
   for (const [sourceRef, rows] of groupedBySourceRef) {
     const latest = rows[rows.length - 1]
     const attrs = (latest.attributesRaw as Record<string, string> | null) ?? {}
+    const { category: sourceCategoryName, ...specs } = attrs
 
     const existing = await prisma.localSKU.findUnique({ where: { sku: sourceRef } })
 
@@ -38,13 +39,13 @@ export async function promoteLocalListings(): Promise<PromoteResult> {
       source: 'local',
       color: attrs.color,
       size: attrs.size,
-      specs: attrs,
+      specs,
     }).overview
 
     const resolvedCategory = await resolveCanonicalCategory({
       title: latest.title,
-      sourceCategoryName: attrs.category,
-      specs: attrs,
+      sourceCategoryName,
+      specs,
     })
 
     const canonicalData = {
@@ -55,7 +56,7 @@ export async function promoteLocalListings(): Promise<PromoteResult> {
       imageUrls: latest.imageUrls,
       color: attrs.color,
       size: attrs.size,
-      specs: attrs,
+      specs,
       currentPrice: latest.priceRaw,
       currency: latest.currency,
       inStock: latest.inStock ?? false,
