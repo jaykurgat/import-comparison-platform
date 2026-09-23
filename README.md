@@ -10,7 +10,7 @@ The storefront has two independent catalog paths:
 - **Supplier catalog:** an AliExpress SKU is customer-visible only after it is published, has stock, and has a current persisted storefront price.
 - **Matching:** enriches local products; it never determines whether a valid local product exists in the catalog.
 - **Product detail:** local products remain usable as local-only listings when no valid comparison exists.
-- **Import checkout:** remains behind the persisted supplier-price/stock/address validation boundary. Payment execution is intentionally paused.
+- **Import checkout:** validates supplier listing, stock, price, and delivery address, then initiates a Daraja STK Push. Callback handling is idempotent, but it does not yet reconcile successful callbacks with Daraja's transaction query API or complete AliExpress supplier payment. Keep production checkout disabled until those safeguards and end-to-end sandbox verification are complete.
 
 This separation is covered by automated tests so later storefront work does not accidentally restore the old behavior where unmatched local products disappear.
 
@@ -48,7 +48,7 @@ The GitHub Actions CI workflow runs linting, Prisma client generation, TypeScrip
 
 ## Deployment
 
-The application can be deployed as a Next.js application. Before exposing the admin/catalog operations publicly, configure the required database, Redis, AliExpress, admin, and catalog-sync secrets. Daraja remains sandbox/paused until payment execution is explicitly reopened.
+The application can be deployed as a Next.js application. Before exposing the admin/catalog operations publicly, configure the required database, Redis, AliExpress, admin, and catalog-sync secrets. Keep Daraja in sandbox until callback reconciliation, supplier payment/fulfillment handling, and end-to-end verification are complete; do not enable production credentials based on the current checkout code.
 
 ## Project structure
 
