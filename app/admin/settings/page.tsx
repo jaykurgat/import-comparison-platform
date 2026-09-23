@@ -28,6 +28,7 @@ export default async function AdminSettingsPage() {
           <form action={logoutAdmin}><button type="submit" className="rounded border border-[#D8D8D3] px-4 py-2 text-sm font-medium hover:bg-white">Sign out</button></form>
         </header>
         <nav className="mt-6 flex flex-wrap gap-2">
+          <Link href="/admin" className="rounded border border-[#D8D8D3] bg-white px-4 py-2 text-sm font-medium">Dashboard</Link>
           <Link href="/admin/health" className="rounded border border-[#D8D8D3] bg-white px-4 py-2 text-sm font-medium">Health</Link>
           <Link href="/admin/import" className="rounded border border-[#D8D8D3] bg-white px-4 py-2 text-sm font-medium">Import</Link>
           <Link href="/admin/catalog" className="rounded border border-[#D8D8D3] bg-white px-4 py-2 text-sm font-medium">Supplier catalog</Link>
