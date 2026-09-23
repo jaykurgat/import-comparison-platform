@@ -31,13 +31,19 @@ export default function ProductCard({ product }: { product: ProductTeaser }) {
 
           <div className="mt-auto pt-4">
             <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
-              <span className="text-base font-black tabular-nums text-slate-950">{product.currency} {product.price.toLocaleString()}</span>
+              <span className="text-base font-black tabular-nums text-slate-950">
+                {product.source === 'import' && product.variantCount > 1 ? 'From ' : ''}{product.currency} {product.price.toLocaleString()}
+              </span>
               {product.hasDeal && product.savingsAmount !== null && (
                 <span className="text-[11px] font-bold text-emerald-700">Save {product.currency} {product.savingsAmount.toLocaleString()}</span>
               )}
             </div>
             <div className="mt-3 flex items-center justify-between border-t border-slate-100 pt-3 text-xs font-bold text-slate-400 transition group-hover:text-[#123f2b]">
-              <span>{product.inStock ? 'Available' : 'Unavailable'}</span>
+              <span>
+                {product.variantCount > 1
+                  ? `${product.variantCount} variants${product.inStock ? '' : ' · currently unavailable'}`
+                  : product.inStock ? 'Available' : 'Currently unavailable'}
+              </span>
               <span aria-hidden="true">→</span>
             </div>
           </div>
