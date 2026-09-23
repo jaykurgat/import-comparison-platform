@@ -15,9 +15,6 @@ export async function generateMetadata({ params }: { params: Promise<{ productId
   if (!data) return { title: 'Import product not found | KijijiCart' }
 
   const description = data.description?.replace(/<[^>]*>/g, '').slice(0, 155) || 'Buy ' + data.title + ' through the KijijiCart import marketplace.'
-  const prices = data.variants.map((variant) => variant.sellPrice)
-  const lowPrice = Math.min(...prices)
-  const highPrice = Math.max(...prices)
 
   return {
     title: data.title + ' | KijijiCart Import',
