@@ -38,7 +38,8 @@ export default async function CatalogHealthPage() {
         </div>
 
         <div className="mt-6 flex flex-wrap gap-2">
-          <Link href="/admin/orders" className="rounded border border-[#D8D8D3] bg-white px-4 py-2 text-sm font-medium hover:bg-[#F7F7F5]">Import orders</Link>\n          <Link href="/admin/import" className="rounded border border-[#D8D8D3] bg-white px-4 py-2 text-sm font-medium hover:bg-[#F7F7F5]">Import local data</Link>
+          <Link href="/admin/orders" className="rounded border border-[#D8D8D3] bg-white px-4 py-2 text-sm font-medium hover:bg-[#F7F7F5]">Import orders</Link>
+          <Link href="/admin/import" className="rounded border border-[#D8D8D3] bg-white px-4 py-2 text-sm font-medium hover:bg-[#F7F7F5]">Import local data</Link>
           <Link href="/admin/catalog" className="rounded border border-[#D8D8D3] bg-white px-4 py-2 text-sm font-medium hover:bg-[#F7F7F5]">Manage supplier catalog</Link>
           <Link href="/admin/review" className="rounded border border-[#D8D8D3] bg-white px-4 py-2 text-sm font-medium hover:bg-[#F7F7F5]">Review matches</Link>
           <Link href="/admin/settings" className="rounded border border-[#D8D8D3] bg-white px-4 py-2 text-sm font-medium hover:bg-[#F7F7F5]">Platform settings</Link>
@@ -51,6 +52,7 @@ export default async function CatalogHealthPage() {
             <Metric label="Total products" value={health.local.total} />
             <Metric label="Missing images" value={health.local.missingImages} tone={health.local.missingImages ? 'warning' : 'neutral'} />
             <Metric label="Missing descriptions" value={health.local.missingDescriptions} tone={health.local.missingDescriptions ? 'warning' : 'neutral'} />
+            <Metric label="Missing source URLs" value={health.local.missingSourceUrls} tone={health.local.missingSourceUrls ? 'warning' : 'neutral'} />
             <Metric label="Out of stock" value={health.local.outOfStock} tone={health.local.outOfStock ? 'warning' : 'neutral'} />
           </div>
         </section>
@@ -64,6 +66,9 @@ export default async function CatalogHealthPage() {
             <Metric label="Missing sell price" value={health.imports.missingPrice} tone={health.imports.missingPrice ? 'danger' : 'neutral'} />
             <Metric label="Stale sell price" value={health.imports.stalePrice} tone={health.imports.stalePrice ? 'danger' : 'neutral'} />
             <Metric label="Missing/expired Kenya freight" value={health.imports.expiredFreight} tone={health.imports.expiredFreight ? 'warning' : 'neutral'} />
+            <Metric label="Missing images" value={health.imports.missingImages} tone={health.imports.missingImages ? 'danger' : 'neutral'} />
+            <Metric label="Missing SKU codes" value={health.imports.missingSkuCodes} tone={health.imports.missingSkuCodes ? 'warning' : 'neutral'} />
+            <Metric label="Unresolved categories" value={health.imports.unresolvedCategories} tone={health.imports.unresolvedCategories ? 'warning' : 'neutral'} />
           </div>
         </section>
 
