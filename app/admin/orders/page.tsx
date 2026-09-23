@@ -2,7 +2,8 @@ export const dynamic = 'force-dynamic'
 
 import { prisma } from '@/lib/prisma'
 import { requireAdmin } from '@/lib/admin/auth'
-import { logoutAdmin } from '../actions'\nimport { retryFailedSupplierSubmission } from './actions'
+import { logoutAdmin } from '../actions'
+import { retryFailedSupplierSubmission } from './actions'
 
 export default async function OrdersAdminPage() {
   await requireAdmin()
