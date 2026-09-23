@@ -109,6 +109,18 @@ async function persistProduct(data: MappedAliExpressProduct): Promise<void> {
   })
   const existingDescriptions = new Map(existingSkus.map((sku) => [sku.skuId, sku.description]))
 
+  // A successful fresh supplier response is authoritative for this product.
+  // SKUs no longer returned by AliExpress must not remain published on our storefront.
+  if (data.skus.length > 0) {
+    await prisma.aliExpressSKU.updateMany({
+      where: {
+        productId: data.productId,
+        skuId: { notIn: data.skus.map((sku) => sku.skuId) },
+      },
+      data: { isPublished: false },
+    })
+  }
+
   for (const sku of data.skus) {
     const description = buildProductDescription({
       title: data.title,
