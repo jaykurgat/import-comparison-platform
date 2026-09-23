@@ -33,6 +33,11 @@ export async function POST(request: Request) {
     // Empty body is valid; defaults are used.
   }
 
-  const result = await syncAliExpressCatalog(body)
+  const result = await syncAliExpressCatalog({
+    ...body,
+    limit: typeof body.limit === 'number' ? Math.max(1, Math.min(Math.floor(body.limit), 100)) : undefined,
+    candidatesPerLocal: typeof body.candidatesPerLocal === 'number' ? Math.max(1, Math.min(Math.floor(body.candidatesPerLocal), 20)) : undefined,
+    freightSkusPerProduct: typeof body.freightSkusPerProduct === 'number' ? Math.max(1, Math.min(Math.floor(body.freightSkusPerProduct), 5)) : undefined,
+  })
   return NextResponse.json(result)
 }
