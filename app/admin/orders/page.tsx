@@ -23,6 +23,10 @@ export default async function OrdersAdminPage() {
           </div>
           <form action={logoutAdmin}><button type="submit" className="rounded border border-[#D8D8D3] px-4 py-2 text-sm font-medium hover:bg-white">Sign out</button></form>
         </div>
+        <div className="mb-4 flex flex-wrap gap-2">
+          <a href="/admin" className="rounded border border-[#D8D8D3] bg-white px-4 py-2 text-sm font-medium hover:bg-[#F7F7F5]">Dashboard</a>
+          <a href="/admin/health" className="rounded border border-[#D8D8D3] bg-white px-4 py-2 text-sm font-medium hover:bg-[#F7F7F5]">Health</a>
+        </div>
         <div className="mt-6 overflow-x-auto rounded-lg border border-[#E3E3DF] bg-white">
           <table className="w-full min-w-[1050px] text-sm">
             <thead className="border-b border-[#E3E3DF] bg-[#FAFAF9] text-left text-xs uppercase tracking-wide text-[#8A8A8E]">
