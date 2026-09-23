@@ -32,7 +32,7 @@ async function ensureCategoryPath(path: [string, string]): Promise<string> {
       continue
     }
 
-    const created = await prisma.category.create({
+    const created: { id: string } = await prisma.category.create({
       data: { name, parentId },
       select: { id: true },
     })
