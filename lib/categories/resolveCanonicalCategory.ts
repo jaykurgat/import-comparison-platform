@@ -22,7 +22,7 @@ async function ensureCategoryPath(path: [string, string]): Promise<string> {
   let parentId: string | null = null
 
   for (const name of path) {
-    const existing = await prisma.category.findFirst({
+    const existing: { id: string } | null = await prisma.category.findFirst({
       where: { name, parentId },
       select: { id: true },
     })
