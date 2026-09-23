@@ -109,6 +109,7 @@ export function parseCsv(csvContent: string, mapping: CsvColumnMapping): CsvPars
       rowNumber,
       sourceRef: resolvedSourceRef,
       title,
+      sourceUrl: mapping.sourceUrl ? record[mapping.sourceUrl]?.trim() : undefined,
       description: mapping.description ? record[mapping.description]?.trim() : undefined,
       imageUrls,
       priceRaw,
