@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+
 import Link from 'next/link'
 import { getAllProducts } from '@/lib/storefront/getAllProducts'
 import ProductCard from '@/components/ProductCard'
