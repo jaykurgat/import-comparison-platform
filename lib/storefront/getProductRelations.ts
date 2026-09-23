@@ -3,7 +3,6 @@ import { isCatalogEligible } from './catalogEligibility'
 import { titleSimilarity } from '../matching/similarity'
 import type { ProductTeaser } from './productTeaser'
 
-const CONFIRMED_MATCH_STATUSES = ['AUTO_MATCHED', 'MANUAL_CONFIRMED'] as const
 
 interface RelatedCandidate {
   product: ProductTeaser
@@ -222,7 +221,7 @@ export async function getComparableImportsForLocal(
   const matches = await prisma.sKUMatch.findMany({
     where: {
       localSkuId,
-      status: { in: CONFIRMED_MATCH_STATUSES },
+      status: { in: ['AUTO_MATCHED', 'MANUAL_CONFIRMED'] },
       aliExpressSku: {
         isPublished: true,
         importListingPrice: { isStale: false },
