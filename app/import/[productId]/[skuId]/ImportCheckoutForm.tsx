@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { trackBeginCheckout } from '@/lib/analytics/events'
 
 export function ImportCheckoutForm({
   productId,
@@ -16,6 +17,7 @@ export function ImportCheckoutForm({
   async function submit(formData: FormData) {
     setPending(true)
     setMessage(null)
+    trackBeginCheckout([{ item_id: `${productId}-${skuId}`, item_name: productId, quantity, currency: 'KES' }], 0, 'KES')
 
     try {
       const response = await fetch('/api/checkout/import', {
