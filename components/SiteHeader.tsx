@@ -1,8 +1,11 @@
 import Link from 'next/link'
+import { getStorefrontCategories } from '@/lib/storefront/getCategories'
 
-const categories = ['Electronics', 'Home & Kitchen', 'Beauty', 'Fashion', 'Health', 'Office', 'Deals']
+export const dynamic = 'force-dynamic'
 
-export default function SiteHeader() {
+export default async function SiteHeader() {
+  const categories = await getStorefrontCategories(8)
+
   return (
     <header className="sticky top-0 z-50 border-b border-slate-200/80 bg-[#fffefa]/95 backdrop-blur">
       <div className="bg-[#123f2b] text-[11px] font-semibold text-white/90">
@@ -19,12 +22,7 @@ export default function SiteHeader() {
 
         <form action="/products" className="hidden min-w-0 flex-1 md:flex">
           <label htmlFor="site-search" className="sr-only">Search products</label>
-          <input
-            id="site-search"
-            name="q"
-            placeholder="Search products, brands and categories"
-            className="h-11 min-w-0 flex-1 rounded-l-xl border border-slate-300 bg-slate-50 px-4 text-sm text-slate-900 outline-none transition focus:border-emerald-700 focus:bg-white"
-          />
+          <input id="site-search" name="q" placeholder="Search products, brands and categories" className="h-11 min-w-0 flex-1 rounded-l-xl border border-slate-300 bg-slate-50 px-4 text-sm text-slate-900 outline-none transition focus:border-emerald-700 focus:bg-white" />
           <button className="h-11 rounded-r-xl bg-amber-400 px-6 text-sm font-black text-slate-950 transition hover:bg-amber-300">Search</button>
         </form>
 
@@ -37,21 +35,17 @@ export default function SiteHeader() {
       <div className="border-t border-slate-100 md:hidden">
         <form action="/products" className="flex px-4 py-3">
           <label htmlFor="mobile-site-search" className="sr-only">Search products</label>
-          <input
-            id="mobile-site-search"
-            name="q"
-            placeholder="Search products..."
-            className="h-10 min-w-0 flex-1 rounded-l-xl border border-slate-300 bg-slate-50 px-3 text-sm outline-none focus:border-emerald-700 focus:bg-white"
-          />
+          <input id="mobile-site-search" name="q" placeholder="Search products..." className="h-10 min-w-0 flex-1 rounded-l-xl border border-slate-300 bg-slate-50 px-3 text-sm outline-none focus:border-emerald-700 focus:bg-white" />
           <button className="h-10 rounded-r-xl bg-amber-400 px-4 text-sm font-black text-slate-950">Search</button>
         </form>
       </div>
 
-      <nav className="border-t border-slate-100 bg-white">
+      <nav className="border-t border-slate-100 bg-white" aria-label="Product categories">
         <div className="mx-auto flex max-w-[1440px] gap-7 overflow-x-auto px-4 py-3 sm:px-6">
+          <Link href="/products" className="whitespace-nowrap text-xs font-bold text-slate-600 transition hover:text-[#123f2b]">All products</Link>
           {categories.map((category) => (
-            <Link key={category} href="/products" className="whitespace-nowrap text-xs font-bold text-slate-600 transition hover:text-[#123f2b]">
-              {category}
+            <Link key={category.id} href={{ pathname: '/products', query: { category: category.id } }} className="whitespace-nowrap text-xs font-bold text-slate-600 transition hover:text-[#123f2b]">
+              {category.name}
             </Link>
           ))}
         </div>
