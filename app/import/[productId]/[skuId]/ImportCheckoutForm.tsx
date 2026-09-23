@@ -52,7 +52,8 @@ export function ImportCheckoutForm({
       }
 
       setMessage(body.paymentMessage ?? 'Check your phone and enter your M-PESA PIN to complete payment.')
-      window.location.assign(body.checkoutUrl)
+      const separator = body.checkoutUrl.includes('?') ? '&' : '?'
+      window.location.assign(`${body.checkoutUrl}${separator}token=${encodeURIComponent(body.accessToken ?? '')}`)
     } catch {
       setMessage('Unable to connect to checkout. Please try again.')
     } finally {
