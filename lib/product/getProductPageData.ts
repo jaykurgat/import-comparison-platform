@@ -23,6 +23,7 @@ export interface ProductPageData {
     title: string
     description: string | null
     imageUrls: string[]
+    sourceUrl: string | null
     price: number
     currency: string
     color: string | null
@@ -40,6 +41,7 @@ export async function getProductPageData(sku: string): Promise<ProductPageData |
     title: localSku.title,
     description: localSku.description,
     imageUrls: localSku.imageUrls,
+    sourceUrl: localSku.sourceUrl,
     price: Number(localSku.currentPrice),
     currency: localSku.currency,
     color: localSku.color,
