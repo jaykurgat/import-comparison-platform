@@ -55,7 +55,7 @@ export default async function ImportProductPage({ params }: { params: Promise<{ 
                 <p className="mt-1 text-xs leading-5 text-slate-500">Price reflects the current landed-cost estimate and markup. Delivery timing, freight, and exchange rates can change.</p>
               </div>
 
-              <ImportCheckoutForm productId={data.productId} skuId={data.skuId} />
+              <ImportCheckoutForm productId={data.productId} skuId={data.skuId} sellPrice={data.sellPrice} />
 
               <a href={data.aliExpressUrl} target="_blank" rel="noopener noreferrer" className="mt-6 inline-flex w-full items-center justify-center rounded-lg bg-[#0f5132] px-5 py-3 text-sm font-bold text-white hover:bg-[#0b4128]">View supplier listing →</a>
               {data.description && <div className="mt-7 border-t border-slate-100 pt-6 text-sm leading-6 text-slate-600" dangerouslySetInnerHTML={{ __html: data.description }} />}
