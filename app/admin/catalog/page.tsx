@@ -89,7 +89,7 @@ export default async function CatalogAdminPage() {
                     )}
                   </td>
                   <td className="px-4 py-4">
-                    <PublishToggle id={item.id} published={item.isPublished} />
+                    <PublishToggle id={item.id} published={item.isPublished} canPublish={item.stock > 0 && item.price !== null && !item.price.isStale} />
                   </td>
                 </tr>
               ))}
