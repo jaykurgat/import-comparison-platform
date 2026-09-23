@@ -9,9 +9,9 @@ export async function POST(request: Request) {
   try {
     const payload = await request.json()
     const callback = parseDarajaCallback(payload)
+
     const payment = await prisma.importPayment.findUnique({
       where: { checkoutRequestId: callback.checkoutRequestId },
-      include: { order: { include: { items: { include: { aliExpressSku: true } } } } },
     })
 
     if (!payment) return NextResponse.json({ ResultCode: 0, ResultDesc: 'Accepted' })
@@ -22,23 +22,42 @@ export async function POST(request: Request) {
     if (callback.resultCode !== 0) {
       await prisma.$transaction([
         prisma.importPayment.update({ where: { id: payment.id }, data: { status: 'FAILED' } }),
-        prisma.importOrder.update({ where: { id: payment.orderId }, data: { status: 'FAILED', errorMessage: callback.resultDescription } }),
+        prisma.importOrder.update({
+          where: { id: payment.orderId },
+          data: { status: 'FAILED', errorMessage: callback.resultDescription },
+        }),
       ])
       return NextResponse.json({ ResultCode: 0, ResultDesc: 'Accepted' })
     }
 
+    const order = await prisma.importOrder.findUnique({
+      where: { id: payment.orderId },
+      include: { items: true },
+    })
+    if (!order) return NextResponse.json({ ResultCode: 0, ResultDesc: 'Accepted' })
+
     await prisma.$transaction([
       prisma.importPayment.update({
         where: { id: payment.id },
-        data: { status: 'PAID', paidAt: new Date(), mpesaReceiptNumber: callback.mpesaReceiptNumber, merchantRequestId: callback.merchantRequestId },
+        data: {
+          status: 'PAID',
+          paidAt: new Date(),
+          mpesaReceiptNumber: callback.mpesaReceiptNumber,
+          merchantRequestId: callback.merchantRequestId,
+        },
       }),
-      prisma.importOrder.update({ where: { id: payment.orderId }, data: { status: 'SUBMITTING', errorMessage: null } }),
+      prisma.importOrder.update({
+        where: { id: order.id },
+        data: { status: 'SUBMITTING', errorMessage: null },
+      }),
     ])
 
     try {
-      const order = payment.order
-      const supplierSkus = await prisma.aliExpressSKU.findMany({ where: { id: { in: order.items.map((item) => item.aliExpressSkuId) } } })
+      const supplierSkus = await prisma.aliExpressSKU.findMany({
+        where: { id: { in: order.items.map((item) => item.aliExpressSkuId) } },
+      })
       const skuById = new Map(supplierSkus.map((sku) => [sku.id, sku]))
+
       const created = await createAliExpressDsOrder({
         outOrderId: order.outOrderId,
         address: {
@@ -53,11 +72,15 @@ export async function POST(request: Request) {
           phone_country: '254',
           zip: order.zip ?? undefined,
         },
-        items: order.items.map((item) => ({
-          product_count: item.quantity,
-          product_id: Number(item.productId),
-          sku_attr: skuById.get(item.aliExpressSkuId)?.skuCode ?? item.skuId,
-        })),
+        items: order.items.map((item) => {
+          const supplierSku = skuById.get(item.aliExpressSkuId)
+          if (!supplierSku) throw new Error('Supplier SKU ' + item.aliExpressSkuId + ' is no longer available.')
+          return {
+            product_count: item.quantity,
+            product_id: Number(item.productId),
+            sku_attr: supplierSku.skuCode ?? item.skuId,
+          }
+        }),
         payCurrency: 'USD',
         tryToPay: false,
         businessModel: 'retail',
@@ -69,8 +92,11 @@ export async function POST(request: Request) {
       })
     } catch (error) {
       await prisma.importOrder.update({
-        where: { id: payment.orderId },
-        data: { status: 'FAILED', errorMessage: error instanceof Error ? error.message : String(error) },
+        where: { id: order.id },
+        data: {
+          status: 'FAILED',
+          errorMessage: error instanceof Error ? error.message : String(error),
+        },
       })
     }
 
