@@ -30,7 +30,15 @@ jobs:
           DIRECT_URL: ${{ secrets.DIRECT_URL }}
         run: |
           set -euo pipefail
-          test -n "$DATABASE_URL"
+          if [ -z "${DATABASE_URL:-}" ]; then
+            echo "::error::DATABASE_URL is not available in the GitHub Actions production environment. Add DATABASE_URL under Settings > Environments > production > Environment secrets."
+            exit 1
+          fi
+          if [ -z "${DIRECT_URL:-}" ]; then
+            echo "::error::DIRECT_URL is not available in the GitHub Actions production environment. Add DIRECT_URL under Settings > Environments > production > Environment secrets."
+            exit 1
+          fi
+          echo "Production database credentials are present; applying committed Prisma migrations."
           npx prisma migrate deploy
 
       - name: Verify Prisma schema is in sync
