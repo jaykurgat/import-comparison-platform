@@ -1,5 +1,6 @@
 'use client'
 
+import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { trackBeginCheckout } from '@/lib/analytics/events'
 
@@ -12,6 +13,7 @@ export function ImportCheckoutForm({
   skuId: string
   sellPrice: number
 }) {
+  const router = useRouter()
   const [quantity, setQuantity] = useState(1)
   const [message, setMessage] = useState<string | null>(null)
   const [pending, setPending] = useState(false)
@@ -19,7 +21,7 @@ export function ImportCheckoutForm({
   async function submit(formData: FormData) {
     setPending(true)
     setMessage(null)
-    trackBeginCheckout([{ item_id: `${productId}-${skuId}`, item_name: productId, quantity, price: sellPrice, currency: 'KES' }], sellPrice * quantity, 'KES')
+    trackBeginCheckout([{ item_id: productId + '-' + skuId, item_name: productId, quantity, price: sellPrice, currency: 'KES' }], sellPrice * quantity, 'KES')
 
     try {
       const response = await fetch('/api/checkout/import', {
@@ -46,14 +48,14 @@ export function ImportCheckoutForm({
         return
       }
 
-      if (!body.checkoutUrl) {
+      if (!body.checkoutUrl || !body.accessToken) {
         setMessage('M-PESA payment could not be started.')
         return
       }
 
       setMessage(body.paymentMessage ?? 'Check your phone and enter your M-PESA PIN to complete payment.')
       const separator = body.checkoutUrl.includes('?') ? '&' : '?'
-      window.location.assign(`${body.checkoutUrl}${separator}token=${encodeURIComponent(body.accessToken ?? '')}`)
+      router.push(body.checkoutUrl + separator + 'token=' + encodeURIComponent(body.accessToken))
     } catch {
       setMessage('Unable to connect to checkout. Please try again.')
     } finally {
@@ -67,7 +69,6 @@ export function ImportCheckoutForm({
       <p className="mt-1 text-xs leading-5 text-slate-500">
         Confirm your delivery details. We will send an M-PESA payment prompt to the mobile number you provide before the supplier order is submitted.
       </p>
-
       <form
         className="mt-4 grid gap-3"
         onSubmit={(event) => {
@@ -94,7 +95,6 @@ export function ImportCheckoutForm({
           </button>
         </div>
       </form>
-
       {message && <p className="mt-3 text-sm text-[#A6432D]">{message}</p>}
     </div>
   )
