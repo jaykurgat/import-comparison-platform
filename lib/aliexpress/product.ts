@@ -1,4 +1,5 @@
 import { prisma } from '../prisma'
+import { buildProductDescription } from '../product/buildProductDescription'
 import { withCache, type CacheResult } from '../cache/withCache'
 import { callAliExpressSync, getAliExpressCredentials } from './client'
 import { mapProductResult, type MappedAliExpressProduct } from './mappers'
@@ -102,7 +103,21 @@ async function fetchProductFallback(
  * logged but never blocks returning good data to the caller.
  */
 async function persistProduct(data: MappedAliExpressProduct): Promise<void> {
+  const existingSkus = await prisma.aliExpressSKU.findMany({
+    where: { productId: data.productId },
+    select: { skuId: true, description: true },
+  })
+  const existingDescriptions = new Map(existingSkus.map((sku) => [sku.skuId, sku.description]))
+
   for (const sku of data.skus) {
+    const description = buildProductDescription({
+      title: data.title,
+      description: data.description || existingDescriptions.get(sku.skuId),
+      source: 'import',
+      color: sku.color,
+      size: sku.size,
+      specs: sku.specs,
+    }).overview
     const upserted = await prisma.aliExpressSKU.upsert({
       where: {
         productId_skuId: { productId: data.productId, skuId: sku.skuId },

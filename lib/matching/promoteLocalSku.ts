@@ -1,4 +1,5 @@
 import { prisma } from '../prisma'
+import { buildProductDescription } from '../product/buildProductDescription'
 
 /**
  * Promotes LocalListingRaw rows into canonical LocalSKU records.
@@ -43,11 +44,20 @@ export async function promoteLocalListings(): Promise<PromoteResult> {
 
     const existing = await prisma.localSKU.findUnique({ where: { sku: sourceRef } })
 
+    const description = buildProductDescription({
+      title: latest.title,
+      description: latest.description || existing?.description,
+      source: 'local',
+      color: attrs.color,
+      size: attrs.size,
+      specs: attrs,
+    }).overview
+
     const canonicalData = {
       sku: sourceRef,
       title: latest.title,
       sourceUrl: latest.sourceUrl,
-      description: latest.description,
+      description,
       imageUrls: latest.imageUrls,
       color: attrs.color,
       size: attrs.size,

@@ -1,5 +1,6 @@
 import { prisma } from '../prisma'
 import { isCatalogEligible } from '../storefront/catalogEligibility'
+import { buildProductDescription, type ProductDescriptionFeature } from './buildProductDescription'
 
 export interface ProductPageComparison {
   renderMode: 'IMPORT_ADVANTAGE' | 'LOCAL_ONLY'
@@ -24,7 +25,8 @@ export interface ProductPageData {
   local: {
     sku: string
     title: string
-    description: string | null
+    description: string
+    coreFeatures: ProductDescriptionFeature[]
     imageUrls: string[]
     sourceUrl: string | null
     price: number
@@ -42,10 +44,21 @@ export async function getProductPageData(sku: string): Promise<ProductPageData |
   const localSku = await prisma.localSKU.findUnique({ where: { sku }, include: { category: true } })
   if (!localSku || !isCatalogEligible(localSku)) return null
 
+  const description = buildProductDescription({
+    title: localSku.title,
+    description: localSku.description,
+    source: 'local',
+    categoryName: localSku.category?.name,
+    color: localSku.color,
+    size: localSku.size,
+    specs: (localSku.specs as Record<string, unknown> | null) ?? null,
+  })
+
   const local = {
     sku: localSku.sku,
     title: localSku.title,
-    description: localSku.description,
+    description: description.overview,
+    coreFeatures: description.coreFeatures,
     imageUrls: localSku.imageUrls,
     sourceUrl: localSku.sourceUrl,
     price: Number(localSku.currentPrice),

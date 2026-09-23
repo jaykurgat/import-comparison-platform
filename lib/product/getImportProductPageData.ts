@@ -1,10 +1,12 @@
 import { prisma } from '../prisma'
+import { buildProductDescription, type ProductDescriptionFeature } from './buildProductDescription'
 
 export interface ImportProductPageData {
   productId: string
   skuId: string
   title: string
-  description: string | null
+  description: string
+  coreFeatures: ProductDescriptionFeature[]
   imageUrls: string[]
   color: string | null
   size: string | null
@@ -28,11 +30,22 @@ export async function getImportProductPageData(productId: string, skuId: string)
     return null
   }
 
+  const description = buildProductDescription({
+    title: aliExpressSku.title,
+    description: aliExpressSku.description,
+    source: 'import',
+    categoryName: aliExpressSku.category?.name,
+    color: aliExpressSku.color,
+    size: aliExpressSku.size,
+    specs: (aliExpressSku.specs as Record<string, unknown> | null) ?? null,
+  })
+
   return {
     productId: aliExpressSku.productId,
     skuId: aliExpressSku.skuId,
     title: aliExpressSku.title,
-    description: aliExpressSku.description,
+    description: description.overview,
+    coreFeatures: description.coreFeatures,
     imageUrls: aliExpressSku.imageUrls,
     color: aliExpressSku.color,
     size: aliExpressSku.size,

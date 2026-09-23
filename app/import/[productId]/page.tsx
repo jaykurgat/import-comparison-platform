@@ -7,6 +7,7 @@ import { getImportProductGroupPageData } from '@/lib/product/getImportProductGro
 import SiteHeader from '@/components/SiteHeader'
 import SiteFooter from '@/components/SiteFooter'
 import ProductGallery from '@/components/ProductGallery'
+import ProductDescription from '@/components/ProductDescription'
 import ImportVariantSelector from '@/components/ImportVariantSelector'
 
 export async function generateMetadata({ params }: { params: Promise<{ productId: string }> }): Promise<Metadata> {
@@ -14,7 +15,7 @@ export async function generateMetadata({ params }: { params: Promise<{ productId
   const data = await getImportProductGroupPageData(productId)
   if (!data) return { title: 'Import product not found | KijijiCart' }
 
-  const description = data.description?.replace(/<[^>]*>/g, '').slice(0, 155) || 'Buy ' + data.title + ' through the KijijiCart import marketplace.'
+  const description = data.description.slice(0, 155)
 
   return {
     title: data.title + ' | KijijiCart Import',
@@ -50,7 +51,7 @@ export default async function ImportProductGroupPage({ params }: { params: Promi
             '@context': 'https://schema.org',
             '@type': 'Product',
             name: data.title,
-            description: data.description?.replace(/<[^>]*>/g, '') ?? undefined,
+            description: data.description || undefined,
             image: data.imageUrls,
             sku: data.productId,
             category: data.categoryName ?? undefined,
@@ -106,9 +107,9 @@ export default async function ImportProductGroupPage({ params }: { params: Promi
 
               <ImportVariantSelector productId={data.productId} title={data.title} variants={data.variants} />
 
-              <a href={data.aliExpressUrl} target="_blank" rel="noopener noreferrer" className="mt-5 inline-flex w-full items-center justify-center rounded-xl border border-slate-200 bg-white px-5 py-3 text-sm font-bold text-slate-700 hover:border-slate-300">View supplier listing →</a>
+              <ProductDescription description={data.description} coreFeatures={data.coreFeatures} />
 
-              {data.description && <div className="mt-7 border-t border-slate-100 pt-6 text-sm leading-7 text-slate-600" dangerouslySetInnerHTML={{ __html: data.description }} />}
+              <a href={data.aliExpressUrl} target="_blank" rel="noopener noreferrer" className="mt-5 inline-flex w-full items-center justify-center rounded-xl border border-slate-200 bg-white px-5 py-3 text-sm font-bold text-slate-700 hover:border-slate-300">View supplier listing →</a>
             </section>
           </div>
         </div>

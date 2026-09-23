@@ -8,12 +8,13 @@ import SiteHeader from '@/components/SiteHeader'
 import SiteFooter from '@/components/SiteFooter'
 import TrackProductView from '@/components/TrackProductView'
 import ProductGallery from '@/components/ProductGallery'
+import ProductDescription from '@/components/ProductDescription'
 
 export async function generateMetadata({ params }: { params: Promise<{ sku: string }> }): Promise<Metadata> {
   const { sku } = await params
   const data = await getProductPageData(sku)
   if (!data) return { title: 'Product not found | KijijiCart' }
-  const description = data.local.description?.slice(0, 155) || `Compare ${data.local.title} locally with available import pricing on KijijiCart.`
+  const description = data.local.description.slice(0, 155)
   return {
     title: `${data.local.title} | KijijiCart`,
     description,
@@ -111,7 +112,7 @@ export default async function ProductPage({ params }: { params: Promise<{ sku: s
                 <p className="mt-2 text-xs leading-5 text-slate-500">This local listing remains part of the catalog independently of comparison status.</p>
               </div>
 
-              {local.description && <p className="mt-6 whitespace-pre-line text-sm leading-7 text-slate-600">{local.description}</p>}
+              <ProductDescription description={local.description} coreFeatures={local.coreFeatures} />
 
               {local.sourceUrl && (
                 <a href={local.sourceUrl} target="_blank" rel="noopener noreferrer" className="mt-5 inline-flex text-sm font-bold text-emerald-800 hover:underline">

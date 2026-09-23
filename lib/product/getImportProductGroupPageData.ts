@@ -1,4 +1,5 @@
 import { prisma } from '../prisma'
+import { buildProductDescription, type ProductDescriptionFeature } from './buildProductDescription'
 
 export interface ImportProductVariant {
   skuId: string
@@ -12,7 +13,8 @@ export interface ImportProductVariant {
 export interface ImportProductGroupPageData {
   productId: string
   title: string
-  description: string | null
+  description: string
+  coreFeatures: ProductDescriptionFeature[]
   imageUrls: string[]
   categoryName: string | null
   variants: ImportProductVariant[]
@@ -42,10 +44,22 @@ export async function getImportProductGroupPageData(productId: string): Promise<
   if (priced.length === 0) return null
 
   const first = priced[0]
+  const description = buildProductDescription({
+    title: first.title,
+    description: first.description,
+    source: 'import',
+    categoryName: first.category?.name,
+    additionalColors: priced.map((sku) => sku.color).filter((value): value is string => Boolean(value)),
+    additionalSizes: priced.map((sku) => sku.size).filter((value): value is string => Boolean(value)),
+    additionalSpecs: priced.map((sku) => (sku.specs as Record<string, unknown> | null) ?? null),
+    variantCount: priced.length,
+  })
+
   return {
     productId,
     title: first.title,
-    description: first.description,
+    description: description.overview,
+    coreFeatures: description.coreFeatures,
     imageUrls: priced.flatMap((sku) => sku.imageUrls).filter(Boolean).slice(0, 12),
     categoryName: first.category?.name ?? null,
     variants: priced.map((sku) => ({

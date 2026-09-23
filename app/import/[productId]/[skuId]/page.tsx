@@ -7,13 +7,14 @@ import { getImportProductPageData } from '@/lib/product/getImportProductPageData
 import SiteHeader from '@/components/SiteHeader'
 import SiteFooter from '@/components/SiteFooter'
 import ProductGallery from '@/components/ProductGallery'
+import ProductDescription from '@/components/ProductDescription'
 import { ImportCheckoutForm } from './ImportCheckoutForm'
 
 export async function generateMetadata({ params }: { params: Promise<{ productId: string; skuId: string }> }): Promise<Metadata> {
   const { productId, skuId } = await params
   const data = await getImportProductPageData(productId, skuId)
   if (!data) return { title: 'Import product not found | KijijiCart' }
-  const description = data.description?.replace(/<[^>]*>/g, '').slice(0, 155) || `Buy ${data.title} through the KijijiCart import marketplace.`
+  const description = data.description.slice(0, 155)
   return {
     title: `${data.title} | KijijiCart Import`,
     description,
@@ -42,7 +43,7 @@ export default async function ImportProductPage({ params }: { params: Promise<{ 
             '@context': 'https://schema.org',
             '@type': 'Product',
             name: data.title,
-            description: data.description?.replace(/<[^>]*>/g, '') ?? undefined,
+            description: data.description || undefined,
             image: data.imageUrls,
             sku: data.skuId,
             category: data.categoryName ?? undefined,
@@ -107,7 +108,7 @@ export default async function ImportProductPage({ params }: { params: Promise<{ 
 
               <a href={data.aliExpressUrl} target="_blank" rel="noopener noreferrer" className="mt-5 inline-flex w-full items-center justify-center rounded-xl border border-slate-200 bg-white px-5 py-3 text-sm font-bold text-slate-700 hover:border-slate-300">View supplier listing →</a>
 
-              {data.description && <div className="mt-7 border-t border-slate-100 pt-6 text-sm leading-7 text-slate-600" dangerouslySetInnerHTML={{ __html: data.description }} />}
+              <ProductDescription description={data.description} coreFeatures={data.coreFeatures} />
               {data.isStale && <p className="mt-5 text-xs text-amber-700">Price last confirmed {data.priceDataAsOf.toLocaleDateString()} and may have changed.</p>}
             </section>
           </div>
