@@ -7,8 +7,6 @@ export interface ImportProductVariant {
   availableStock: number
   sellPrice: number
   currency: string
-  priceDataAsOf: Date
-  isStale: boolean
 }
 
 export interface ImportProductGroupPageData {
@@ -57,8 +55,6 @@ export async function getImportProductGroupPageData(productId: string): Promise<
       availableStock: sku.availableStock,
       sellPrice: Number(sku.importListingPrice!.sellPrice),
       currency: sku.importListingPrice!.currency,
-      priceDataAsOf: sku.importListingPrice!.priceDataAsOf,
-      isStale: sku.importListingPrice!.isStale,
     })),
     aliExpressUrl: 'https://www.aliexpress.com/item/' + productId + '.html',
   }
