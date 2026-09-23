@@ -1,12 +1,24 @@
 export const dynamic = 'force-dynamic'
 
 import Link from 'next/link'
+import type { Metadata } from 'next'
 import { getAllProducts } from '@/lib/storefront/getAllProducts'
 import { getStorefrontCategories } from '@/lib/storefront/getCategories'
 import ProductCard from '@/components/ProductCard'
 import SiteHeader from '@/components/SiteHeader'
 import SiteFooter from '@/components/SiteFooter'
 import SearchTracker from '@/components/SearchTracker'
+
+export async function generateMetadata({ searchParams }: { searchParams: Promise<{ q?: string; category?: string }> }): Promise<Metadata> {
+  const params = await searchParams
+  const query = params.q?.trim()
+  const title = query ? `Search: ${query} | KijijiCart` : 'Shop all products | KijijiCart'
+  return {
+    title,
+    description: query ? `Browse KijijiCart products matching ${query}.` : 'Browse the KijijiCart marketplace and compare local products with available import alternatives.',
+    alternates: { canonical: query ? '/products' : '/products' },
+  }
+}
 
 export default async function ProductsPage({
   searchParams,
