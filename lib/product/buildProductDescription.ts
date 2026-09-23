@@ -33,6 +33,8 @@ export function cleanProductDescription(value: string | null | undefined): strin
       .replace(/[ \t]+/g, ' ')
       .replace(/\n[ \t]+/g, '\n')
       .replace(/\n{3,}/g, '\n\n')
+      .replace(/\n{2,}(?=• )/g, '\n')
+      .replace(/(• [^\n]+)\n{2,}(?=• )/g, '$1\n')
       .trim(),
   )
 }

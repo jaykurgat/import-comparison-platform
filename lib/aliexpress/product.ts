@@ -126,7 +126,7 @@ async function persistProduct(data: MappedAliExpressProduct): Promise<void> {
         productId: data.productId,
         skuId: sku.skuId,
         title: data.title,
-        description: data.description,
+        description,
         imageUrls: data.imageUrls,
         rawCategoryId: data.rawCategoryId,
         color: sku.color,
@@ -142,7 +142,7 @@ async function persistProduct(data: MappedAliExpressProduct): Promise<void> {
       },
       update: {
         title: data.title,
-        description: data.description,
+        description,
         imageUrls: data.imageUrls,
         rawCategoryId: data.rawCategoryId,
         color: sku.color,
