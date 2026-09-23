@@ -1,22 +1,16 @@
 import { prisma } from '../prisma'
 import { buildProductDescription } from '../product/buildProductDescription'
+import { resolveCanonicalCategory } from '../categories/resolveCanonicalCategory'
 import { withCache, type CacheResult } from '../cache/withCache'
 import { callAliExpressSync, getAliExpressCredentials } from './client'
 import { mapProductResult, type MappedAliExpressProduct } from './mappers'
 import type { AliExpressProductGetResponse } from './types'
 
-const PRODUCT_TTL_SECONDS = 18 * 60 * 60 // 18h — within the 12-24h spec
+const PRODUCT_TTL_SECONDS = 18 * 60 * 60
 
-/**
- * Fetches an AliExpress product (all its SKUs/variants), with full caching,
- * retry/backoff, circuit breaking, and stale-fallback protection.
- *
- * ship_to_country is required by the API in practice (confirmed by testing
- * — the docs listed it as optional, testing proved otherwise).
- */
 export async function getAliExpressProduct(
   productId: string,
-  shipToCountry = 'KE'
+  shipToCountry = 'KE',
 ): Promise<CacheResult<MappedAliExpressProduct>> {
   return withCache<MappedAliExpressProduct>({
     cacheKey: `aliexpress:product:${productId}:${shipToCountry}`,
@@ -28,7 +22,7 @@ export async function getAliExpressProduct(
       const response = await callAliExpressSync<AliExpressProductGetResponse>(
         'aliexpress.ds.product.get',
         { product_id: productId, ship_to_country: shipToCountry },
-        credentials
+        credentials,
       )
 
       const result = response.aliexpress_ds_product_get_response?.result
@@ -45,14 +39,8 @@ export async function getAliExpressProduct(
   })
 }
 
-/**
- * Reconstructs the last known product state from Neon when AliExpress is
- * unreachable and no cache exists. Returns null if this product has never
- * been successfully fetched before — there's genuinely nothing to fall
- * back to in that case.
- */
 async function fetchProductFallback(
-  productId: string
+  productId: string,
 ): Promise<{ data: MappedAliExpressProduct; asOf: Date } | null> {
   const skus = await prisma.aliExpressSKU.findMany({
     where: { productId },
@@ -89,6 +77,7 @@ async function fetchProductFallback(
         color: sku.color ?? undefined,
         size: sku.size ?? undefined,
         specs: (sku.specs as Record<string, string>) ?? {},
+        variantImageUrl: sku.imageUrls[0] ?? undefined,
         stock: sku.availableStock,
       })),
     },
@@ -96,12 +85,6 @@ async function fetchProductFallback(
   }
 }
 
-/**
- * Persists a freshly-fetched product into Neon: upserts each SKU (by the
- * productId+skuId unique constraint) and records a price snapshot for
- * history. Runs inside withCache's persistFresh, so a failure here is
- * logged but never blocks returning good data to the caller.
- */
 async function persistProduct(data: MappedAliExpressProduct): Promise<void> {
   const existingSkus = await prisma.aliExpressSKU.findMany({
     where: { productId: data.productId },
@@ -109,8 +92,6 @@ async function persistProduct(data: MappedAliExpressProduct): Promise<void> {
   })
   const existingDescriptions = new Map(existingSkus.map((sku) => [sku.skuId, sku.description]))
 
-  // A successful fresh supplier response is authoritative for this product.
-  // SKUs no longer returned by AliExpress must not remain published on our storefront.
   if (data.skus.length > 0) {
     await prisma.aliExpressSKU.updateMany({
       where: {
@@ -122,6 +103,13 @@ async function persistProduct(data: MappedAliExpressProduct): Promise<void> {
   }
 
   for (const sku of data.skus) {
+    const resolvedCategory = await resolveCanonicalCategory({
+      source: 'ALIEXPRESS',
+      sourceCategoryId: data.rawCategoryId,
+      title: data.title,
+      specs: sku.specs,
+    })
+
     const description = buildProductDescription({
       title: data.title,
       description: data.description || existingDescriptions.get(sku.skuId),
@@ -130,6 +118,11 @@ async function persistProduct(data: MappedAliExpressProduct): Promise<void> {
       size: sku.size,
       specs: sku.specs,
     }).overview
+
+    const imageUrls = sku.variantImageUrl
+      ? [sku.variantImageUrl, ...data.imageUrls.filter((url) => url !== sku.variantImageUrl)]
+      : data.imageUrls
+
     const upserted = await prisma.aliExpressSKU.upsert({
       where: {
         productId_skuId: { productId: data.productId, skuId: sku.skuId },
@@ -139,10 +132,9 @@ async function persistProduct(data: MappedAliExpressProduct): Promise<void> {
         skuId: sku.skuId,
         title: data.title,
         description,
-        imageUrls: sku.variantImageUrl
-          ? [sku.variantImageUrl, ...data.imageUrls.filter((url) => url !== sku.variantImageUrl)]
-          : data.imageUrls,
+        imageUrls,
         rawCategoryId: data.rawCategoryId,
+        categoryId: resolvedCategory?.categoryId ?? undefined,
         color: sku.color,
         size: sku.size,
         specs: sku.specs,
@@ -157,10 +149,9 @@ async function persistProduct(data: MappedAliExpressProduct): Promise<void> {
       update: {
         title: data.title,
         description,
-        imageUrls: sku.variantImageUrl
-          ? [sku.variantImageUrl, ...data.imageUrls.filter((url) => url !== sku.variantImageUrl)]
-          : data.imageUrls,
+        imageUrls,
         rawCategoryId: data.rawCategoryId,
+        ...(resolvedCategory ? { categoryId: resolvedCategory.categoryId } : {}),
         color: sku.color,
         size: sku.size,
         specs: sku.specs,

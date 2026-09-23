@@ -4,11 +4,13 @@ import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { getProductPageData } from '@/lib/product/getProductPageData'
+import { getComparableImportsForLocal, getRelatedProductsForLocal } from '@/lib/storefront/getProductRelations'
 import SiteHeader from '@/components/SiteHeader'
 import SiteFooter from '@/components/SiteFooter'
 import TrackProductView from '@/components/TrackProductView'
 import ProductGallery from '@/components/ProductGallery'
 import ProductDescription from '@/components/ProductDescription'
+import { ComparableProductsRail, RelatedProductsRail } from '@/components/ProductRecommendationRails'
 
 export async function generateMetadata({ params }: { params: Promise<{ sku: string }> }): Promise<Metadata> {
   const { sku } = await params
@@ -35,6 +37,11 @@ export default async function ProductPage({ params }: { params: Promise<{ sku: s
 
   const { local, comparison } = data
   const importIsBetter = comparison?.renderMode === 'IMPORT_ADVANTAGE'
+
+  const [comparableImports, relatedProducts] = await Promise.all([
+    getComparableImportsForLocal(local.id, 4),
+    getRelatedProductsForLocal(local.sku, local.categoryId, local.title, local.color, local.size, local.specs, 6),
+  ])
 
   return (
     <>
@@ -133,7 +140,7 @@ export default async function ProductPage({ params }: { params: Promise<{ sku: s
             </div>
 
             {!comparison ? (
-              <div className="mt-6 grid gap-4 md:grid-cols-[1fr_auto] md:items-center rounded-2xl border border-dashed border-slate-300 bg-[#f7f7f3] p-6">
+              <div className="mt-6 grid gap-4 rounded-2xl border border-dashed border-slate-300 bg-[#f7f7f3] p-6 md:grid-cols-[1fr_auto] md:items-center">
                 <div>
                   <p className="font-black text-slate-900">No verified import alternative yet</p>
                   <p className="mt-1 text-sm leading-6 text-slate-600">The local listing remains available while matching and landed-cost data are reviewed.</p>
@@ -169,6 +176,9 @@ export default async function ProductPage({ params }: { params: Promise<{ sku: s
               </div>
             )}
           </section>
+
+          <ComparableProductsRail products={comparableImports} />
+          <RelatedProductsRail products={relatedProducts} />
         </div>
       </main>
       <SiteFooter />

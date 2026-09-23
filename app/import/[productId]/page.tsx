@@ -4,12 +4,14 @@ import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { getImportProductGroupPageData } from '@/lib/product/getImportProductGroupPageData'
+import { getComparableLocalsForImportProduct, getRelatedProductsForImport } from '@/lib/storefront/getProductRelations'
 import SiteHeader from '@/components/SiteHeader'
 import SiteFooter from '@/components/SiteFooter'
 import ImportVariantGallery from '@/components/ImportVariantGallery'
 import { ImportVariantProvider } from '@/components/ImportVariantContext'
 import ProductDescription from '@/components/ProductDescription'
 import ImportVariantSelector from '@/components/ImportVariantSelector'
+import { ComparableProductsRail, RelatedProductsRail } from '@/components/ProductRecommendationRails'
 
 export async function generateMetadata({ params }: { params: Promise<{ productId: string }> }): Promise<Metadata> {
   const { productId } = await params
@@ -41,6 +43,11 @@ export default async function ImportProductGroupPage({ params }: { params: Promi
   const highPrice = Math.max(...prices)
   const hasStock = data.variants.some((variant) => variant.availableStock > 0)
   const currency = data.variants[0]?.currency ?? 'KES'
+
+  const [comparableLocals, relatedProducts] = await Promise.all([
+    getComparableLocalsForImportProduct(productId, 4),
+    getRelatedProductsForImport(productId, data.categoryId, data.title, null, null, null, 6),
+  ])
 
   return (
     <>
@@ -78,43 +85,46 @@ export default async function ImportProductGroupPage({ params }: { params: Promi
           </div>
 
           <ImportVariantProvider variants={data.variants}>
-          <div className="grid gap-6 lg:grid-cols-[1.08fr_.92fr]">
-            <section className="rounded-[2rem] border border-slate-200 bg-white p-4 shadow-sm sm:p-6">
-              <ImportVariantGallery title={data.title} fallbackImages={data.imageUrls} />
-            </section>
+            <div className="grid gap-6 lg:grid-cols-[1.08fr_.92fr]">
+              <section className="rounded-[2rem] border border-slate-200 bg-white p-4 shadow-sm sm:p-6">
+                <ImportVariantGallery title={data.title} fallbackImages={data.imageUrls} />
+              </section>
 
-            <section className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
-              <div className="flex flex-wrap gap-2 text-[10px] font-black uppercase tracking-[0.16em]">
-                <span className="rounded-full bg-[#eef7f2] px-3 py-1.5 text-emerald-800">Direct import</span>
-                {data.categoryName && <span className="rounded-full bg-slate-100 px-3 py-1.5 text-slate-600">{data.categoryName}</span>}
-              </div>
-
-              <h1 className="mt-5 text-3xl font-black leading-[1.08] tracking-[-0.035em] sm:text-4xl">{data.title}</h1>
-              <div className="mt-5 flex flex-wrap items-end gap-x-3 gap-y-2">
-                <div className="text-3xl font-black tracking-tight tabular-nums">{currency} {lowPrice.toLocaleString()}</div>
-                {highPrice !== lowPrice && <div className="text-sm font-bold text-slate-400">to {currency} {highPrice.toLocaleString()}</div>}
-              </div>
-              <p className="mt-2 text-sm text-slate-500">Price varies by selected supplier variant.</p>
-
-              <div className="mt-6 grid grid-cols-2 gap-3">
-                <div className="rounded-2xl bg-[#f7f7f3] p-4">
-                  <div className="text-[10px] font-black uppercase tracking-wider text-slate-400">Variants</div>
-                  <div className="mt-2 text-sm font-bold text-slate-800">{data.variants.length}</div>
+              <section className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
+                <div className="flex flex-wrap gap-2 text-[10px] font-black uppercase tracking-[0.16em]">
+                  <span className="rounded-full bg-[#eef7f2] px-3 py-1.5 text-emerald-800">Direct import</span>
+                  {data.categoryName && <span className="rounded-full bg-slate-100 px-3 py-1.5 text-slate-600">{data.categoryName}</span>}
                 </div>
-                <div className="rounded-2xl bg-[#f7f7f3] p-4">
-                  <div className="text-[10px] font-black uppercase tracking-wider text-slate-400">Availability</div>
-                  <div className="mt-2 text-sm font-bold text-emerald-800">{hasStock ? 'Some variants available' : 'Currently unavailable'}</div>
+
+                <h1 className="mt-5 text-3xl font-black leading-[1.08] tracking-[-0.035em] sm:text-4xl">{data.title}</h1>
+                <div className="mt-5 flex flex-wrap items-end gap-x-3 gap-y-2">
+                  <div className="text-3xl font-black tracking-tight tabular-nums">{currency} {lowPrice.toLocaleString()}</div>
+                  {highPrice !== lowPrice && <div className="text-sm font-bold text-slate-400">to {currency} {highPrice.toLocaleString()}</div>}
                 </div>
-              </div>
+                <p className="mt-2 text-sm text-slate-500">Price varies by selected supplier variant.</p>
 
-              <ImportVariantSelector productId={data.productId} title={data.title} />
+                <div className="mt-6 grid grid-cols-2 gap-3">
+                  <div className="rounded-2xl bg-[#f7f7f3] p-4">
+                    <div className="text-[10px] font-black uppercase tracking-wider text-slate-400">Variants</div>
+                    <div className="mt-2 text-sm font-bold text-slate-800">{data.variants.length}</div>
+                  </div>
+                  <div className="rounded-2xl bg-[#f7f7f3] p-4">
+                    <div className="text-[10px] font-black uppercase tracking-wider text-slate-400">Availability</div>
+                    <div className="mt-2 text-sm font-bold text-emerald-800">{hasStock ? 'Some variants available' : 'Currently unavailable'}</div>
+                  </div>
+                </div>
 
-              <ProductDescription description={data.description} coreFeatures={data.coreFeatures} />
+                <ImportVariantSelector productId={data.productId} title={data.title} />
 
-              <a href={data.aliExpressUrl} target="_blank" rel="noopener noreferrer" className="mt-5 inline-flex w-full items-center justify-center rounded-xl border border-slate-200 bg-white px-5 py-3 text-sm font-bold text-slate-700 hover:border-slate-300">View supplier listing →</a>
-            </section>
-          </div>
+                <ProductDescription description={data.description} coreFeatures={data.coreFeatures} />
+
+                <a href={data.aliExpressUrl} target="_blank" rel="noopener noreferrer" className="mt-5 inline-flex w-full items-center justify-center rounded-xl border border-slate-200 bg-white px-5 py-3 text-sm font-bold text-slate-700 hover:border-slate-300">View supplier listing →</a>
+              </section>
+            </div>
           </ImportVariantProvider>
+
+          <ComparableProductsRail products={comparableLocals} importSide />
+          <RelatedProductsRail products={relatedProducts} />
         </div>
       </main>
       <SiteFooter />

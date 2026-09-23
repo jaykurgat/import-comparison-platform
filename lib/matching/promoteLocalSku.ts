@@ -1,25 +1,12 @@
 import { prisma } from '../prisma'
 import { buildProductDescription } from '../product/buildProductDescription'
-
-/**
- * Promotes LocalListingRaw rows into canonical LocalSKU records.
- *
- * Deliberately simple (per the project's conservative-over-clever
- * preference): groups raw rows by sourceRef only — NO fuzzy merging across
- * different sourceRefs that might be the same physical product. One
- * sourceRef = one LocalSKU, using whichever raw row is most recent
- * (ingestedAt) as the source of truth for the canonical fields. Every raw
- * row for that sourceRef gets linked via localSkuId, preserving the full
- * audit trail regardless of which one "won."
- *
- * Safe to re-run: upserts by the unique `sku` field, and only links raw
- * rows that aren't already linked.
- */
+import { resolveCanonicalCategory } from '../categories/resolveCanonicalCategory'
 
 export interface PromoteResult {
   created: number
   updated: number
   rawRowsLinked: number
+  categorized: number
 }
 
 export async function promoteLocalListings(): Promise<PromoteResult> {
@@ -37,10 +24,12 @@ export async function promoteLocalListings(): Promise<PromoteResult> {
   let created = 0
   let updated = 0
   let rawRowsLinked = 0
+  let categorized = 0
 
   for (const [sourceRef, rows] of groupedBySourceRef) {
-    const latest = rows[rows.length - 1] // rows are ascending by ingestedAt
+    const latest = rows[rows.length - 1]
     const attrs = (latest.attributesRaw as Record<string, string> | null) ?? {}
+    const { category: sourceCategoryName, ...specs } = attrs
 
     const existing = await prisma.localSKU.findUnique({ where: { sku: sourceRef } })
 
@@ -50,8 +39,14 @@ export async function promoteLocalListings(): Promise<PromoteResult> {
       source: 'local',
       color: attrs.color,
       size: attrs.size,
-      specs: attrs,
+      specs,
     }).overview
+
+    const resolvedCategory = await resolveCanonicalCategory({
+      title: latest.title,
+      sourceCategoryName,
+      specs,
+    })
 
     const canonicalData = {
       sku: sourceRef,
@@ -61,10 +56,11 @@ export async function promoteLocalListings(): Promise<PromoteResult> {
       imageUrls: latest.imageUrls,
       color: attrs.color,
       size: attrs.size,
-      specs: attrs,
+      specs,
       currentPrice: latest.priceRaw,
       currency: latest.currency,
       inStock: latest.inStock ?? false,
+      categoryId: resolvedCategory?.categoryId ?? existing?.categoryId ?? null,
     }
 
     const localSku = await prisma.localSKU.upsert({
@@ -73,6 +69,7 @@ export async function promoteLocalListings(): Promise<PromoteResult> {
       update: canonicalData,
     })
 
+    if (resolvedCategory) categorized++
     if (existing) updated++
     else created++
 
@@ -83,5 +80,5 @@ export async function promoteLocalListings(): Promise<PromoteResult> {
     rawRowsLinked += linkResult.count
   }
 
-  return { created, updated, rawRowsLinked }
+  return { created, updated, rawRowsLinked, categorized }
 }
