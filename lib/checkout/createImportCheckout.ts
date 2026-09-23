@@ -109,7 +109,7 @@ export async function createImportCheckout(input: ImportCheckoutInput): Promise<
         status: 'PENDING',
         checkoutRequestId: payment.checkoutRequestId,
         merchantRequestId: payment.merchantRequestId,
-        amount: customerTotal,
+        amount: Math.round(customerTotal),
         currency: 'KES',
       },
     })
