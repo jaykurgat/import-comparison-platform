@@ -31,7 +31,7 @@ export default function ImportCheckoutSuccessPage() {
         if (body.payment?.status === 'PAID' && typeof body.customerTotal === 'number') {
           const key = `kijijicart_purchase_tracked_${orderId}`
           if (!window.localStorage.getItem(key)) {
-            trackPurchase({ transaction_id: orderId, value: body.customerTotal, currency: body.currency ?? 'KES' })
+            trackPurchase(orderId, body.items ?? [], body.customerTotal, body.currency ?? 'KES')
             window.localStorage.setItem(key, '1')
           }
         }
