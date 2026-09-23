@@ -51,21 +51,81 @@ function relatedScore(
   return titleSimilarity(titleA, titleB) * 0.75 + attributeSimilarity(attrsA, attrsB) * 0.25
 }
 
+function toLocalTeaser(product: {
+  sku: string
+  title: string
+  imageUrls: string[]
+  currentPrice: { toString(): string }
+  currency: string
+  category?: { name: string } | null
+  inStock: boolean
+  createdAt: Date
+}): ProductTeaser {
+  return {
+    sku: product.sku,
+    href: '/product/' + encodeURIComponent(product.sku),
+    title: product.title,
+    imageUrl: product.imageUrls[0] ?? null,
+    price: Number(product.currentPrice),
+    currency: product.currency,
+    hasDeal: false,
+    savingsAmount: null,
+    source: 'local',
+    categoryName: product.category?.name ?? null,
+    inStock: product.inStock,
+    variantCount: 1,
+    availableVariantCount: product.inStock ? 1 : 0,
+    createdAt: product.createdAt,
+  }
+}
+
+function toImportTeaser(sku: {
+  productId: string
+  skuId: string
+  title: string
+  imageUrls: string[]
+  availableStock: number
+  createdAt: Date
+  category?: { name: string } | null
+  importListingPrice: { sellPrice: { toString(): string }; currency: string } | null
+}): ProductTeaser | null {
+  if (!sku.importListingPrice || Number(sku.importListingPrice.sellPrice) <= 0) return null
+
+  return {
+    sku: 'import-' + sku.productId + '-' + sku.skuId,
+    href: '/import/' + encodeURIComponent(sku.productId),
+    title: sku.title,
+    imageUrl: sku.imageUrls[0] ?? null,
+    price: Number(sku.importListingPrice.sellPrice),
+    currency: sku.importListingPrice.currency,
+    hasDeal: false,
+    savingsAmount: null,
+    source: 'import',
+    categoryName: sku.category?.name ?? null,
+    inStock: sku.availableStock > 0,
+    variantCount: 1,
+    availableVariantCount: sku.availableStock > 0 ? 1 : 0,
+    createdAt: sku.createdAt,
+  }
+}
+
 export async function getRelatedProductsForLocal(
   localSku: string,
   categoryId: string | null,
   title: string,
+  color: string | null = null,
+  size: string | null = null,
+  specs: unknown = null,
   limit = 6,
 ): Promise<ProductTeaser[]> {
   if (!categoryId) return []
 
   const [locals, imports] = await Promise.all([
     prisma.localSKU.findMany({
-      where: {
-        categoryId,
-        sku: { not: localSku },
-      },
+      where: { categoryId, sku: { not: localSku } },
       include: { category: true },
+      orderBy: { createdAt: 'desc' },
+      take: 60,
     }),
     prisma.aliExpressSKU.findMany({
       where: {
@@ -79,60 +139,33 @@ export async function getRelatedProductsForLocal(
     }),
   ])
 
-  const candidates: RelatedCandidate[] = locals
-    .filter(isCatalogEligible)
-    .map((product) => ({
-      score: relatedScore(
-        title,
-        { color: null, size: null, specs: null },
-        product.title,
-        { color: null, size: null, specs: null },
-      ),
-      product: {
-        sku: product.sku,
-        href: '/product/' + encodeURIComponent(product.sku),
-        title: product.title,
-        imageUrl: product.imageUrls[0] ?? null,
-        price: Number(product.currentPrice),
-        currency: product.currency,
-        hasDeal: false,
-        savingsAmount: null,
-        source: 'local',
-        categoryName: product.category?.name ?? null,
-        inStock: product.inStock,
-        variantCount: 1,
-        availableVariantCount: product.inStock ? 1 : 0,
-        createdAt: product.createdAt,
-      },
-    }))
+  const currentAttrs = { color, size, specs }
+  const candidates: RelatedCandidate[] = []
 
-  for (const sku of imports) {
-    const price = sku.importListingPrice
-    if (!price || Number(price.sellPrice) <= 0) continue
+  for (const product of locals) {
+    if (!isCatalogEligible(product)) continue
 
     candidates.push({
-      score: relatedScore(
-        title,
-        { color: null, size: null, specs: null },
-        sku.title,
-        { color: sku.color, size: sku.size, specs: sku.specs },
-      ),
-      product: {
-        sku: 'import-' + sku.productId,
-        href: '/import/' + encodeURIComponent(sku.productId),
-        title: sku.title,
-        imageUrl: sku.imageUrls[0] ?? null,
-        price: Number(price.sellPrice),
-        currency: price.currency,
-        hasDeal: false,
-        savingsAmount: null,
-        source: 'import',
-        categoryName: sku.category?.name ?? null,
-        inStock: sku.availableStock > 0,
-        variantCount: 1,
-        availableVariantCount: sku.availableStock > 0 ? 1 : 0,
-        createdAt: sku.createdAt,
-      },
+      score: relatedScore(title, currentAttrs, product.title, {
+        color: product.color,
+        size: product.size,
+        specs: product.specs,
+      }),
+      product: toLocalTeaser(product),
+    })
+  }
+
+  for (const sku of imports) {
+    const product = toImportTeaser(sku)
+    if (!product) continue
+
+    candidates.push({
+      score: relatedScore(title, currentAttrs, sku.title, {
+        color: sku.color,
+        size: sku.size,
+        specs: sku.specs,
+      }),
+      product,
     })
   }
 
@@ -143,6 +176,9 @@ export async function getRelatedProductsForImport(
   productId: string,
   categoryId: string | null,
   title: string,
+  color: string | null = null,
+  size: string | null = null,
+  specs: unknown = null,
   limit = 6,
 ): Promise<ProductTeaser[]> {
   if (!categoryId) return []
@@ -159,32 +195,22 @@ export async function getRelatedProductsForImport(
     take: 80,
   })
 
+  const currentAttrs = { color, size, specs }
   const candidates = imports
-    .filter((sku) => sku.importListingPrice && Number(sku.importListingPrice.sellPrice) > 0)
-    .map((sku) => ({
-      score: relatedScore(
-        title,
-        { color: null, size: null, specs: null },
-        sku.title,
-        { color: sku.color, size: sku.size, specs: sku.specs },
-      ),
-      product: {
-        sku: 'import-' + sku.productId,
-        href: '/import/' + encodeURIComponent(sku.productId),
-        title: sku.title,
-        imageUrl: sku.imageUrls[0] ?? null,
-        price: Number(sku.importListingPrice!.sellPrice),
-        currency: sku.importListingPrice!.currency,
-        hasDeal: false,
-        savingsAmount: null,
-        source: 'import' as const,
-        categoryName: sku.category?.name ?? null,
-        inStock: sku.availableStock > 0,
-        variantCount: 1,
-        availableVariantCount: sku.availableStock > 0 ? 1 : 0,
-        createdAt: sku.createdAt,
-      },
-    }))
+    .map((sku) => {
+      const product = toImportTeaser(sku)
+      if (!product) return null
+
+      return {
+        score: relatedScore(title, currentAttrs, sku.title, {
+          color: sku.color,
+          size: sku.size,
+          specs: sku.specs,
+        }),
+        product,
+      }
+    })
+    .filter((candidate): candidate is RelatedCandidate => candidate !== null)
 
   return dedupeAndRank(candidates, limit)
 }
@@ -211,27 +237,52 @@ export async function getComparableImportsForLocal(
     take: limit * 2,
   })
 
-  return matches
-    .filter((match) => match.aliExpressSku.importListingPrice)
-    .map((match) => {
-      const sku = match.aliExpressSku
-      return {
-        sku: 'import-' + sku.productId + '-' + sku.skuId,
-        href: '/import/' + encodeURIComponent(sku.productId),
-        title: sku.title,
-        imageUrl: sku.imageUrls[0] ?? null,
-        price: Number(sku.importListingPrice!.sellPrice),
-        currency: sku.importListingPrice!.currency,
-        hasDeal: false,
-        savingsAmount: null,
-        source: 'import' as const,
-        categoryName: sku.category?.name ?? null,
-        inStock: sku.availableStock > 0,
-        variantCount: 1,
-        availableVariantCount: sku.availableStock > 0 ? 1 : 0,
-        createdAt: sku.createdAt,
-      }
-    })
+  const result: ProductTeaser[] = []
+  const seenProducts = new Set<string>()
+
+  for (const match of matches) {
+    const sku = match.aliExpressSku
+    const product = toImportTeaser(sku)
+    if (!product) continue
+
+    const key = sku.productId
+    if (seenProducts.has(key)) continue
+    seenProducts.add(key)
+    result.push(product)
+
+    if (result.length >= limit) break
+  }
+
+  return result
+}
+
+export async function getComparableLocalsForImportProduct(
+  productId: string,
+  limit = 4,
+): Promise<ProductTeaser[]> {
+  const matchRows = await prisma.sKUMatch.findMany({
+    where: {
+      aliExpressSku: { productId },
+      status: { in: CONFIRMED_MATCH_STATUSES },
+    },
+    include: { localSku: { include: { category: true } } },
+    orderBy: { updatedAt: 'desc' },
+    take: limit * 2,
+  })
+
+  const result: ProductTeaser[] = []
+  const seenLocals = new Set<string>()
+
+  for (const match of matchRows) {
+    if (!isCatalogEligible(match.localSku)) continue
+    if (seenLocals.has(match.localSku.sku)) continue
+    seenLocals.add(match.localSku.sku)
+    result.push(toLocalTeaser(match.localSku))
+
+    if (result.length >= limit) break
+  }
+
+  return result
 }
 
 export async function getComparableLocalsForImport(
@@ -241,10 +292,7 @@ export async function getComparableLocalsForImport(
 ): Promise<ProductTeaser[]> {
   const matchRows = await prisma.sKUMatch.findMany({
     where: {
-      aliExpressSku: {
-        productId,
-        skuId,
-      },
+      aliExpressSku: { productId, skuId },
       status: { in: CONFIRMED_MATCH_STATUSES },
     },
     include: { localSku: { include: { category: true } } },
@@ -254,25 +302,7 @@ export async function getComparableLocalsForImport(
 
   return matchRows
     .filter((match) => isCatalogEligible(match.localSku))
-    .map((match) => {
-      const local = match.localSku
-      return {
-        sku: local.sku,
-        href: '/product/' + encodeURIComponent(local.sku),
-        title: local.title,
-        imageUrl: local.imageUrls[0] ?? null,
-        price: Number(local.currentPrice),
-        currency: local.currency,
-        hasDeal: true,
-        savingsAmount: null,
-        source: 'local' as const,
-        categoryName: local.category?.name ?? null,
-        inStock: local.inStock,
-        variantCount: 1,
-        availableVariantCount: local.inStock ? 1 : 0,
-        createdAt: local.createdAt,
-      }
-    })
+    .map((match) => toLocalTeaser(match.localSku))
 }
 
 function dedupeAndRank(candidates: RelatedCandidate[], limit: number): ProductTeaser[] {
