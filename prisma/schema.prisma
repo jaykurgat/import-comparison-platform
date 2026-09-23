@@ -406,7 +406,7 @@ model ImportPayment {
   id                String              @id @default(cuid())
   orderId           String              @unique
   order             ImportOrder        @relation(fields: [orderId], references: [id])
-  provider          PaymentProvider     @default(STRIPE)
+  provider          PaymentProvider     @default(DARAJA)
   status            ImportPaymentStatus @default(PENDING)
   checkoutRequestId String              @unique
   merchantRequestId String?
