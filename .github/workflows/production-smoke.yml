@@ -1,0 +1,26 @@
+name: Production Smoke Validation
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment: production
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup Node
+        uses: actions/setup-node@v5
+        with:
+          node-version: 24
+
+      - name: Run public production smoke checks
+        env:
+          SMOKE_BASE_URL: ${{ secrets.PRODUCTION_APP_URL }}
+        run: node scripts/smoke-production.mjs

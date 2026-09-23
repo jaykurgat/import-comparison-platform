@@ -13,6 +13,7 @@ const COLUMN_MAPPING: CsvColumnMapping = {
   title: 'Product Name',
   price: 'Price',
   sourceRef: 'SKU', // optional — remove this line if you don't have a unique ID column
+  sourceUrl: 'Product URL', // optional — original local listing URL
   description: 'Description', // optional
   imageUrls: 'Image URLs', // optional — expects semicolon-separated URLs if multiple
   currency: 'Currency', // optional — defaults to KES if column missing/empty

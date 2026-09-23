@@ -1,110 +1,176 @@
-import { notFound } from 'next/navigation'
-import { getProductPageData } from '@/lib/product/getProductPageData'
+export const dynamic = 'force-dynamic'
 
-// NOTE: written using Next.js's async `params` convention (params is a
-// Promise you await) — this is the pattern used from Next.js 15 onward.
-// Your create-next-app installed 16.3.4, a version newer than what I have
-// reliable training knowledge of, so if this errors specifically on the
-// `await params` line, that's the first thing to check against your
-// installed version's actual convention.
+import { notFound } from 'next/navigation'
+import type { Metadata } from 'next'
+import Link from 'next/link'
+import { getProductPageData } from '@/lib/product/getProductPageData'
+import SiteHeader from '@/components/SiteHeader'
+import SiteFooter from '@/components/SiteFooter'
+import TrackProductView from '@/components/TrackProductView'
+import ProductGallery from '@/components/ProductGallery'
+
+export async function generateMetadata({ params }: { params: Promise<{ sku: string }> }): Promise<Metadata> {
+  const { sku } = await params
+  const data = await getProductPageData(sku)
+  if (!data) return { title: 'Product not found | KijijiCart' }
+  const description = data.local.description?.slice(0, 155) || `Compare ${data.local.title} locally with available import pricing on KijijiCart.`
+  return {
+    title: `${data.local.title} | KijijiCart`,
+    description,
+    alternates: { canonical: `/product/${encodeURIComponent(data.local.sku)}` },
+    openGraph: {
+      title: data.local.title,
+      description,
+      type: 'website',
+      images: data.local.imageUrls[0] ? [{ url: data.local.imageUrls[0], alt: data.local.title }] : undefined,
+    },
+  }
+}
+
 export default async function ProductPage({ params }: { params: Promise<{ sku: string }> }) {
   const { sku } = await params
   const data = await getProductPageData(sku)
   if (!data) notFound()
 
   const { local, comparison } = data
+  const importIsBetter = comparison?.renderMode === 'IMPORT_ADVANTAGE'
 
   return (
-    <main className="min-h-screen bg-white text-[#14141A]">
-      <div className="mx-auto max-w-5xl px-6 py-10">
-        <div className="grid grid-cols-1 gap-10 md:grid-cols-2">
-          <div>
-            {local.imageUrls[0] ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={local.imageUrls[0]}
-                alt={local.title}
-                className="aspect-square w-full rounded-lg border border-[#EDEDEC] object-cover"
-              />
-            ) : (
-              <div className="flex aspect-square w-full items-center justify-center rounded-lg border border-[#EDEDEC] bg-[#FAFAF9] text-sm text-[#6B6B76]">
-                No image available
-              </div>
+    <>
+      <TrackProductView sku={local.sku} title={local.title} price={local.price} currency={local.currency} category={local.categoryName} />
+      <SiteHeader />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            '@context': 'https://schema.org',
+            '@type': 'Product',
+            name: local.title,
+            description: local.description ?? undefined,
+            image: local.imageUrls,
+            sku: local.sku,
+            category: local.categoryName ?? undefined,
+            offers: {
+              '@type': 'Offer',
+              priceCurrency: local.currency,
+              price: local.price,
+              availability: local.inStock ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
+              url: `${process.env.NEXT_PUBLIC_APP_URL ?? ''}/product/${encodeURIComponent(local.sku)}`,
+            },
+          }),
+        }}
+      />
+
+      <main className="min-h-screen bg-[#f7f7f3] text-slate-950">
+        <div className="mx-auto max-w-[1440px] px-4 py-6 sm:px-6 lg:py-9">
+          <div className="mb-5 flex flex-wrap items-center gap-2 text-xs text-slate-500">
+            <Link href="/products" className="font-bold text-emerald-800 hover:underline">Products</Link>
+            {local.categoryName && (
+              <>
+                <span>/</span>
+                <Link href={`/products?category=${encodeURIComponent(data.local.categoryId ?? '')}`} className="font-semibold hover:text-emerald-800">{local.categoryName}</Link>
+              </>
             )}
+            <span>/</span>
+            <span className="truncate">{local.title}</span>
           </div>
 
-          <div>
-            <h1 className="text-2xl font-semibold leading-tight">{local.title}</h1>
-            <div className="mt-3 text-3xl font-semibold tabular-nums">
-              {local.currency} {local.price.toLocaleString()}
-            </div>
-            <div className="mt-2 text-sm text-[#6B6B76]">
-              {local.color ?? '—'} · {local.size ?? '—'}
-            </div>
-            {local.description && (
-              <p className="mt-6 text-sm leading-relaxed text-[#3A3A42]">{local.description}</p>
-            )}
-          </div>
-        </div>
+          <div className="grid gap-6 lg:grid-cols-[1.08fr_.92fr]">
+            <section className="rounded-[2rem] border border-slate-200 bg-white p-4 shadow-sm sm:p-6">
+              <ProductGallery title={local.title} imageUrls={local.imageUrls} />
+            </section>
 
-        <section className="mt-14 border-t border-[#EDEDEC] pt-10">
-          <h2 className="text-lg font-semibold">Compare: Local vs. Direct Import</h2>
-
-          {!comparison ? (
-            <p className="mt-3 text-sm text-[#6B6B76]">
-              No verified import alternative found for this product yet.
-            </p>
-          ) : comparison.renderMode === 'LOCAL_ONLY' ? (
-            <div className="mt-4 rounded-lg border border-[#EDEDEC] bg-[#FAFAF9] p-5 text-sm text-[#3A3A42]">
-              This local option is already the better deal once import shipping is factored in
-              (import would come to {local.currency} {comparison.sellPrice.toLocaleString()}).
-            </div>
-          ) : (
-            <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
-              <div className="rounded-lg border border-[#EDEDEC] p-5">
-                <div className="text-xs font-medium uppercase tracking-wide text-[#6B6B76]">
-                  Local · Fast delivery
-                </div>
-                <div className="mt-2 text-xl font-semibold tabular-nums">
-                  {local.currency} {comparison.localTotalPrice.toLocaleString()}
-                </div>
-                <div className="mt-1 text-sm text-[#C97A2B]">24–48 hour delivery</div>
+            <section className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
+              <div className="flex flex-wrap gap-2 text-[10px] font-black uppercase tracking-[0.16em]">
+                <span className="rounded-full bg-slate-100 px-3 py-1.5 text-slate-600">Local listing</span>
+                {local.categoryName && <span className="rounded-full bg-[#eef7f2] px-3 py-1.5 text-emerald-800">{local.categoryName}</span>}
+                {importIsBetter && <span className="rounded-full bg-amber-50 px-3 py-1.5 text-amber-800">Import comparison</span>}
               </div>
 
-              <div className="rounded-lg border-2 border-[#1B5E4A] p-5">
-                <div className="text-xs font-medium uppercase tracking-wide text-[#1B5E4A]">
-                  Direct import · Best price
+              <h1 className="mt-5 text-3xl font-black leading-[1.08] tracking-[-0.035em] sm:text-4xl">{local.title}</h1>
+
+              <div className="mt-6 flex flex-wrap items-end gap-x-3 gap-y-1">
+                <span className="text-3xl font-black tabular-nums">{local.currency} {local.price.toLocaleString()}</span>
+                <span className={local.inStock ? 'text-sm font-bold text-emerald-700' : 'text-sm font-bold text-slate-500'}>
+                  {local.inStock ? 'In stock' : 'Currently unavailable'}
+                </span>
+              </div>
+
+              {(local.color || local.size) && (
+                <div className="mt-6 flex flex-wrap gap-2">
+                  {local.color && <span className="rounded-full border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-600">Color: {local.color}</span>}
+                  {local.size && <span className="rounded-full border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-600">Size: {local.size}</span>}
                 </div>
-                <div className="mt-2 text-xl font-semibold tabular-nums">
-                  {local.currency} {comparison.sellPrice.toLocaleString()}
+              )}
+
+              <div className="mt-6 rounded-2xl bg-[#f7f7f3] p-4">
+                <div className="flex items-center justify-between gap-4">
+                  <span className="text-sm font-black">Local availability</span>
+                  <span className="text-xs font-bold text-slate-500">{local.inStock ? 'Available now' : 'Currently unavailable'}</span>
                 </div>
-                <div className="mt-1 text-sm text-[#6B6B76]">7–14 day delivery</div>
-                <a
-                  href={comparison.remote.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="mt-3 inline-block text-sm font-medium text-[#1B5E4A] underline"
-                >
-                  View on AliExpress
+                <p className="mt-2 text-xs leading-5 text-slate-500">This local listing remains part of the catalog independently of comparison status.</p>
+              </div>
+
+              {local.description && <p className="mt-6 whitespace-pre-line text-sm leading-7 text-slate-600">{local.description}</p>}
+
+              {local.sourceUrl && (
+                <a href={local.sourceUrl} target="_blank" rel="noopener noreferrer" className="mt-5 inline-flex text-sm font-bold text-emerald-800 hover:underline">
+                  View original local listing →
                 </a>
+              )}
+            </section>
+          </div>
+
+          <section className="mt-6 rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
+            <div className="flex flex-wrap items-end justify-between gap-4">
+              <div>
+                <p className="text-xs font-black uppercase tracking-[0.18em] text-emerald-700">Comparison</p>
+                <h2 className="mt-2 text-2xl font-black tracking-tight sm:text-3xl">Local vs. direct import</h2>
+                <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500">Import data is enrichment. It never determines whether this local product is shown in the catalog.</p>
               </div>
+              {comparison?.isStale && <span className="text-xs font-semibold text-slate-400">Last confirmed {comparison.priceDataAsOf.toLocaleDateString()}</span>}
             </div>
-          )}
 
-          {comparison?.isStale && (
-            <p className="mt-3 text-xs text-[#8A8A8E]">
-              Prices last confirmed {comparison.priceDataAsOf.toLocaleDateString()} — may have changed.
-            </p>
-          )}
-        </section>
+            {!comparison ? (
+              <div className="mt-6 grid gap-4 md:grid-cols-[1fr_auto] md:items-center rounded-2xl border border-dashed border-slate-300 bg-[#f7f7f3] p-6">
+                <div>
+                  <p className="font-black text-slate-900">No verified import alternative yet</p>
+                  <p className="mt-1 text-sm leading-6 text-slate-600">The local listing remains available while matching and landed-cost data are reviewed.</p>
+                </div>
+                <span className="rounded-xl bg-white px-4 py-2 text-xs font-bold text-slate-500">Local catalog active</span>
+              </div>
+            ) : (
+              <div className="mt-6 grid gap-4 md:grid-cols-2">
+                <div className="rounded-2xl border border-slate-200 p-6">
+                  <p className="text-xs font-black uppercase tracking-wider text-slate-500">Buy locally</p>
+                  <p className="mt-3 text-3xl font-black tabular-nums">{local.currency} {comparison.localTotalPrice.toLocaleString()}</p>
+                  <p className="mt-2 text-sm text-slate-500">Local retail reference</p>
+                </div>
 
-        <section className="mt-14 border-t border-[#EDEDEC] pt-10">
-          <h2 className="text-lg font-semibold">Related products</h2>
-          <p className="mt-3 text-sm text-[#6B6B76]">
-            Coming soon — needs product category data, which is planned but not built yet.
-          </p>
-        </section>
-      </div>
-    </main>
+                <div className={importIsBetter ? 'rounded-2xl border-2 border-[#123f2b] bg-[#f2f8f5] p-6' : 'rounded-2xl border border-slate-200 p-6'}>
+                  <div className="flex items-center justify-between gap-3">
+                    <p className="text-xs font-black uppercase tracking-wider text-emerald-800">Direct import</p>
+                    {importIsBetter && <span className="rounded-full bg-[#123f2b] px-2.5 py-1 text-[10px] font-black text-white">LOWER ESTIMATED COST</span>}
+                  </div>
+                  <p className="mt-3 text-3xl font-black tabular-nums">{local.currency} {comparison.sellPrice.toLocaleString()}</p>
+                  <p className="mt-2 text-sm leading-6 text-slate-500">Landed-cost estimate plus marketplace markup. Supplier freight and exchange rates can change.</p>
+                  <div className="mt-5 flex flex-wrap gap-3">
+                    <a href={comparison.remote.url} target="_blank" rel="noopener noreferrer" className="inline-flex rounded-xl border border-slate-200 bg-white px-5 py-3 text-sm font-black text-slate-700 transition hover:border-slate-300">
+                      View supplier listing →
+                    </a>
+                    {comparison.remote.isPublished && comparison.remote.availableStock > 0 && (
+                      <Link href={`/import/${encodeURIComponent(comparison.remote.productId)}/${encodeURIComponent(comparison.remote.skuId)}`} className="inline-flex rounded-xl bg-[#123f2b] px-5 py-3 text-sm font-black text-white transition hover:bg-[#0d3021]">
+                        Import this product →
+                      </Link>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+          </section>
+        </div>
+      </main>
+      <SiteFooter />
+    </>
   )
 }

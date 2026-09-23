@@ -4,9 +4,12 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "prisma generate && next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "typecheck": "tsc --noEmit",
+    "test": "npx --yes tsx@4.20.6 --test tests/*.test.ts",
+    "smoke:production": "node scripts/smoke-production.mjs"
   },
   "dependencies": {
     "@prisma/client": "^6.19.3",

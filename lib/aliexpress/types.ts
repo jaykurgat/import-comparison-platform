@@ -22,7 +22,11 @@ export interface AliExpressItemSkuInfoDto {
   sku_price: string
   currency_code: string
   price_include_tax?: boolean
+  sku_code?: string
   sku_available_stock?: number
+  sku_bulk_order?: number
+  sku_attr?: string
+  wholesale_price_tiers?: unknown
   ae_sku_property_dtos?: {
     ae_sku_property_d_t_o: AliExpressSkuPropertyDto[]
   }
@@ -34,6 +38,10 @@ export interface AliExpressItemBaseInfoDto {
   category_id: number
   product_id: number
   currency_code?: string
+  product_status?: string
+  sales?: number
+  rating?: number
+  seller_store_name?: string
 }
 
 export interface AliExpressProductGetResult {
@@ -89,4 +97,72 @@ export interface AliExpressFreightQueryResponse {
   aliexpress_ds_freight_query_response?: {
     result: AliExpressFreightQueryResult
   }
+}
+
+
+export interface AliExpressAddressNode {
+  country: string
+  type: string
+  children?: string | AliExpressAddressNode[]
+}
+
+export interface AliExpressAddressGetResult {
+  ret: boolean | string
+  code?: string
+  msg?: string
+  data?: AliExpressAddressNode[]
+}
+
+export interface AliExpressAddressGetResponse {
+  aliexpress_ds_address_get_response?: { result: AliExpressAddressGetResult }
+}
+
+export interface AliExpressOrderAddress {
+  address: string
+  address2?: string
+  city: string
+  contact_person?: string
+  country: string
+  full_name?: string
+  locale?: string
+  mobile_no?: string
+  phone_country?: string
+  phone_number?: string
+  province: string
+  zip?: string
+  tax_number?: string
+  vat_no?: string
+  location_tree_address_id?: string
+}
+
+export interface AliExpressOrderProductItem {
+  product_count: number
+  product_id: number
+  sku_attr?: string
+  logistics_service_name?: string
+  order_memo?: string
+}
+
+export interface AliExpressDsOrderCreateResult {
+  error_code?: string
+  error_msg?: string
+  order_list?: { number?: number[] }
+  is_success: boolean
+}
+
+export interface AliExpressDsOrderCreateResponse {
+  aliexpress_ds_order_create_response?: { result: AliExpressDsOrderCreateResult }
+}
+
+// ---- aliexpress.ds.text.search / aliexpress.ds.image.searchV2 ----
+export interface AliExpressSearchCandidate {
+  productId: string
+  title: string
+  itemUrl?: string
+  imageUrl?: string
+  salePrice?: number
+  originalPrice?: number
+  currency?: string
+  similarityScore?: number
+  orders?: number
 }

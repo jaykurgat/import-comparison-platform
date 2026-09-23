@@ -1,12 +1,10 @@
 import { prisma } from '../prisma'
 import { toProductTeaser, type ProductTeaser } from './productTeaser'
+import { isCatalogEligible } from './catalogEligibility'
 
 /**
- * Featured = featuredOverride is explicitly true, OR (no override AND has
- * a confirmed match with a genuine IMPORT_ADVANTAGE deal). A product with
- * featuredOverride explicitly set to false is excluded even if it would
- * otherwise qualify — that's handled implicitly here since neither OR
- * branch matches `false`.
+ * Featured status never bypasses catalog eligibility: an incomplete product
+ * must not appear on the storefront simply because it was manually featured.
  */
 export async function getFeaturedProducts(limit = 8): Promise<ProductTeaser[]> {
   const products = await prisma.localSKU.findMany({
@@ -30,8 +28,11 @@ export async function getFeaturedProducts(limit = 8): Promise<ProductTeaser[]> {
         include: { comparison: true },
       },
     },
-    take: limit,
+    orderBy: { createdAt: 'desc' },
   })
 
-  return products.map((product) => toProductTeaser(product, product.matches))
+  return products
+    .filter(isCatalogEligible)
+    .slice(0, limit)
+    .map((product) => toProductTeaser(product, product.matches))
 }

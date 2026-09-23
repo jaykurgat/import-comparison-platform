@@ -1,7 +1,9 @@
 'use server'
 
 import { prisma } from '@/lib/prisma'
+import { requireAdmin } from '@/lib/admin/auth'
 import { revalidatePath } from 'next/cache'
+import { canReviewDecision } from '@/lib/matching/matchDecision'
 
 /**
  * Confirm/Reject are deliberately simple: no bulk actions, no undo. A
@@ -11,11 +13,16 @@ import { revalidatePath } from 'next/cache'
  */
 
 export async function confirmMatch(matchId: string): Promise<void> {
+  await requireAdmin()
+  const match = await prisma.sKUMatch.findUnique({ where: { id: matchId }, select: { status: true } })
+  if (!match || !canReviewDecision(match.status)) {
+    return
+  }
   await prisma.sKUMatch.update({
     where: { id: matchId },
     data: {
       status: 'MANUAL_CONFIRMED',
-      reviewedBy: 'admin', // TODO: replace with real user identity once auth exists
+      reviewedBy: 'admin',
       reviewedAt: new Date(),
     },
   })
@@ -23,6 +30,11 @@ export async function confirmMatch(matchId: string): Promise<void> {
 }
 
 export async function rejectMatch(matchId: string): Promise<void> {
+  await requireAdmin()
+  const match = await prisma.sKUMatch.findUnique({ where: { id: matchId }, select: { status: true } })
+  if (!match || !canReviewDecision(match.status)) {
+    return
+  }
   await prisma.sKUMatch.update({
     where: { id: matchId },
     data: {

@@ -46,6 +46,7 @@ export async function promoteLocalListings(): Promise<PromoteResult> {
     const canonicalData = {
       sku: sourceRef,
       title: latest.title,
+      sourceUrl: latest.sourceUrl,
       description: latest.description,
       imageUrls: latest.imageUrls,
       color: attrs.color,
@@ -53,7 +54,7 @@ export async function promoteLocalListings(): Promise<PromoteResult> {
       specs: attrs,
       currentPrice: latest.priceRaw,
       currency: latest.currency,
-      inStock: latest.inStock ?? true,
+      inStock: latest.inStock ?? false,
     }
 
     const localSku = await prisma.localSKU.upsert({
