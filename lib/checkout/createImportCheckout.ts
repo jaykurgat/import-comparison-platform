@@ -38,8 +38,8 @@ export async function createImportCheckout(input: ImportCheckoutInput): Promise<
     include: { importListingPrice: true },
   })
 
-  if (!sku || !sku.isPublished || sku.availableStock < input.quantity || !sku.importListingPrice) {
-    throw new Error('This import listing is unavailable, unpublished, out of stock, or not priced.')
+  if (!sku || !sku.isPublished || sku.availableStock < input.quantity || !sku.importListingPrice || sku.importListingPrice.isStale) {
+    throw new Error('This import listing is unavailable, unpublished, out of stock, or has stale or missing pricing.')
   }
 
   if (sku.currency !== 'USD' || sku.importListingPrice.currency !== 'KES') {
