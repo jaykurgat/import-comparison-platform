@@ -1,8 +1,8 @@
 import { prisma } from '../prisma'
 
 export interface CatalogHealth {
-  local: { total: number; missingImages: number; missingDescriptions: number; outOfStock: number }
-  imports: { total: number; unpublished: number; outOfStock: number; missingPrice: number; stalePrice: number; expiredFreight: number }
+  local: { total: number; missingImages: number; missingDescriptions: number; missingSourceUrls: number; outOfStock: number }
+  imports: { total: number; unpublished: number; outOfStock: number; missingPrice: number; stalePrice: number; expiredFreight: number; missingImages: number; missingSkuCodes: number; unresolvedCategories: number }
   matching: { pendingReview: number; rejected: number; confirmed: number }
 }
 
@@ -10,7 +10,7 @@ export async function getCatalogHealth(): Promise<CatalogHealth> {
   const now = new Date()
 
   const [local, importSkus, pendingReview, rejected, confirmed] = await Promise.all([
-    prisma.localSKU.findMany({ select: { imageUrls: true, description: true, inStock: true } }),
+    prisma.localSKU.findMany({ select: { imageUrls: true, description: true, sourceUrl: true, inStock: true } }),
     prisma.aliExpressSKU.findMany({
       select: {
         availableStock: true,
