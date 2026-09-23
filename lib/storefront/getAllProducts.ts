@@ -1,5 +1,5 @@
 import { prisma } from '../prisma'
-import { toProductTeaser, toImportProductTeaser, type ProductTeaser } from './productTeaser'
+import { toProductTeaser, toImportProductTeaser, type ProductTeaser, type StandaloneImportSkuLike } from './productTeaser'
 import { isCatalogEligible } from './catalogEligibility'
 
 export type CatalogSourceFilter = 'all' | 'local' | 'import' | 'deals'
@@ -42,15 +42,21 @@ export async function getAllProducts(
           ...(textFilter ? { title: textFilter } : {}),
           ...(categoryId ? { categoryId } : {}),
           isPublished: true,
-          availableStock: { gt: 0 },
           importListingPrice: { isStale: false },
           matches: { none: { status: { in: ['AUTO_MATCHED', 'MANUAL_CONFIRMED'] } } },
         },
         include: { category: true, importListingPrice: true },
       })
 
-  const importTeasers = standaloneImportSkus
-    .map((sku) => toImportProductTeaser(sku))
+  const groupedImports = new Map<string, StandaloneImportSkuLike[]>()
+  for (const sku of standaloneImportSkus) {
+    const group = groupedImports.get(sku.productId) ?? []
+    group.push(sku)
+    groupedImports.set(sku.productId, group)
+  }
+
+  const importTeasers = [...groupedImports.values()]
+    .map((group) => toImportProductTeaser(group))
     .filter((t): t is ProductTeaser => t !== null)
 
   const products = [...localTeasers, ...importTeasers]
