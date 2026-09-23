@@ -5,7 +5,7 @@ export interface CanonicalCategoryDefinition {
 
 export const CANONICAL_CATEGORY_TAXONOMY: CanonicalCategoryDefinition[] = [
   { path: ['Electronics', 'Audio'], keywords: ['headphone', 'headphones', 'earbuds', 'earbud', 'earphone', 'earphones', 'headset', 'speaker', 'speakers', 'soundbar', 'bluetooth speaker', 'microphone', 'microphones', 'audio'] },
-  { path: ['Electronics', 'Mobile Accessories'], keywords: ['phone case', 'mobile case', 'iphone case', 'phone cover', 'screen protector', 'tempered glass protector', 'phone holder', 'phone stand', 'charging cable', 'usb cable', 'wireless charger', 'phone charger', 'power bank', 'magsafe'] },
+  { path: ['Electronics', 'Mobile Accessories'], keywords: ['phone case', 'mobile case', 'iphone case', 'phone cover', 'screen protector', 'phone screen protector', 'tempered glass protector', 'tempered glass screen protector', 'phone holder', 'phone stand', 'charging cable', 'usb cable', 'wireless charger', 'phone charger', 'power bank', 'magsafe'] },
   { path: ['Electronics', 'Computer Accessories'], keywords: ['keyboard', 'mouse', 'mouse pad', 'webcam', 'usb hub', 'laptop stand', 'laptop sleeve', 'monitor stand', 'computer speaker', 'ssd enclosure', 'computer accessory'] },
   { path: ['Electronics', 'Smart Home'], keywords: ['smart home', 'smart plug', 'smart switch', 'smart bulb', 'smart light', 'wifi camera', 'security camera', 'door sensor', 'motion sensor', 'smart lock', 'video doorbell'] },
   { path: ['Electronics', 'Cameras & Accessories'], keywords: ['camera lens', 'camera bag', 'tripod', 'selfie stick', 'gimbal', 'camera cage', 'camera accessory', 'dslr', 'mirrorless camera'] },
