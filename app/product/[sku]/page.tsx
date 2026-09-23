@@ -49,7 +49,7 @@ export default async function ProductPage({ params }: { params: Promise<{ sku: s
               <div className="mt-2 text-sm text-slate-500">{local.color ?? 'Standard'}{local.size ? ' · ' + local.size : ''}</div>
 
               <div className="mt-6 rounded-xl border border-slate-200 p-4">
-                <div className="flex items-center justify-between"><span className="text-sm font-bold">Local availability</span><span className="text-xs font-bold text-[#0f5132]">Available</span></div>
+                <div className="flex items-center justify-between"><span className="text-sm font-bold">Local availability</span><span className={local.inStock ? 'text-xs font-bold text-[#0f5132]' : 'text-xs font-bold text-slate-500'}>{local.inStock ? 'Available' : 'Out of stock'}</span></div>
                 <p className="mt-1 text-xs leading-5 text-slate-500">This listing is the local retail reference used for the comparison.</p>
               </div>
               {local.description && <p className="mt-6 text-sm leading-6 text-slate-600">{local.description}</p>}
@@ -77,7 +77,7 @@ export default async function ProductPage({ params }: { params: Promise<{ sku: s
                 <div className={importIsBetter ? 'rounded-xl border-2 border-[#0f5132] bg-[#f2f8f5] p-5' : 'rounded-xl border border-slate-200 p-5'}>
                   <p className="text-xs font-bold uppercase tracking-wide text-[#0f5132]">Direct import</p>
                   <p className="mt-2 text-2xl font-black tabular-nums">{local.currency} {comparison.sellPrice.toLocaleString()}</p>
-                  <p className="mt-1 text-sm text-slate-500">Landed cost + marketplace markup · estimated 7–14 days</p>
+                  <p className="mt-1 text-sm text-slate-500">Landed cost + marketplace markup · shipping estimate varies by supplier and destination</p>
                   <a href={comparison.remote.url} target="_blank" rel="noopener noreferrer" className="mt-4 inline-flex rounded-lg bg-[#0f5132] px-4 py-2 text-sm font-bold text-white hover:bg-[#0b4128]">View import option →</a>
                 </div>
               </div>
