@@ -28,3 +28,9 @@ test('CSV parser defaults currency to KES and sourceRef to row number', () => {
   assert.equal(result.rows[0].currency, 'KES')
   assert.equal(result.rows[0].sourceRef, 'csv-row-2')
 })
+
+
+test('CSV parser leaves missing stock unset rather than assuming in-stock', () => {
+  const result = parseCsv('Product,Price\nWidget,1200', { title: 'Product', price: 'Price' })
+  assert.equal(result.rows[0].inStock, undefined)
+})
