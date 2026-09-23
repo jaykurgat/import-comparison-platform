@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { getProductPageData } from '@/lib/product/getProductPageData'
 import SiteHeader from '@/components/SiteHeader'
 import SiteFooter from '@/components/SiteFooter'
+import TrackProductView from '@/components/TrackProductView'
 
 export default async function ProductPage({ params }: { params: Promise<{ sku: string }> }) {
   const { sku } = await params
@@ -17,6 +18,7 @@ export default async function ProductPage({ params }: { params: Promise<{ sku: s
 
   return (
     <>
+      <TrackProductView sku={local.sku} title={local.title} price={local.price} currency={local.currency} category={local.categoryName} />
       <SiteHeader />
       <main className="min-h-screen bg-[#f7f7f3] text-slate-950">
         <div className="mx-auto max-w-[1440px] px-4 py-6 sm:px-6 lg:py-9">
