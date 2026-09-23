@@ -1,6 +1,3 @@
-import Link from 'next/link'
-import type { ProductTeaser } from '@/lib/storefront/productTeaser'
-
 export type ProductSource = 'local' | 'import'
 
 export interface ProductTeaser {
