@@ -2,11 +2,14 @@ import { prisma } from '../prisma'
 import { toProductTeaser, toImportProductTeaser, type ProductTeaser } from './productTeaser'
 import { isCatalogEligible } from './catalogEligibility'
 
-export async function getAllProducts(query = ''): Promise<ProductTeaser[]> {
+export async function getAllProducts(query = '', categoryId = ''): Promise<ProductTeaser[]> {
   const q = query.trim()
   const textFilter = q ? { contains: q, mode: 'insensitive' as const } : undefined
   const localProducts = await prisma.localSKU.findMany({
-    where: textFilter ? { title: textFilter } : undefined,
+    where: {
+      ...(textFilter ? { title: textFilter } : {}),
+      ...(categoryId ? { categoryId } : {}),
+    },
     include: {
       matches: {
         where: { status: { in: ['AUTO_MATCHED', 'MANUAL_CONFIRMED'] } },
@@ -28,6 +31,7 @@ export async function getAllProducts(query = ''): Promise<ProductTeaser[]> {
   const standaloneImportSkus = await prisma.aliExpressSKU.findMany({
     where: {
       ...(textFilter ? { title: textFilter } : {}),
+      ...(categoryId ? { categoryId } : {}),
       isPublished: true,
       availableStock: { gt: 0 },
       matches: { none: { status: { in: ['AUTO_MATCHED', 'MANUAL_CONFIRMED'] } } },
