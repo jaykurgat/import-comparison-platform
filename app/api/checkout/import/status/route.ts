@@ -4,7 +4,7 @@ import { prisma } from '@/lib/prisma'
 export const runtime = 'nodejs'
 
 export async function GET(request: Request) {
-  const orderId = new URL(request.url).searchParams.get('orderId')
+  const orderId = new URL(request.url).searchParams.get('orderId')?.trim()
   if (!orderId) return NextResponse.json({ error: 'orderId is required.' }, { status: 400 })
 
   const order = await prisma.importOrder.findUnique({
@@ -13,12 +13,16 @@ export async function GET(request: Request) {
       id: true,
       status: true,
       errorMessage: true,
+      customerTotal: true,
+      currency: true,
       supplierOrderIds: true,
-      payment: { select: { status: true, mpesaReceiptNumber: true } },
+      payment: { select: { status: true, mpesaReceiptNumber: true, paidAt: true } },
     },
   })
 
   if (!order) return NextResponse.json({ error: 'Order not found.' }, { status: 404 })
-
-  return NextResponse.json(order)
+  return NextResponse.json(
+    { ...order, customerTotal: Number(order.customerTotal) },
+    { headers: { 'Cache-Control': 'no-store' } },
+  )
 }
