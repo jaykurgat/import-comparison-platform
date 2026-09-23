@@ -43,6 +43,7 @@ export async function getAllProducts(
           ...(categoryId ? { categoryId } : {}),
           isPublished: true,
           availableStock: { gt: 0 },
+          importListingPrice: { isStale: false },
           matches: { none: { status: { in: ['AUTO_MATCHED', 'MANUAL_CONFIRMED'] } } },
         },
         include: { category: true, importListingPrice: true },
