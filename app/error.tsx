@@ -1,14 +1,8 @@
 'use client'
 
-import { useEffect } from 'react'
 import Link from 'next/link'
 
 export default function Error({ reset }: { error: Error & { digest?: string }; reset: () => void }) {
-  useEffect(() => {
-    // Keep the production UI generic; server-side logging/observability can use
-    // the framework's runtime logging without exposing internal details here.
-  }, [])
-
   return (
     <main className="flex min-h-screen items-center justify-center bg-[#F7F7F5] px-6 py-16 text-[#1C1C1E]">
       <div className="max-w-md text-center">
