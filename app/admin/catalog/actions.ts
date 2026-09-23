@@ -5,6 +5,7 @@ import { requireAdmin } from '@/lib/admin/auth'
 import { prisma } from '@/lib/prisma'
 import { syncAliExpressCatalog } from '@/lib/aliexpress/catalogSync'
 import { repriceImportCatalog } from '@/lib/pricing/repriceImportCatalog'
+import { canPublishSupplierSku } from '@/lib/admin/catalogPublishability'
 
 export async function toggleImportPublished(id: string, published: boolean) {
   await requireAdmin()
@@ -13,7 +14,7 @@ export async function toggleImportPublished(id: string, published: boolean) {
     include: { importListingPrice: true },
   })
   if (!sku) throw new Error('Supplier SKU not found.')
-  if (published && (sku.availableStock <= 0 || !sku.importListingPrice || sku.importListingPrice.isStale)) {
+  if (published && !canPublishSupplierSku({ stock: sku.availableStock, hasSellPrice: Boolean(sku.importListingPrice), priceIsStale: sku.importListingPrice?.isStale ?? true })) {
     throw new Error('Supplier SKU must have stock and a current sell price before publishing.')
   }
 
