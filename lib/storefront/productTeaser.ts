@@ -1,7 +1,5 @@
-/**
- * Shared presentation shape for local and standalone import products.
- * Matching remains enrichment; this mapper never decides catalog eligibility.
- */
+import Link from 'next/link'
+import type { ProductTeaser } from '@/lib/storefront/productTeaser'
 
 export type ProductSource = 'local' | 'import'
 
@@ -17,6 +15,8 @@ export interface ProductTeaser {
   source: ProductSource
   categoryName: string | null
   inStock: boolean
+  variantCount: number
+  availableVariantCount: number
   createdAt: Date
 }
 
@@ -57,6 +57,8 @@ export function toProductTeaser(localSku: LocalSkuLike, matches: MatchWithCompar
       source: 'local',
       categoryName: localSku.category?.name ?? null,
       inStock: localSku.inStock,
+      variantCount: 1,
+      availableVariantCount: localSku.inStock ? 1 : 0,
       createdAt: localSku.createdAt,
     }
   }
@@ -73,11 +75,13 @@ export function toProductTeaser(localSku: LocalSkuLike, matches: MatchWithCompar
     source: 'local',
     categoryName: localSku.category?.name ?? null,
     inStock: localSku.inStock,
+    variantCount: 1,
+    availableVariantCount: localSku.inStock ? 1 : 0,
     createdAt: localSku.createdAt,
   }
 }
 
-interface StandaloneImportSkuLike {
+export interface StandaloneImportSkuLike {
   productId: string
   skuId: string
   title: string
@@ -92,21 +96,38 @@ interface StandaloneImportSkuLike {
   } | null
 }
 
-export function toImportProductTeaser(sku: StandaloneImportSkuLike): ProductTeaser | null {
-  if (!sku.importListingPrice) return null
+export function toImportProductTeaser(skus: StandaloneImportSkuLike[]): ProductTeaser | null {
+  if (skus.length === 0) return null
+
+  const priced = skus
+    .filter((sku) => sku.importListingPrice)
+    .map((sku) => ({
+      sku,
+      sellPrice: Number(sku.importListingPrice!.sellPrice),
+      currency: sku.importListingPrice!.currency,
+    }))
+    .filter((item) => Number.isFinite(item.sellPrice) && item.sellPrice > 0)
+
+  if (priced.length === 0) return null
+
+  const lowest = [...priced].sort((a, b) => a.sellPrice - b.sellPrice)[0]
+  const first = skus[0]
+  const availableVariantCount = skus.filter((sku) => sku.availableStock > 0).length
 
   return {
-    sku: `${sku.productId}-${sku.skuId}`,
-    href: `/import/${encodeURIComponent(sku.productId)}/${encodeURIComponent(sku.skuId)}`,
-    title: sku.title,
-    imageUrl: sku.imageUrls[0] ?? null,
-    price: Number(sku.importListingPrice.sellPrice),
-    currency: sku.importListingPrice.currency,
+    sku: `import-${first.productId}`,
+    href: `/import/${encodeURIComponent(first.productId)}`,
+    title: first.title,
+    imageUrl: skus.flatMap((sku) => sku.imageUrls).find(Boolean) ?? null,
+    price: lowest.sellPrice,
+    currency: lowest.currency,
     hasDeal: false,
     savingsAmount: null,
     source: 'import',
-    categoryName: sku.category?.name ?? null,
-    inStock: sku.availableStock > 0,
-    createdAt: sku.createdAt,
+    categoryName: skus.find((sku) => sku.category?.name)?.category?.name ?? null,
+    inStock: availableVariantCount > 0,
+    variantCount: skus.length,
+    availableVariantCount,
+    createdAt: new Date(Math.max(...skus.map((sku) => sku.createdAt.getTime()))),
   }
 }
