@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+
 import { requireAdmin } from '@/lib/admin/auth'
 import { logoutAdmin } from '../actions'
 import { getCatalogHealth } from '@/lib/admin/getCatalogHealth'
