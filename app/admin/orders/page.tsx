@@ -2,7 +2,7 @@ export const dynamic = 'force-dynamic'
 
 import { prisma } from '@/lib/prisma'
 import { requireAdmin } from '@/lib/admin/auth'
-import { logoutAdmin } from '../actions'
+import { logoutAdmin } from '../actions'\nimport { retryFailedSupplierSubmission } from './actions'
 
 export default async function OrdersAdminPage() {
   await requireAdmin()
@@ -35,7 +35,7 @@ export default async function OrdersAdminPage() {
                   <td className="px-4 py-4 tabular-nums">{order.items.length}</td>
                   <td className="px-4 py-4 font-medium tabular-nums">{order.currency} {Number(order.customerTotal).toLocaleString()}</td>
                   <td className="px-4 py-4"><span className="font-medium">{order.payment?.status ?? '—'}</span>{order.payment?.mpesaReceiptNumber && <div className="mt-1 text-xs text-[#6B6B6E]">{order.payment.mpesaReceiptNumber}</div>}</td>
-                  <td className="px-4 py-4"><span className="font-medium">{order.status}</span>{order.supplierOrderIds.length > 0 && <div className="mt-1 text-xs text-[#6B6B6E]">{order.supplierOrderIds.join(', ')}</div>}{order.errorMessage && <div className="mt-1 max-w-sm text-xs text-[#A6432D]">{order.errorMessage}</div>}</td>
+                  <td className="px-4 py-4"><span className="font-medium">{order.status}</span>{order.supplierOrderIds.length > 0 && <div className="mt-1 text-xs text-[#6B6B6E]">{order.supplierOrderIds.join(', ')}</div>}{order.errorMessage && <div className="mt-1 max-w-sm text-xs text-[#A6432D]">{order.errorMessage}</div>}{order.status === 'FAILED' && order.payment?.status === 'PAID' && <form action={retryFailedSupplierSubmission.bind(null, order.id)} className="mt-2"><button type="submit" className="rounded border border-[#D8D8D3] px-2.5 py-1 text-xs font-medium hover:bg-[#F7F7F5]">Retry supplier submission</button></form>}</td>
                   <td className="px-4 py-4 whitespace-nowrap text-xs text-[#6B6B6E]">{order.createdAt.toLocaleString()}</td>
                 </tr>
               ))}
