@@ -54,7 +54,7 @@ export async function promoteLocalListings(): Promise<PromoteResult> {
       specs: attrs,
       currentPrice: latest.priceRaw,
       currency: latest.currency,
-      inStock: latest.inStock ?? true,
+      inStock: latest.inStock ?? false,
     }
 
     const localSku = await prisma.localSKU.upsert({
