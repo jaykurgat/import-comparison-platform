@@ -15,6 +15,9 @@ export async function getCatalogHealth(): Promise<CatalogHealth> {
       select: {
         availableStock: true,
         isPublished: true,
+        imageUrls: true,
+        skuCode: true,
+        categoryId: true,
         importListingPrice: { select: { isStale: true } },
         freightQuotes: {
           where: { destination: 'KE' },
@@ -34,6 +37,7 @@ export async function getCatalogHealth(): Promise<CatalogHealth> {
       total: local.length,
       missingImages: local.filter((x) => x.imageUrls.length === 0).length,
       missingDescriptions: local.filter((x) => !x.description?.trim()).length,
+      missingSourceUrls: local.filter((x) => !x.sourceUrl?.trim()).length,
       outOfStock: local.filter((x) => !x.inStock).length,
     },
     imports: {
@@ -46,6 +50,9 @@ export async function getCatalogHealth(): Promise<CatalogHealth> {
         const latest = x.freightQuotes[0]
         return !latest || latest.expiresAt <= now
       }).length,
+      missingImages: importSkus.filter((x) => x.imageUrls.length === 0).length,
+      missingSkuCodes: importSkus.filter((x) => !x.skuCode?.trim()).length,
+      unresolvedCategories: importSkus.filter((x) => !x.categoryId).length,
     },
     matching: { pendingReview, rejected, confirmed },
   }
