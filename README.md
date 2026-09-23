@@ -70,3 +70,18 @@ The application can be deployed as a Next.js application. Before exposing the ad
 - [Next.js](https://nextjs.org/docs)
 - [Prisma](https://www.prisma.io/docs)
 - [GitHub Actions](https://docs.github.com/en/actions)
+
+## Production release checklist
+
+Before the first public deployment:
+
+1. Run `npx prisma migrate deploy` against the production database, then `npx prisma generate`.
+2. Configure `DATABASE_URL`, `ADMIN_PASSWORD`, `ADMIN_SESSION_SECRET`, and `CATALOG_SYNC_SECRET`.
+3. Configure the Redis and AliExpress variables before enabling supplier synchronization.
+4. Keep `DARAJA_ENVIRONMENT=sandbox` until live M-PESA payment execution has been explicitly enabled and the production callback URL has been verified.
+5. Set `NEXT_PUBLIC_APP_URL` to the public HTTPS origin and configure analytics/verification variables as needed.
+6. Confirm `/api/health` returns a healthy database/configuration response after deployment. The endpoint intentionally does not disclose missing secret names.
+7. Verify an admin login, local catalog browsing, supplier catalog visibility rules, and the order/payment recovery dashboard before opening customer traffic.
+8. Keep database backups and point-in-time recovery enabled at the database provider; migrations should be deployed separately from the application build.
+
+Do not run Prisma migrations as part of the Next.js build command. The production build should remain a deterministic application build, while database schema changes are applied explicitly with `prisma migrate deploy`.
