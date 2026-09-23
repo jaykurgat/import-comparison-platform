@@ -1,31 +1,15 @@
 import { prisma } from '../prisma'
 
 export interface CatalogHealth {
-  local: {
-    total: number
-    missingImages: number
-    missingDescriptions: number
-    outOfStock: number
-  }
-  imports: {
-    total: number
-    unpublished: number
-    outOfStock: number
-    missingPrice: number
-    stalePrice: number
-    expiredFreight: number
-  }
-  matching: {
-    pendingReview: number
-    rejected: number
-    confirmed: number
-  }
+  local: { total: number; missingImages: number; missingDescriptions: number; outOfStock: number }
+  imports: { total: number; unpublished: number; outOfStock: number; missingPrice: number; stalePrice: number; expiredFreight: number }
+  matching: { pendingReview: number; rejected: number; confirmed: number }
 }
 
 export async function getCatalogHealth(): Promise<CatalogHealth> {
   const now = new Date()
 
-  const [local, importSkus, importPrices, pendingReview, rejected, confirmed] = await Promise.all([
+  const [local, importSkus, pendingReview, rejected, confirmed] = await Promise.all([
     prisma.localSKU.findMany({ select: { imageUrls: true, description: true, inStock: true } }),
     prisma.aliExpressSKU.findMany({
       select: {
@@ -40,7 +24,6 @@ export async function getCatalogHealth(): Promise<CatalogHealth> {
         },
       },
     }),
-    prisma.importListingPrice.count(),
     prisma.sKUMatch.count({ where: { status: 'NEEDS_REVIEW' } }),
     prisma.sKUMatch.count({ where: { status: 'REJECTED' } }),
     prisma.sKUMatch.count({ where: { status: { in: ['AUTO_MATCHED', 'MANUAL_CONFIRMED'] } } }),
