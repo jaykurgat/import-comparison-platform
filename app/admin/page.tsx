@@ -39,6 +39,7 @@ export default async function AdminDashboardPage() {
           <NavLink href="/admin/health">Catalog health</NavLink>
           <NavLink href="/admin/import">Local import</NavLink>
           <NavLink href="/admin/catalog">Supplier catalog</NavLink>
+          <NavLink href="/admin/catalog/add">Add supplier product</NavLink>
           <NavLink href="/admin/review">Match review</NavLink>
           <NavLink href="/admin/orders">Orders</NavLink>
           <NavLink href="/admin/settings">Settings</NavLink>
