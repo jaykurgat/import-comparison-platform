@@ -15,13 +15,12 @@ export async function toggleImportPublished(id: string, published: boolean) {
   })
   if (!sku) throw new Error('Supplier SKU not found.')
   if (published && !canPublishSupplierSku({
-      stock: sku.availableStock,
       hasSellPrice: Boolean(sku.importListingPrice),
       priceIsStale: sku.importListingPrice?.isStale ?? true,
       hasTitle: Boolean(sku.title.trim()),
       hasImage: sku.imageUrls.length > 0,
     })) {
-    throw new Error('Supplier SKU must have stock and a current sell price before publishing.')
+    throw new Error('Supplier SKU must have a current sell price, title, and image before publishing.')
   }
 
   await prisma.aliExpressSKU.update({
