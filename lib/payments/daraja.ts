@@ -1,5 +1,3 @@
-import { createHash } from 'node:crypto'
-
 interface DarajaConfig {
   baseUrl: string
   consumerKey: string
@@ -49,16 +47,16 @@ export async function createDarajaStkPush(input: {
 }) {
   const config = getConfig()
   const timestamp = getDarajaTimestamp()
-  const password = Buffer.from(\`\${config.shortcode}\${config.passkey}\${timestamp}\`).toString('base64')
+  const password = Buffer.from(`${config.shortcode}${config.passkey}${timestamp}`).toString('base64')
   const token = await getAccessToken(config)
   const phone = normalizeKenyanPhone(input.phoneNumber)
 
   const response = await fetch(
-    \`\${config.baseUrl}/mpesa/stkpush/v1/processrequest\`,
+    `${config.baseUrl}/mpesa/stkpush/v1/processrequest`,
     {
       method: 'POST',
       headers: {
-        Authorization: \`Bearer \${token}\`,
+        Authorization: `Bearer ${token}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
@@ -136,13 +134,13 @@ async function getAccessToken(config: DarajaConfig): Promise<string> {
   if (cachedToken && cachedToken.expiresAt > Date.now() + 30_000) return cachedToken.value
 
   const credentials = Buffer.from(
-    \`\${config.consumerKey}:\${config.consumerSecret}\`,
+    `${config.consumerKey}:${config.consumerSecret}`,
   ).toString('base64')
 
   const response = await fetch(
-    \`\${config.baseUrl}/oauth/v1/generate?grant_type=client_credentials\`,
+    `${config.baseUrl}/oauth/v1/generate?grant_type=client_credentials`,
     {
-      headers: { Authorization: \`Basic \${credentials}\` },
+      headers: { Authorization: `Basic ${credentials}` },
       cache: 'no-store',
     },
   )
@@ -164,15 +162,15 @@ async function getAccessToken(config: DarajaConfig): Promise<string> {
 function normalizeKenyanPhone(value: string): string {
   const digits = value.replace(/\\D/g, '')
   if (digits.startsWith('254') && digits.length === 12) return digits
-  if (digits.startsWith('07') && digits.length === 10) return \`254\${digits.slice(1)}\`
-  if (digits.startsWith('01') && digits.length === 10) return \`254\${digits.slice(1)}\`
+  if (digits.startsWith('07') && digits.length === 10) return `254${digits.slice(1)}`
+  if (digits.startsWith('01') && digits.length === 10) return `254${digits.slice(1)}`
   throw new Error('Enter a valid Kenyan mobile number.')
 }
 
 function getDarajaTimestamp(): string {
   const now = new Date()
   const pad = (value: number) => String(value).padStart(2, '0')
-  return \`\${now.getFullYear()}\${pad(now.getMonth() + 1)}\${pad(now.getDate())}\${pad(now.getHours())}\${pad(now.getMinutes())}\${pad(now.getSeconds())}\`
+  return `${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`
 }
 
 function valueToString(value: string | number | undefined): string | null {
@@ -181,6 +179,6 @@ function valueToString(value: string | number | undefined): string | null {
 
 function required(name: keyof NodeJS.ProcessEnv): string {
   const value = process.env[name]
-  if (!value) throw new Error(\`\${name} is not configured.\`)
+  if (!value) throw new Error(`${name} is not configured.`)
   return value
 }
