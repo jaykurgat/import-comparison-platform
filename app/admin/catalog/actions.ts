@@ -11,7 +11,6 @@ export async function toggleImportPublished(id: string, published: boolean) {
   const sku = await prisma.aliExpressSKU.findUnique({
     where: { id },
     include: { importListingPrice: true },
-    select: undefined,
   })
   if (!sku) throw new Error('Supplier SKU not found.')
   if (published && (sku.availableStock <= 0 || !sku.importListingPrice || sku.importListingPrice.isStale)) {
