@@ -1,9 +1,12 @@
 import { getImportCatalog } from '@/lib/admin/getImportCatalog'
+import { requireAdmin } from '@/lib/admin/auth'
+import { logoutAdmin } from '../actions'
 import { runCatalogReprice, runCatalogSync } from './actions'
 import { PublishToggle } from './PublishToggle'
 import { SyncButton } from './SyncButton'
 
 export default async function CatalogAdminPage() {
+  await requireAdmin()
   const catalog = await getImportCatalog()
 
   return (
@@ -17,9 +20,14 @@ export default async function CatalogAdminPage() {
               Discovery stays unpublished until explicitly approved.
             </p>
           </div>
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <SyncButton action={runCatalogSync} label="Sync supplier catalog" />
             <SyncButton action={runCatalogReprice} label="Reprice catalog" />
+            <form action={logoutAdmin}>
+              <button type="submit" className="rounded border border-[#D8D8D3] px-4 py-2 text-sm font-medium hover:bg-[#F7F7F5]">
+                Sign out
+              </button>
+            </form>
           </div>
         </div>
 
