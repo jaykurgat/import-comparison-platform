@@ -10,8 +10,6 @@ type Variant = {
   availableStock: number
   sellPrice: number
   currency: string
-  priceDataAsOf: Date
-  isStale: boolean
 }
 
 function variantLabel(variant: Variant): string {
