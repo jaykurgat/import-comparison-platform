@@ -35,7 +35,7 @@ test('runtime readiness does not require supplier or Daraja credentials for stor
 
   assert.equal(result.ready, true)
   assert.match(result.warnings.join('\n'), /Supplier integrations are not fully configured/)
-  assert.match(result.warnings.join('\n'), /Daraja is not enabled for production payments/)
+  assert.doesNotMatch(result.warnings.join('\n'), /Daraja is not enabled for production payments/)
 
   process.env = original
 })
