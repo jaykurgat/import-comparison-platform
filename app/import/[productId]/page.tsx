@@ -6,7 +6,8 @@ import Link from 'next/link'
 import { getImportProductGroupPageData } from '@/lib/product/getImportProductGroupPageData'
 import SiteHeader from '@/components/SiteHeader'
 import SiteFooter from '@/components/SiteFooter'
-import ProductGallery from '@/components/ProductGallery'
+import ImportVariantGallery from '@/components/ImportVariantGallery'
+import { ImportVariantProvider } from '@/components/ImportVariantContext'
 import ProductDescription from '@/components/ProductDescription'
 import ImportVariantSelector from '@/components/ImportVariantSelector'
 
@@ -76,9 +77,10 @@ export default async function ImportProductGroupPage({ params }: { params: Promi
             <span className="truncate">Direct import</span>
           </div>
 
+          <ImportVariantProvider variants={data.variants}>
           <div className="grid gap-6 lg:grid-cols-[1.08fr_.92fr]">
             <section className="rounded-[2rem] border border-slate-200 bg-white p-4 shadow-sm sm:p-6">
-              <ProductGallery title={data.title} imageUrls={data.imageUrls} />
+              <ImportVariantGallery title={data.title} fallbackImages={data.imageUrls} />
             </section>
 
             <section className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
@@ -105,13 +107,14 @@ export default async function ImportProductGroupPage({ params }: { params: Promi
                 </div>
               </div>
 
-              <ImportVariantSelector productId={data.productId} title={data.title} variants={data.variants} />
+              <ImportVariantSelector productId={data.productId} title={data.title} />
 
               <ProductDescription description={data.description} coreFeatures={data.coreFeatures} />
 
               <a href={data.aliExpressUrl} target="_blank" rel="noopener noreferrer" className="mt-5 inline-flex w-full items-center justify-center rounded-xl border border-slate-200 bg-white px-5 py-3 text-sm font-bold text-slate-700 hover:border-slate-300">View supplier listing →</a>
             </section>
           </div>
+          </ImportVariantProvider>
         </div>
       </main>
       <SiteFooter />
