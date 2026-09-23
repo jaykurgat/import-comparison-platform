@@ -1,5 +1,5 @@
 import { prisma } from '../prisma'
-import { scoreMatch } from './similarity'
+import { isHumanDecision, getMatchDecisionStatus, selectBestCandidate, NEEDS_REVIEW_THRESHOLD } from './matchDecision'
 
 /**
  * ============================================================================
@@ -23,9 +23,6 @@ import { scoreMatch } from './similarity'
  * as category data exists on both sides.
  * ============================================================================
  */
-
-const AUTO_MATCH_THRESHOLD = 0.9 // near-exact title + attribute match only — expect this to fire rarely
-const NEEDS_REVIEW_THRESHOLD = 0.4 // below this, not worth flagging a human at all
 
 export interface MatchRunResult {
   localSkusProcessed: number
@@ -78,33 +75,36 @@ export async function runMatchingEngine(): Promise<MatchRunResult> {
         .map((match) => match.aliExpressSkuId),
     )
 
-    let best: { remoteId: string; score: ReturnType<typeof scoreMatch> } | null = null
-
-    for (const remote of aliExpressSkus) {
-      if (rejectedRemoteIds.has(remote.id)) continue
-
-      const score = scoreMatch(local, remote)
-      if (!best || score.confidence > best.score.confidence) {
-        best = { remoteId: remote.id, score }
-      }
-    }
+    const best = selectBestCandidate(
+      local,
+      aliExpressSkus.map((remote) => ({
+        id: remote.id,
+        title: remote.title,
+        color: remote.color,
+        size: remote.size,
+      })),
+      rejectedRemoteIds,
+    )
 
     if (!best || best.score.confidence < NEEDS_REVIEW_THRESHOLD) {
       result.noCandidateFound++
       continue
     }
 
-    const status = best.score.confidence >= AUTO_MATCH_THRESHOLD ? 'AUTO_MATCHED' : 'NEEDS_REVIEW'
+    const status = getMatchDecisionStatus(best.score.confidence)
+    if (!status) {
+      result.noCandidateFound++
+      continue
+    }
     const confidenceNote = `confidence=${best.score.confidence.toFixed(2)}`
-
     const existing = await prisma.sKUMatch.findUnique({
       where: {
-        localSkuId_aliExpressSkuId: { localSkuId: local.id, aliExpressSkuId: best.remoteId },
+        localSkuId_aliExpressSkuId: { localSkuId: local.id, aliExpressSkuId: best.candidate.id },
       },
     })
 
     if (existing) {
-      if (existing.status === 'MANUAL_CONFIRMED' || existing.status === 'REJECTED') {
+      if (isHumanDecision(existing.status)) {
         result.skippedHumanDecisions++
         continue
       }
@@ -117,7 +117,7 @@ export async function runMatchingEngine(): Promise<MatchRunResult> {
       await prisma.sKUMatch.create({
         data: {
           localSkuId: local.id,
-          aliExpressSkuId: best.remoteId,
+          aliExpressSkuId: best.candidate.id,
           status,
           matchSignal: best.score.signal,
           confidenceNote,
