@@ -1,28 +1,6 @@
 import { prisma } from '../prisma'
+import { categorizeExistingCatalog } from '../categories/resolveCanonicalCategory'
 import { isHumanDecision, getMatchDecisionStatus, selectBestCandidate, NEEDS_REVIEW_THRESHOLD } from './matchDecision'
-
-/**
- * ============================================================================
- * TEMPORARY DEVIATION FROM THE ORIGINAL DESIGN — READ BEFORE MODIFYING
- * ============================================================================
- * schema.prisma's SKUMatch model states category match must be a hard
- * precondition, never just a signal. That rule is NOT enforced here.
- *
- * Why: Category/CategoryMapping are both empty right now (deliberately
- * deferred until real category data exists), and the CSV importer doesn't
- * even capture a category field yet. Enforcing the gate as written would
- * mean this engine could never produce a single match on any data that
- * currently exists — which defeats the purpose of testing it against real
- * data now, per the explicit decision to relax this temporarily.
- *
- * What this means in practice: nothing currently stops this engine from
- * matching, say, a local "Nike backpack" against an AliExpress "Nike
- * running shoes" if their titles happen to share enough words — exactly
- * the failure mode category-gating was designed to prevent. Re-enable the
- * gate (filter candidates to matching categoryId before scoring) as soon
- * as category data exists on both sides.
- * ============================================================================
- */
 
 export interface MatchRunResult {
   localSkusProcessed: number
@@ -32,22 +10,17 @@ export interface MatchRunResult {
   needsReview: number
   noCandidateFound: number
   skippedHumanDecisions: number
+  localCategorized: number
+  importCategorized: number
 }
 
 /**
- * Runs the matching engine over ALL LocalSKU x AliExpressSKU pairs.
- *
- * KNOWN SCALING LIMIT: this is O(local_count * aliexpress_count) — fine for
- * the current handful of test records, but will need indexing/pre-
- * filtering (starting with the category gate above) before running against
- * a real catalog of any size.
- *
- * Never overwrites a match a human has already reviewed (MANUAL_CONFIRMED
- * or REJECTED) — those are left untouched regardless of what a re-run
- * computes. REJECTED pairs are also excluded from candidate selection so
- * they cannot be recreated on a later run.
+ * Matching is category-gated: a local SKU and supplier SKU must resolve to the
+ * same canonical leaf category before title/attribute similarity is evaluated.
+ * Products that cannot be categorized are left unmatched rather than guessed.
  */
 export async function runMatchingEngine(): Promise<MatchRunResult> {
+  const categorized = await categorizeExistingCatalog()
   const localSkus = await prisma.localSKU.findMany()
   const aliExpressSkus = await prisma.aliExpressSKU.findMany()
 
@@ -59,25 +32,29 @@ export async function runMatchingEngine(): Promise<MatchRunResult> {
     needsReview: 0,
     noCandidateFound: 0,
     skippedHumanDecisions: 0,
+    localCategorized: categorized.localCategorized,
+    importCategorized: categorized.importCategorized,
   }
 
   for (const local of localSkus) {
-    // A rejected local/remote pair is a durable human decision. Exclude it
-    // from candidate selection on every future run so the engine does not
-    // recreate the same rejected match.
     const priorDecisions = await prisma.sKUMatch.findMany({
       where: { localSkuId: local.id },
-      select: { aliExpressSkuId: true, status: true },
+      select: { id: true, aliExpressSkuId: true, status: true, comparison: { select: { id: true } } },
     })
+
     const rejectedRemoteIds = new Set(
       priorDecisions
         .filter((match) => match.status === 'REJECTED')
         .map((match) => match.aliExpressSkuId),
     )
 
+    const candidateRemotes = local.categoryId
+      ? aliExpressSkus.filter((remote) => remote.categoryId === local.categoryId)
+      : []
+
     const best = selectBestCandidate(
       local,
-      aliExpressSkus.map((remote) => ({
+      candidateRemotes.map((remote) => ({
         id: remote.id,
         title: remote.title,
         color: remote.color,
@@ -87,15 +64,18 @@ export async function runMatchingEngine(): Promise<MatchRunResult> {
     )
 
     if (!best || best.score.confidence < NEEDS_REVIEW_THRESHOLD) {
+      await clearProvisionalMatchesWithoutCandidate(local.id, priorDecisions)
       result.noCandidateFound++
       continue
     }
 
     const status = getMatchDecisionStatus(best.score.confidence)
     if (!status) {
+      await clearProvisionalMatchesWithoutCandidate(local.id, priorDecisions)
       result.noCandidateFound++
       continue
     }
+
     const confidenceNote = `confidence=${best.score.confidence.toFixed(2)}`
     const existing = await prisma.sKUMatch.findUnique({
       where: {
@@ -108,6 +88,7 @@ export async function runMatchingEngine(): Promise<MatchRunResult> {
         result.skippedHumanDecisions++
         continue
       }
+
       await prisma.sKUMatch.update({
         where: { id: existing.id },
         data: { status, matchSignal: best.score.signal, confidenceNote },
@@ -126,9 +107,67 @@ export async function runMatchingEngine(): Promise<MatchRunResult> {
       result.matchesCreated++
     }
 
+    await clearIncompatibleProvisionalMatches(local.id, local.categoryId, aliExpressSkus)
+
     if (status === 'AUTO_MATCHED') result.autoMatched++
     else result.needsReview++
   }
 
   return result
+}
+
+async function clearProvisionalMatchesWithoutCandidate(
+  localSkuId: string,
+  matches: Array<{ id: string; aliExpressSkuId: string; status: string; comparison: { id: string } | null }>,
+): Promise<void> {
+  for (const match of matches) {
+    if (isHumanDecision(match.status)) continue
+
+    if (match.comparison) {
+      await prisma.comparisonResult.delete({ where: { id: match.comparison.id } })
+    }
+
+    await prisma.sKUMatch.update({
+      where: { id: match.id },
+      data: {
+        status: 'UNMATCHED',
+        matchSignal: 'category_or_similarity_gate',
+        confidenceNote: 'No eligible same-category candidate met the current threshold.',
+      },
+    })
+  }
+}
+
+async function clearIncompatibleProvisionalMatches(
+  localSkuId: string,
+  categoryId: string | null,
+  aliExpressSkus: Array<{ id: string; categoryId: string | null }>,
+): Promise<void> {
+  const compatibleIds = new Set(
+    aliExpressSkus
+      .filter((sku) => sku.categoryId === categoryId)
+      .map((sku) => sku.id),
+  )
+
+  const matches = await prisma.sKUMatch.findMany({
+    where: { localSkuId, status: { in: ['AUTO_MATCHED', 'NEEDS_REVIEW'] } },
+    include: { comparison: true },
+  })
+
+  for (const match of matches) {
+    if (compatibleIds.has(match.aliExpressSkuId)) continue
+
+    if (match.comparison) {
+      await prisma.comparisonResult.delete({ where: { id: match.comparison.id } })
+    }
+
+    await prisma.sKUMatch.update({
+      where: { id: match.id },
+      data: {
+        status: 'UNMATCHED',
+        matchSignal: 'category_mismatch',
+        confidenceNote: 'Provisional match cleared because supplier and local categories differ.',
+      },
+    })
+  }
 }
