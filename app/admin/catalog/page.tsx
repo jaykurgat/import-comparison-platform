@@ -23,6 +23,9 @@ export default async function CatalogAdminPage() {
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
+            <a href="/admin/catalog/add" className="rounded bg-[#123F2B] px-4 py-2 text-sm font-bold text-white hover:bg-[#0D3021]">
+              Add AliExpress product
+            </a>
             <SyncButton action={runCatalogSync} label="Sync supplier catalog" />
             <SyncButton action={runCatalogReprice} label="Reprice catalog" />
             <form action={logoutAdmin}>
