@@ -37,6 +37,8 @@ export async function POST(request: Request) {
 
     try {
       const order = payment.order
+      const supplierSkus = await prisma.aliExpressSKU.findMany({ where: { id: { in: order.items.map((item) => item.aliExpressSkuId) } } })
+      const skuById = new Map(supplierSkus.map((sku) => [sku.id, sku]))
       const created = await createAliExpressDsOrder({
         outOrderId: order.outOrderId,
         address: {
@@ -54,7 +56,7 @@ export async function POST(request: Request) {
         items: order.items.map((item) => ({
           product_count: item.quantity,
           product_id: Number(item.productId),
-          sku_attr: item.aliExpressSku.skuCode ?? undefined,
+          sku_attr: skuById.get(item.aliExpressSkuId)?.skuCode ?? item.skuId,
         })),
         payCurrency: 'USD',
         tryToPay: false,
