@@ -117,6 +117,7 @@ model LocalListingRaw {
   title       String
   description String? @db.Text
   imageUrls   String[] // raw image URLs as received from the source
+  sourceUrl   String? // original product/listing URL exactly as received
   priceRaw    Decimal  @db.Decimal(12, 2)
   currency    String   @default("KES")
   inStock     Boolean?
@@ -144,6 +145,7 @@ model LocalSKU {
   title       String
   description String? @db.Text
   imageUrls   String[]
+  sourceUrl   String? // original product/listing URL carried from ingestion
 
   // Variant-level precision fields — matching happens strictly at this level.
   color String?
