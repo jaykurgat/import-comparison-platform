@@ -19,6 +19,7 @@ export interface MappedAliExpressSku {
   color?: string
   size?: string
   specs: Record<string, string>
+  variantImageUrl?: string
   stock: number
 }
 
@@ -68,9 +69,11 @@ export function mapProductResult(result: AliExpressProductGetResult): MappedAliE
 
   const skus: MappedAliExpressSku[] = rawSkus.map((sku) => {
     const specs: Record<string, string> = {}
-    for (const prop of sku.ae_sku_property_dtos?.ae_sku_property_d_t_o ?? []) {
+    const properties = sku.ae_sku_property_dtos?.ae_sku_property_d_t_o ?? []
+    for (const prop of properties) {
       specs[prop.sku_property_name] = prop.sku_property_value
     }
+    const variantImageUrl = properties.find((prop) => prop.sku_image?.trim())?.sku_image?.trim()
 
     return {
       skuId: sku.sku_id,
@@ -83,6 +86,7 @@ export function mapProductResult(result: AliExpressProductGetResult): MappedAliE
       color: extractSkuAttribute(sku, 'color'),
       size: extractSkuAttribute(sku, 'size'),
       specs,
+      variantImageUrl,
       stock: sku.sku_available_stock ?? 0,
     }
   })

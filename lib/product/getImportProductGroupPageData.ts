@@ -5,6 +5,8 @@ export interface ImportProductVariant {
   skuId: string
   color: string | null
   size: string | null
+  options: Record<string, string>
+  imageUrl: string | null
   availableStock: number
   sellPrice: number
   currency: string
@@ -66,6 +68,8 @@ export async function getImportProductGroupPageData(productId: string): Promise<
       skuId: sku.skuId,
       color: sku.color,
       size: sku.size,
+      options: (sku.specs as Record<string, string> | null) ?? {},
+      imageUrl: sku.imageUrls[0] ?? null,
       availableStock: sku.availableStock,
       sellPrice: Number(sku.importListingPrice!.sellPrice),
       currency: sku.importListingPrice!.currency,

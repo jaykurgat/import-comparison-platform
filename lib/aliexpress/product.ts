@@ -127,7 +127,9 @@ async function persistProduct(data: MappedAliExpressProduct): Promise<void> {
         skuId: sku.skuId,
         title: data.title,
         description,
-        imageUrls: data.imageUrls,
+        imageUrls: sku.variantImageUrl
+          ? [sku.variantImageUrl, ...data.imageUrls.filter((url) => url !== sku.variantImageUrl)]
+          : data.imageUrls,
         rawCategoryId: data.rawCategoryId,
         color: sku.color,
         size: sku.size,
