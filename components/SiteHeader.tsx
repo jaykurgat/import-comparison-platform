@@ -4,36 +4,55 @@ const categories = ['Electronics', 'Home & Kitchen', 'Beauty', 'Fashion', 'Healt
 
 export default function SiteHeader() {
   return (
-    <header className="sticky top-0 z-50 border-b border-slate-200 bg-white/95 backdrop-blur">
-      <div className="bg-[#0f5132] text-xs text-white">
-        <div className="mx-auto flex max-w-[1400px] items-center justify-between px-4 py-2 sm:px-6">
-          <span>Shop locally. Compare imported alternatives.</span>
-          <Link href="/products" className="hidden hover:underline sm:block">Explore all products →</Link>
+    <header className="sticky top-0 z-50 border-b border-slate-200/80 bg-[#fffefa]/95 backdrop-blur">
+      <div className="bg-[#123f2b] text-[11px] font-semibold text-white/90">
+        <div className="mx-auto flex max-w-[1440px] items-center justify-between gap-4 px-4 py-2 sm:px-6">
+          <span>Local shopping, transparent import comparisons.</span>
+          <Link href="/products" className="hidden hover:text-white sm:block">Shop the catalog →</Link>
         </div>
       </div>
-      <div className="mx-auto flex max-w-[1400px] items-center gap-3 px-4 py-4 sm:px-6">
-        <Link href="/" className="shrink-0 text-2xl font-black tracking-tight text-[#0f5132]">
-          Kijiji<span className="text-[#f59e0b]">Cart</span>
+
+      <div className="mx-auto flex max-w-[1440px] items-center gap-3 px-4 py-4 sm:px-6">
+        <Link href="/" className="shrink-0 text-[1.55rem] font-black tracking-[-0.05em] text-[#123f2b]" aria-label="KijijiCart home">
+          Kijiji<span className="text-amber-500">Cart</span>
         </Link>
-        <form action="/products" className="hidden flex-1 md:flex">
+
+        <form action="/products" className="hidden min-w-0 flex-1 md:flex">
           <label htmlFor="site-search" className="sr-only">Search products</label>
-          <input id="site-search" name="q" placeholder="Search products, brands and categories" className="h-11 w-full rounded-l-lg border border-slate-300 bg-slate-50 px-4 text-sm outline-none focus:border-[#0f5132] focus:bg-white" />
-          <button className="h-11 rounded-r-lg bg-[#f59e0b] px-6 text-sm font-bold text-slate-950">Search</button>
+          <input
+            id="site-search"
+            name="q"
+            placeholder="Search products, brands and categories"
+            className="h-11 min-w-0 flex-1 rounded-l-xl border border-slate-300 bg-slate-50 px-4 text-sm text-slate-900 outline-none transition focus:border-emerald-700 focus:bg-white"
+          />
+          <button className="h-11 rounded-r-xl bg-amber-400 px-6 text-sm font-black text-slate-950 transition hover:bg-amber-300">Search</button>
         </form>
-        <Link href="/products" className="hidden text-sm font-semibold text-slate-700 lg:block">Categories</Link>
-        <Link href="/products" className="hidden text-sm font-semibold text-slate-700 lg:block">Deals</Link>
+
+        <nav className="hidden items-center gap-5 lg:flex">
+          <Link href="/products" className="text-sm font-bold text-slate-700 hover:text-[#123f2b]">Shop</Link>
+          <Link href="/products" className="text-sm font-bold text-slate-700 hover:text-[#123f2b]">Deals</Link>
+        </nav>
       </div>
-      <div className="px-4 pb-3 md:hidden">
-        <form action="/products" className="flex">
+
+      <div className="border-t border-slate-100 md:hidden">
+        <form action="/products" className="flex px-4 py-3">
           <label htmlFor="mobile-site-search" className="sr-only">Search products</label>
-          <input id="mobile-site-search" name="q" placeholder="Search products..." className="h-10 min-w-0 flex-1 rounded-l-lg border border-slate-300 bg-slate-50 px-3 text-sm outline-none focus:border-[#0f5132] focus:bg-white" />
-          <button className="h-10 rounded-r-lg bg-[#f59e0b] px-4 text-sm font-bold text-slate-950">Search</button>
+          <input
+            id="mobile-site-search"
+            name="q"
+            placeholder="Search products..."
+            className="h-10 min-w-0 flex-1 rounded-l-xl border border-slate-300 bg-slate-50 px-3 text-sm outline-none focus:border-emerald-700 focus:bg-white"
+          />
+          <button className="h-10 rounded-r-xl bg-amber-400 px-4 text-sm font-black text-slate-950">Search</button>
         </form>
       </div>
+
       <nav className="border-t border-slate-100 bg-white">
-        <div className="mx-auto flex max-w-[1400px] gap-6 overflow-x-auto px-4 py-3 text-sm font-medium text-slate-600 sm:px-6">
+        <div className="mx-auto flex max-w-[1440px] gap-7 overflow-x-auto px-4 py-3 sm:px-6">
           {categories.map((category) => (
-            <Link key={category} href="/products" className="whitespace-nowrap hover:text-[#0f5132]">{category}</Link>
+            <Link key={category} href="/products" className="whitespace-nowrap text-xs font-bold text-slate-600 transition hover:text-[#123f2b]">
+              {category}
+            </Link>
           ))}
         </div>
       </nav>
