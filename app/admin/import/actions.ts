@@ -1,7 +1,6 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
-import { requireAdmin } from '@/lib/admin/auth'
 import { ingestCsv } from '@/lib/ingestion/ingestCsv'
 import { promoteLocalListings } from '@/lib/matching/promoteLocalSku'
 
@@ -32,6 +31,7 @@ export async function importLocalCsv(_previous: ImportState, formData: FormData)
   const mapping = {
     title: String(formData.get('title') ?? '').trim(),
     price: String(formData.get('price') ?? '').trim(),
+    category: String(formData.get('category') ?? '').trim() || undefined,
     sourceRef: String(formData.get('sourceRef') ?? '').trim() || undefined,
     sourceUrl: String(formData.get('sourceUrl') ?? '').trim() || undefined,
     description: String(formData.get('description') ?? '').trim() || undefined,
