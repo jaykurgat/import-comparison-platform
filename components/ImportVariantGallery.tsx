@@ -16,5 +16,5 @@ export default function ImportVariantGallery({
     ? [selectedVariant.imageUrl, ...fallbackImages.filter((image) => image !== selectedVariant.imageUrl)]
     : fallbackImages
 
-  return <ProductGallery title={title} imageUrls={images} />
+  return <ProductGallery key={selectedVariant?.skuId ?? 'default'} title={title} imageUrls={images} />
 }
