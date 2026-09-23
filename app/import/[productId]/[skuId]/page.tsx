@@ -1,5 +1,6 @@
 export const dynamic = 'force-dynamic'
 
+import Image from 'next/image'
 import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
 import Link from 'next/link'
@@ -40,7 +41,7 @@ export default async function ImportProductPage({ params }: { params: Promise<{ 
           <div className="grid gap-6 lg:grid-cols-[1.08fr_.92fr]">
             <section className="rounded-[2rem] border border-slate-200 bg-white p-4 shadow-sm sm:p-6">
               <div className="aspect-square overflow-hidden rounded-xl bg-slate-50">
-                {data.imageUrls[0] ? <img src={data.imageUrls[0]} alt={data.title} className="h-full w-full object-contain" /> : <div className="flex h-full items-center justify-center text-sm text-slate-400">No image available</div>}
+                {data.imageUrls[0] ? <Image src={data.imageUrls[0]} alt={data.title} width={900} height={900} className="h-full w-full object-contain" /> : <div className="flex h-full items-center justify-center text-sm text-slate-400">No image available</div>}
               </div>
             </section>
 
