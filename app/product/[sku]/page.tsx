@@ -114,7 +114,7 @@ export default async function ProductPage({ params }: { params: Promise<{ sku: s
               </div>
 
               {local.description && <p className="mt-6 text-sm leading-7 text-slate-600">{local.description}</p>}
-</section>
+            </section>
           </div>
 
           <section className="mt-6 rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
