@@ -9,10 +9,7 @@ export default function ImportCheckoutSuccessPage() {
 
   useEffect(() => {
     const orderId = new URLSearchParams(window.location.search).get('orderId')
-    if (!orderId) {
-      setMessage('Your payment request was started, but no order reference was provided.')
-      return
-    }
+    if (!orderId) return
 
     let stopped = false
     let timer: ReturnType<typeof setTimeout> | undefined
