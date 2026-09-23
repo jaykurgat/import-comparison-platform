@@ -3,7 +3,11 @@ import { logoutAdmin } from '../actions'
 import CsvImportForm from './CsvImportForm'
 import { promoteImportedListings } from './actions'
 
-async function promoteListingsAction(): Promise<void> {\n  await promoteImportedListings()\n}\n\nexport default async function ImportPage() {
+async function promoteListingsAction(): Promise<void> {
+  await promoteImportedListings()
+}
+
+export default async function ImportPage() {
   await requireAdmin()
 
   return (
