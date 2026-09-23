@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 
 export default function ProductGallery({
   title,
@@ -11,11 +11,6 @@ export default function ProductGallery({
 }) {
   const images = imageUrls.filter(Boolean)
   const [active, setActive] = useState(0)
-  const imageKey = images.join('\\u0000')
-
-  useEffect(() => {
-    setActive(0)
-  }, [imageKey])
 
   if (!images.length) {
     return (
