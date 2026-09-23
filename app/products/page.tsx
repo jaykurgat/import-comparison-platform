@@ -6,6 +6,7 @@ import { getStorefrontCategories } from '@/lib/storefront/getCategories'
 import ProductCard from '@/components/ProductCard'
 import SiteHeader from '@/components/SiteHeader'
 import SiteFooter from '@/components/SiteFooter'
+import SearchTracker from '@/components/SearchTracker'
 
 export default async function ProductsPage({
   searchParams,
@@ -23,6 +24,7 @@ export default async function ProductsPage({
 
   return (
     <>
+      <SearchTracker query={query} />
       <SiteHeader />
       <main className="min-h-screen bg-[#f7f7f3]">
         <div className="mx-auto max-w-[1440px] px-4 py-7 sm:px-6 lg:py-9">
