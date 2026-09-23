@@ -16,7 +16,7 @@ export async function GET(request: Request) {
       customerTotal: true,
       currency: true,
       supplierOrderIds: true,
-      items: { select: { productId: true, skuId: true, quantity: true, unitSellPrice: true, aliExpressSku: { select: { title: true } } } },
+      items: { select: { productId: true, skuId: true, quantity: true, unitSellPrice: true, aliExpressSkuId: true } },
       payment: { select: { status: true, mpesaReceiptNumber: true, paidAt: true } },
     },
   })
