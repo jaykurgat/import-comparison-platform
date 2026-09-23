@@ -8,6 +8,7 @@ const initialState: ImportState = { ok: true, message: '' }
 const fields = [
   ['title', 'Product Name', true],
   ['price', 'Price', true],
+  ['category', 'Category', false],
   ['sourceRef', 'SKU', false],
   ['sourceUrl', 'Product URL', false],
   ['description', 'Description', false],
@@ -26,7 +27,7 @@ export default function CsvImportForm() {
       <div className="rounded-lg border border-[#E3E3DF] bg-white p-5">
         <label className="block text-sm font-medium">CSV file</label>
         <input name="file" type="file" accept=".csv,text/csv" required className="mt-2 block w-full text-sm" />
-        <p className="mt-2 text-xs text-[#6B6B6E]">Required fields: title and price. Other fields are optional.</p>
+        <p className="mt-2 text-xs text-[#6B6B6E]">Required fields: title and price. Category is optional; when present it is used as strong classification evidence.</p>
       </div>
 
       <div className="rounded-lg border border-[#E3E3DF] bg-white p-5">
