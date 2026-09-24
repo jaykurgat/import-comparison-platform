@@ -83,12 +83,12 @@ export default async function ProductPage({ params }: { params: Promise<{ sku: s
             <span className="truncate">{local.title}</span>
           </div>
 
-          <div className="grid gap-6 lg:grid-cols-[1.08fr_.92fr]">
-            <section className="rounded-[2rem] border border-slate-200 bg-white p-4 shadow-sm sm:p-6">
+          <div className="grid items-start gap-8 lg:grid-cols-[1.2fr_.8fr] xl:grid-cols-[1.25fr_.75fr]">
+            <section className="min-w-0 lg:sticky lg:top-24 lg:self-start">
               <ProductGallery title={local.title} imageUrls={local.imageUrls} />
             </section>
 
-            <section className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
+            <section className="min-w-0 bg-white p-5 shadow-sm sm:p-7 lg:rounded-sm">
               <div className="flex flex-wrap gap-2 text-[10px] font-black uppercase tracking-[0.16em]">
                 <span className="rounded-full bg-slate-100 px-3 py-1.5 text-slate-600">Local listing</span>
                 {local.categoryName && <span className="rounded-full bg-[#eef7f2] px-3 py-1.5 text-emerald-800">{local.categoryName}</span>}
