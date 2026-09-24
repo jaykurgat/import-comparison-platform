@@ -16,8 +16,11 @@ export default async function SiteHeader() {
       </div>
 
       <div className="mx-auto flex max-w-[1440px] items-center gap-3 px-4 py-3.5 sm:px-6">
-        <Link href="/" className="shrink-0 text-[1.6rem] font-black tracking-[-0.06em] text-[#123f2b]" aria-label="KijijiCart home">
-          Kijiji<span className="text-amber-500">Cart</span>
+        <Link href="/" className="flex shrink-0 items-center gap-2.5" aria-label="KijijiCart home">
+          <img src="/kijijcart-mark.svg" alt="" className="h-9 w-9" />
+          <span className="text-[1.45rem] font-bold tracking-[-0.045em] text-[#123f2b]">
+            Kijiji<span className="text-[#45bd45]">Cart</span>
+          </span>
         </Link>
 
         <form action="/products" className="hidden min-w-0 flex-1 md:flex">
