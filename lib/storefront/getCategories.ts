@@ -1,12 +1,10 @@
 import { prisma } from '../prisma'
 
-export type StorefrontCategorySource = 'ALIEXPRESS' | 'LOCAL'
-
 export interface StorefrontCategory {
   id: string
   name: string
   productCount: number
-  source: StorefrontCategorySource
+  source: 'CANONICAL'
   level: number
   imageUrl: string | null
 }
@@ -15,179 +13,9 @@ interface CategoryRow {
   id: string
   name: string
   parentId: string | null
-  level?: number | null
 }
 
-function buildRootMap<T extends CategoryRow>(categories: T[]): Map<string, T> {
-  const byId = new Map(categories.map((category) => [category.id, category]))
-  const roots = new Map<string, T>()
-
-  for (const category of categories) {
-    let current = category
-    const seen = new Set<string>()
-
-    while (current.parentId && !seen.has(current.id)) {
-      seen.add(current.id)
-      const parent = byId.get(current.parentId)
-      if (!parent) break
-      current = parent
-    }
-
-    roots.set(category.id, current)
-  }
-
-  return roots
-}
-
-export async function getStorefrontCategories(limit = 24): Promise<StorefrontCategory[]> {
-  const [localCategories, localProducts, aliExpressCategories, aliExpressProducts, allLocalCategories] =
-    await Promise.all([
-      prisma.category.findMany({
-        where: { parentId: null },
-        select: { id: true, name: true, parentId: true },
-        orderBy: { name: 'asc' },
-      }),
-      prisma.localSKU.findMany({
-        select: {
-          categoryId: true,
-          title: true,
-          currentPrice: true,
-          currency: true,
-          imageUrls: true,
-        },
-      }),
-      prisma.aliExpressCategory.findMany({
-        select: { id: true, categoryId: true, name: true, parentId: true, level: true },
-        orderBy: { name: 'asc' },
-      }),
-      prisma.aliExpressSKU.findMany({
-        where: {
-          isPublished: true,
-          importListingPrice: { isStale: false },
-        },
-        select: { aliExpressCategoryId: true, imageUrls: true },
-      }),
-      prisma.category.findMany({
-        select: { id: true, name: true, parentId: true },
-      }),
-    ])
-
-  const localRootById = buildRootMap(allLocalCategories)
-  const aliExpressRootById = buildRootMap(aliExpressCategories)
-
-  const localCounts = new Map<string, number>()
-  const localImages = new Map<string, string>()
-
-  for (const product of localProducts) {
-    if (
-      !product.categoryId
-      || !product.title.trim()
-      || !Number.isFinite(Number(product.currentPrice))
-      || Number(product.currentPrice) <= 0
-      || !product.currency.trim()
-    ) continue
-
-    const root = localRootById.get(product.categoryId)
-    if (!root) continue
-
-    localCounts.set(root.id, (localCounts.get(root.id) ?? 0) + 1)
-    const image = product.imageUrls.find(Boolean)
-    if (image && !localImages.has(root.id)) localImages.set(root.id, image)
-  }
-
-  const aliExpressCounts = new Map<string, number>()
-  const aliExpressImages = new Map<string, string>()
-
-  for (const product of aliExpressProducts) {
-    if (!product.aliExpressCategoryId) continue
-    const root = aliExpressRootById.get(product.aliExpressCategoryId)
-    if (!root) continue
-
-    aliExpressCounts.set(root.id, (aliExpressCounts.get(root.id) ?? 0) + 1)
-    const image = product.imageUrls.find(Boolean)
-    if (image && !aliExpressImages.has(root.id)) aliExpressImages.set(root.id, image)
-  }
-
-  const categories: StorefrontCategory[] = [
-    ...localCategories
-      .filter((category) => (localCounts.get(category.id) ?? 0) > 0)
-      .map((category) => ({
-        id: `local:${category.id}`,
-        name: category.name,
-        productCount: localCounts.get(category.id) ?? 0,
-        source: 'LOCAL' as const,
-        level: 1,
-        imageUrl: localImages.get(category.id) ?? null,
-      })),
-    ...aliExpressCategories
-      .filter((category) => category.parentId === null && (aliExpressCounts.get(category.id) ?? 0) > 0)
-      .map((category) => ({
-        id: `ae:${category.categoryId}`,
-        name: category.name,
-        productCount: aliExpressCounts.get(category.id) ?? 0,
-        source: 'ALIEXPRESS' as const,
-        level: category.level ?? 1,
-        imageUrl: aliExpressImages.get(category.id) ?? null,
-      })),
-  ]
-
-  return categories
-    .sort((a, b) => a.name.localeCompare(b.name) || a.source.localeCompare(b.source))
-    .slice(0, limit)
-}
-
-export interface StorefrontCategoryFilterScope {
-  localCategoryIds: string[]
-  aliExpressCategoryIds: string[]
-  source: StorefrontCategorySource
-}
-
-export async function getStorefrontCategoryFilterScope(categoryKey: string): Promise<StorefrontCategoryFilterScope | null> {
-  const normalized = categoryKey.trim()
-  if (!normalized) return null
-
-  if (normalized.startsWith('ae:')) {
-    const externalRootId = normalized.slice(3)
-    if (!externalRootId) return null
-
-    const categories = await prisma.aliExpressCategory.findMany({
-      select: { id: true, categoryId: true, parentId: true },
-    })
-    const root = categories.find((category) => category.categoryId === externalRootId)
-    if (!root) return null
-
-    return {
-      localCategoryIds: [],
-      aliExpressCategoryIds: getDescendantIds(categories, root.id),
-      source: 'ALIEXPRESS',
-    }
-  }
-
-  if (normalized.startsWith('local:')) {
-    const rootId = normalized.slice(6)
-    if (!rootId) return null
-
-    const categories = await prisma.category.findMany({
-      select: { id: true, parentId: true },
-    })
-    const root = categories.find((category) => category.id === rootId)
-    if (!root) return null
-
-    return {
-      localCategoryIds: getDescendantIds(categories, root.id),
-      aliExpressCategoryIds: [],
-      source: 'LOCAL',
-    }
-  }
-
-  return {
-    localCategoryIds: [normalized],
-    aliExpressCategoryIds: [],
-    source: 'LOCAL',
-  }
-}
-
-function getDescendantIds(categories: Array<{ id: string; parentId: string | null }>, rootId: string): string[] {
+function getDescendantIds(categories: CategoryRow[], rootId: string): string[] {
   const children = new Map<string, string[]>()
 
   for (const category of categories) {
@@ -206,8 +34,133 @@ function getDescendantIds(categories: Array<{ id: string; parentId: string | nul
     if (visited.has(current)) continue
     visited.add(current)
     result.push(current)
-    for (const childId of children.get(current) ?? []) stack.push(childId)
+
+    for (const childId of children.get(current) ?? []) {
+      stack.push(childId)
+    }
   }
 
   return result
+}
+
+export async function getStorefrontCategories(limit = 24): Promise<StorefrontCategory[]> {
+  const [categories, localProducts, importProducts] = await Promise.all([
+    prisma.category.findMany({
+      orderBy: [{ parentId: 'asc' }, { name: 'asc' }],
+      select: { id: true, name: true, parentId: true },
+    }),
+    prisma.localSKU.findMany({
+      where: { categoryId: { not: null } },
+      select: { categoryId: true, imageUrls: true },
+    }),
+    prisma.aliExpressSKU.findMany({
+      where: {
+        categoryId: { not: null },
+        isPublished: true,
+        importListingPrice: { isStale: false },
+      },
+      select: { categoryId: true, imageUrls: true },
+    }),
+  ])
+
+  const roots = categories.filter((category) => category.parentId === null)
+  const childrenByParent = new Map<string, CategoryRow[]>()
+
+  for (const category of categories) {
+    if (!category.parentId) continue
+    const children = childrenByParent.get(category.parentId) ?? []
+    children.push(category)
+    childrenByParent.set(category.parentId, children)
+  }
+
+  const counts = new Map<string, number>()
+  const images = new Map<string, string>()
+
+  function addProduct(categoryId: string | null, imageUrls: string[]) {
+    if (!categoryId) return
+
+    const categoryById = new Map(categories.map((category) => [category.id, category]))
+    let current = categoryById.get(categoryId)
+    if (!current) return
+
+    const visited = new Set<string>()
+    while (current && !visited.has(current.id)) {
+      visited.add(current.id)
+      if (current.parentId === null) {
+        counts.set(current.id, (counts.get(current.id) ?? 0) + 1)
+        const image = imageUrls.find(Boolean)
+        if (image && !images.has(current.id)) images.set(current.id, image)
+        return
+      }
+      current = categoryById.get(current.parentId)
+    }
+  }
+
+  for (const product of localProducts) addProduct(product.categoryId, product.imageUrls)
+  for (const product of importProducts) addProduct(product.categoryId, product.imageUrls)
+
+  return roots
+    .filter((category) => (counts.get(category.id) ?? 0) > 0)
+    .map((category) => ({
+      id: category.id,
+      name: category.name,
+      productCount: counts.get(category.id) ?? 0,
+      source: 'CANONICAL' as const,
+      level: 1,
+      imageUrl: images.get(category.id) ?? null,
+    }))
+    .sort((a, b) => a.name.localeCompare(b.name))
+    .slice(0, limit)
+}
+
+export interface StorefrontCategoryFilterScope {
+  categoryIds: string[]
+}
+
+export async function getStorefrontCategoryFilterScope(categoryKey: string): Promise<StorefrontCategoryFilterScope | null> {
+  const normalized = categoryKey.trim()
+  if (!normalized) return null
+
+  const categories = await prisma.category.findMany({
+    select: { id: true, name: true, parentId: true },
+  })
+
+  // New storefront URLs use canonical category ids directly.
+  if (!normalized.startsWith('local:') && !normalized.startsWith('ae:')) {
+    const root = categories.find((category) => category.id === normalized)
+    if (!root) return null
+    return { categoryIds: getDescendantIds(categories, root.id) }
+  }
+
+  // Keep old local-category URLs working after the catalogue becomes unified.
+  if (normalized.startsWith('local:')) {
+    const rootId = normalized.slice(6)
+    const root = categories.find((category) => category.id === rootId)
+    if (!root) return null
+    return { categoryIds: getDescendantIds(categories, root.id) }
+  }
+
+  // Old AliExpress category URLs are translated through the canonical category
+  // assigned to the published supplier products in that source category.
+  const externalRootId = normalized.slice(3)
+  if (!externalRootId) return null
+
+  const aliExpressCategories = await prisma.aliExpressCategory.findMany({
+    select: { id: true, categoryId: true, parentId: true },
+  })
+  const externalRoot = aliExpressCategories.find((category) => category.categoryId === externalRootId)
+  if (!externalRoot) return null
+
+  const aliExpressIds = getDescendantIds(aliExpressCategories, externalRoot.id)
+  const mapped = await prisma.aliExpressSKU.findMany({
+    where: {
+      aliExpressCategoryId: { in: aliExpressIds },
+      categoryId: { not: null },
+    },
+    distinct: ['categoryId'],
+    select: { categoryId: true },
+  })
+
+  const categoryIds = mapped.flatMap((row) => row.categoryId ? [row.categoryId] : [])
+  return categoryIds.length > 0 ? { categoryIds } : null
 }
