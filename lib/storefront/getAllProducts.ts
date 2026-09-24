@@ -1,25 +1,31 @@
 import { prisma } from '../prisma'
 import { toProductTeaser, toImportProductTeaser, type ProductTeaser, type StandaloneImportSkuLike } from './productTeaser'
 import { isCatalogEligible } from './catalogEligibility'
+import { getStorefrontCategoryFilterScope } from './getCategories'
 
 export type CatalogSourceFilter = 'all' | 'local' | 'import' | 'deals'
 export type CatalogSort = 'featured' | 'newest' | 'price_asc' | 'price_desc' | 'name'
 
 export async function getAllProducts(
   query = '',
-  categoryId = '',
+  categoryKey = '',
   source: CatalogSourceFilter = 'all',
   sort: CatalogSort = 'featured',
 ): Promise<ProductTeaser[]> {
   const q = query.trim()
   const textFilter = q ? { contains: q, mode: 'insensitive' as const } : undefined
+  const categoryScope = categoryKey ? await getStorefrontCategoryFilterScope(categoryKey) : null
+  const localCategoryIds = categoryScope?.localCategoryIds ?? []
+  const aliExpressCategoryIds = categoryScope?.aliExpressCategoryIds ?? []
 
-  const localProducts = source === 'import'
+  const localProducts = source === 'import' || (categoryKey && categoryScope?.source === 'ALIEXPRESS')
     ? []
     : await prisma.localSKU.findMany({
         where: {
           ...(textFilter ? { title: textFilter } : {}),
-          ...(categoryId ? { categoryId } : {}),
+          ...(categoryScope?.source === 'LOCAL'
+            ? { categoryId: { in: localCategoryIds } }
+            : {}),
         },
         include: {
           category: true,
@@ -40,6 +46,9 @@ export async function getAllProducts(
     : await prisma.aliExpressSKU.findMany({
         where: {
           ...(textFilter ? { title: textFilter } : {}),
+          ...(categoryScope?.source === 'ALIEXPRESS'
+            ? { aliExpressCategoryId: { in: aliExpressCategoryIds } }
+            : {}),
           isPublished: true,
           importListingPrice: { isStale: false },
           matches: { none: { status: { in: ['AUTO_MATCHED', 'MANUAL_CONFIRMED'] } } },
