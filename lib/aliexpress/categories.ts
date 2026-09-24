@@ -1,6 +1,6 @@
 import { prisma } from '../prisma'
 import { redis } from '../redis/client'
-import { fetchWithBackoff } from './retry'
+import { fetchWithBackoff } from '../cache/retry'
 import {
   callAliExpressTop,
   getAliExpressAppCredentials,
@@ -152,7 +152,7 @@ async function persistPath(path: AliExpressCategoryNode[]): Promise<string> {
       select: { id: true },
     })
 
-    const saved = existing
+    const saved: { id: string } = existing
       ? await prisma.aliExpressCategory.update({
           where: { id: existing.id },
           data: {
@@ -221,7 +221,15 @@ export async function getStoredCategoryPath(categoryDbId: string): Promise<AliEx
   let currentId: string | null = categoryDbId
 
   while (currentId) {
-    const row = await prisma.aliExpressCategory.findUnique({
+    const row: {
+      id: string
+      categoryId: string
+      name: string
+      names: unknown
+      level: number | null
+      isLeaf: boolean
+      parentId: string | null
+    } | null = await prisma.aliExpressCategory.findUnique({
       where: { id: currentId },
       select: {
         id: true,
