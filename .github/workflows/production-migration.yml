@@ -2,9 +2,20 @@ name: Production Database Migration
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - "prisma/migrations/**"
+      - "prisma/schema.prisma"
+      - ".github/workflows/production-migration.yml"
 
 permissions:
   contents: read
+
+concurrency:
+  group: production-database-migration
+  cancel-in-progress: false
 
 jobs:
   migrate:
