@@ -1,6 +1,5 @@
 import { prisma } from '../prisma'
 import { buildProductDescription, type ProductDescriptionFeature } from './buildProductDescription'
-import { getStoredCategoryPath } from '../aliexpress/categories'
 
 export interface ImportProductVariant {
   skuId: string
@@ -36,7 +35,7 @@ export async function getImportProductGroupPageData(productId: string): Promise<
       matches: { none: { status: { in: ['AUTO_MATCHED', 'MANUAL_CONFIRMED'] } } },
     },
     include: {
-      category: true,
+      category: { include: { parent: true } },
       aliExpressCategory: true,
       importListingPrice: true,
     },
@@ -51,11 +50,11 @@ export async function getImportProductGroupPageData(productId: string): Promise<
   if (priced.length === 0) return null
 
   const first = priced[0]
-  const categoryPath = first.aliExpressCategoryId
-    ? (await getStoredCategoryPath(first.aliExpressCategoryId)).map((node) => node.name)
+  const categoryPath = first.category
+    ? [first.category.parent?.name, first.category.name].filter((value): value is string => Boolean(value))
     : []
 
-  const displayCategoryName = first.aliExpressCategory?.name ?? first.category?.name ?? null
+  const displayCategoryName = first.category?.name ?? first.aliExpressCategory?.name ?? null
 
   const description = buildProductDescription({
     title: first.title,
@@ -74,8 +73,8 @@ export async function getImportProductGroupPageData(productId: string): Promise<
     description: description.overview,
     coreFeatures: description.coreFeatures,
     imageUrls: priced.flatMap((sku) => sku.imageUrls).filter(Boolean).slice(0, 12),
-    categoryId: first.aliExpressCategoryId ?? first.categoryId,
-    categoryKey: first.aliExpressCategory?.categoryId ? `ae:${first.aliExpressCategory.categoryId}` : null,
+    categoryId: first.categoryId,
+    categoryKey: first.categoryId,
     categoryName: displayCategoryName,
     categoryPath,
     variants: priced.map((sku) => ({
