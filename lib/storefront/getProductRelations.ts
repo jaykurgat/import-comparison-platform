@@ -104,7 +104,7 @@ function toImportTeaser(sku: {
     hasDeal: false,
     savingsAmount: null,
     source: 'import',
-    categoryName: sku.aliExpressCategory?.name ?? sku.category?.name ?? null,
+    categoryName: sku.category?.name ?? sku.aliExpressCategory?.name ?? null,
     inStock: sku.availableStock > 0,
     variantCount: 1,
     availableVariantCount: sku.availableStock > 0 ? 1 : 0,
@@ -187,12 +187,12 @@ export async function getRelatedProductsForImport(
   if (!categoryKey) return []
 
   const categoryScope = await getStorefrontCategoryFilterScope(categoryKey)
-  if (!categoryScope || categoryScope.aliExpressCategoryIds.length === 0) return []
+  if (!categoryScope || categoryScope.categoryIds.length === 0) return []
 
   const imports = await prisma.aliExpressSKU.findMany({
     where: {
       productId: { not: productId },
-      aliExpressCategoryId: { in: categoryScope.aliExpressCategoryIds },
+      categoryId: { in: categoryScope.categoryIds },
       isPublished: true,
       importListingPrice: { isStale: false },
     },
