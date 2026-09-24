@@ -53,7 +53,7 @@ export default function ProductGallery({
       </div>
 
       <div
-        className="order-1 relative aspect-square w-full touch-pan-y select-none overflow-hidden rounded-sm bg-[#f1f1ec] sm:order-2"
+        className="order-1 relative aspect-square w-full touch-pan-y select-none overflow-hidden rounded-sm bg-[#f1f1ec] sm:order-2 lg:aspect-auto lg:h-[min(720px,calc(100vh-250px))]"
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
       >
