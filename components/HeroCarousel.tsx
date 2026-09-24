@@ -48,11 +48,11 @@ export default function HeroCarousel({ slides }: { slides: ProductTeaser[] }) {
         <div className="order-2 min-h-0 flex flex-col justify-center px-7 py-7 sm:px-10 lg:order-1 lg:px-14">
           <div className="flex flex-wrap gap-2">
             <span className="rounded-sm bg-emerald-50 px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.14em] text-emerald-800">
-              {slide.source === 'import' ? 'Direct import' : slide.hasDeal ? 'Import comparison' : 'Featured product'}
+              Featured product
             </span>
             {slide.variantCount > 1 && (
               <span className="rounded-sm bg-slate-100 px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.14em] text-slate-600">
-                {slide.variantCount} variants
+                {slide.variantCount} options
               </span>
             )}
           </div>
@@ -67,7 +67,7 @@ export default function HeroCarousel({ slides }: { slides: ProductTeaser[] }) {
               <span className="text-sm font-bold text-emerald-700">Save {slide.currency} {slide.savingsAmount.toLocaleString()}</span>
             )}
           </div>
-          <span className="mt-5 inline-flex w-fit rounded-xl bg-[#123f2b] px-5 py-3 text-sm font-black text-white">Shop now →</span>
+          <span className="mt-5 inline-flex w-fit rounded-sm bg-[#123f2b] px-5 py-3 text-sm font-black text-white">Shop now →</span>
         </div>
 
         <div className="relative order-1 h-[128px] min-h-0 overflow-hidden bg-[#f0f1ed] lg:order-2 lg:h-full">
