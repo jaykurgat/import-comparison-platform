@@ -28,7 +28,7 @@ export default function ProductGallery({
 
   if (!images.length) {
     return (
-      <div className="flex aspect-square items-center justify-center rounded-sm bg-[#f1f1ec] text-sm font-semibold text-slate-400">
+      <div className="flex aspect-square items-center justify-center rounded-sm bg-[#f7f7f3] text-sm font-semibold text-slate-400">
         Image unavailable
       </div>
     )
@@ -44,7 +44,7 @@ export default function ProductGallery({
             onClick={() => setActive(index)}
             aria-label={`View product image ${index + 1}`}
             aria-pressed={active === index}
-            className={`h-16 w-16 shrink-0 overflow-hidden rounded-sm border-2 bg-[#f1f1ec] transition sm:h-[72px] sm:w-[72px] ${active === index ? 'border-[#123f2b]' : 'border-transparent hover:border-slate-300'}`}
+            className={`h-16 w-16 shrink-0 overflow-hidden rounded-sm border-2 bg-[#f7f7f3] transition sm:h-[72px] sm:w-[72px] ${active === index ? 'border-[#123f2b]' : 'border-transparent hover:border-slate-300'}`}
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={src} alt="" className="h-full w-full object-cover" loading={index === 0 ? 'eager' : 'lazy'} />
@@ -53,7 +53,7 @@ export default function ProductGallery({
       </div>
 
       <div
-        className="order-1 relative aspect-square w-full touch-pan-y select-none overflow-hidden rounded-sm bg-[#f1f1ec] sm:order-2 lg:aspect-auto lg:h-[min(720px,calc(100vh-250px))]"
+        className="order-1 relative aspect-square w-full touch-pan-y select-none overflow-hidden rounded-sm bg-[#f7f7f3] sm:order-2 lg:aspect-auto lg:h-[min(720px,calc(100vh-250px))]"
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
       >
