@@ -103,7 +103,15 @@ async function persistProduct(data: MappedAliExpressProduct): Promise<void> {
     })
   }
 
-  const exactCategory = await resolveAliExpressCategory(data.rawCategoryId)
+  let exactCategory: Awaited<ReturnType<typeof resolveAliExpressCategory>> = null
+  try {
+    exactCategory = await resolveAliExpressCategory(data.rawCategoryId)
+  } catch (error) {
+    console.warn(
+      `[AliExpress] Could not resolve source category ${data.rawCategoryId}; keeping product persistence independent of category enrichment.`,
+      error,
+    )
+  }
 
   for (const sku of data.skus) {
     const resolvedCategory = await resolveCanonicalCategory({
