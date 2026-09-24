@@ -261,3 +261,35 @@ export async function getStoredCategoryPath(categoryDbId: string): Promise<AliEx
 export async function getAliExpressCategoryBreadcrumb(categoryDbId: string): Promise<string[]> {
   return (await getStoredCategoryPath(categoryDbId)).map((node) => node.name)
 }
+
+
+export async function backfillAliExpressCategories(): Promise<number> {
+  const rows = await prisma.aliExpressSKU.findMany({
+    where: {
+      rawCategoryId: { not: null },
+      aliExpressCategoryId: null,
+    },
+    select: { rawCategoryId: true },
+    distinct: ['rawCategoryId'],
+  })
+
+  let resolved = 0
+
+  for (const row of rows) {
+    if (!row.rawCategoryId) continue
+    const category = await resolveAliExpressCategory(row.rawCategoryId)
+    if (!category) continue
+
+    const result = await prisma.aliExpressSKU.updateMany({
+      where: {
+        rawCategoryId: row.rawCategoryId,
+        aliExpressCategoryId: null,
+      },
+      data: { aliExpressCategoryId: category.leafDbId },
+    })
+
+    resolved += result.count
+  }
+
+  return resolved
+}
