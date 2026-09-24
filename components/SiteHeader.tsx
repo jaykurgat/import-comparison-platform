@@ -1,3 +1,4 @@
+import Image from 'next/image'
 import Link from 'next/link'
 import { getStorefrontCategories } from '@/lib/storefront/getCategories'
 
@@ -17,7 +18,7 @@ export default async function SiteHeader() {
 
       <div className="mx-auto flex max-w-[1440px] items-center gap-3 px-4 py-3.5 sm:px-6">
         <Link href="/" className="flex shrink-0 items-center gap-2.5" aria-label="KijijiCart home">
-          <img src="/kijijcart-mark.svg" alt="" className="h-9 w-9" />
+          <Image src="/kijijcart-mark.svg" alt="" width={36} height={36} className="h-9 w-9" priority />
           <span className="text-[1.45rem] font-bold tracking-[-0.045em] text-[#123f2b]">
             Kijiji<span className="text-[#45bd45]">Cart</span>
           </span>
