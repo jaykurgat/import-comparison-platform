@@ -16,7 +16,7 @@ export default function HeroCarousel({ slides }: { slides: ProductTeaser[] }) {
   if (!slides.length) {
     return (
       <section className="relative overflow-hidden rounded-[1.75rem] bg-[#e8efe9] shadow-sm">
-        <div className="grid min-h-[310px] items-center lg:grid-cols-[1fr_.95fr]">
+        <div className="grid h-[360px] items-center lg:h-[300px] lg:grid-cols-[1fr_.95fr]">
           <div className="px-7 py-12 sm:px-10 lg:px-14">
             <p className="text-xs font-black uppercase tracking-[0.2em] text-emerald-800">KijijiCart</p>
             <h1 className="mt-4 max-w-2xl text-4xl font-black tracking-[-0.045em] text-slate-950 sm:text-5xl lg:text-6xl">
@@ -34,7 +34,7 @@ export default function HeroCarousel({ slides }: { slides: ProductTeaser[] }) {
               </Link>
             </div>
           </div>
-          <div className="hidden min-h-[310px] bg-[radial-gradient(circle_at_40%_35%,rgba(255,255,255,.9),transparent_38%),linear-gradient(135deg,#d4e0d7,#b5c9bb)] lg:block" aria-hidden="true" />
+          <div className="hidden h-full bg-[radial-gradient(circle_at_40%_35%,rgba(255,255,255,.9),transparent_38%),linear-gradient(135deg,#d4e0d7,#b5c9bb)] lg:block" aria-hidden="true" />
         </div>
       </section>
     )
@@ -44,8 +44,8 @@ export default function HeroCarousel({ slides }: { slides: ProductTeaser[] }) {
 
   return (
     <section className="relative overflow-hidden rounded-[1.75rem] bg-white shadow-sm">
-      <Link href={slide.href} className="grid min-h-[310px] lg:grid-cols-[.9fr_1.1fr]">
-        <div className="order-2 flex flex-col justify-center px-7 py-7 sm:px-10 lg:order-1 lg:px-14">
+      <Link href={slide.href} className="grid h-[360px] overflow-hidden lg:h-[300px] lg:grid-cols-[.9fr_1.1fr]">
+        <div className="order-2 min-h-0 flex flex-col justify-center px-7 py-7 sm:px-10 lg:order-1 lg:px-14">
           <div className="flex flex-wrap gap-2">
             <span className="rounded-full bg-emerald-50 px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.14em] text-emerald-800">
               {slide.source === 'import' ? 'Direct import' : slide.hasDeal ? 'Import comparison' : 'Featured product'}
@@ -70,7 +70,7 @@ export default function HeroCarousel({ slides }: { slides: ProductTeaser[] }) {
           <span className="mt-5 inline-flex w-fit rounded-xl bg-[#123f2b] px-5 py-3 text-sm font-black text-white">Shop now →</span>
         </div>
 
-        <div className="relative order-1 min-h-[220px] overflow-hidden bg-[#f0f1ed] lg:order-2 lg:min-h-[310px]">
+        <div className="relative order-1 h-[180px] min-h-0 overflow-hidden bg-[#f0f1ed] lg:order-2 lg:h-full">
           {slide.imageUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img src={slide.imageUrl} alt={slide.title} className="h-full w-full object-cover transition duration-700" />
