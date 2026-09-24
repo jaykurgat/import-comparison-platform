@@ -1,4 +1,4 @@
-import type { AliExpressItemSkuInfoDto, AliExpressProductGetResult } from './types'
+import type { AliExpressItemSkuInfoDto, AliExpressProductGetResult, AliExpressSkuPropertyDto } from './types'
 
 /**
  * Internal, simplified shapes — decoupled from AliExpress's raw response
@@ -49,16 +49,29 @@ export interface MappedFreightQuote {
   options: MappedFreightOption[]
 }
 
+function getDisplayValue(property: AliExpressSkuPropertyDto): string {
+  const customName = property.property_value_definition_name?.trim()
+  if (customName && customName !== '0') return customName
+  return property.sku_property_value.trim()
+}
+
 function extractSkuAttribute(sku: AliExpressItemSkuInfoDto, propertyName: string): string | undefined {
   const props = sku.ae_sku_property_dtos?.ae_sku_property_d_t_o ?? []
-  return props.find((p) => p.sku_property_name.toLowerCase() === propertyName.toLowerCase())
-    ?.sku_property_value
+  return props.find((property) => property.sku_property_name.trim().toLowerCase() === propertyName.toLowerCase())
+    ? getDisplayValue(
+        props.find((property) => property.sku_property_name.trim().toLowerCase() === propertyName.toLowerCase())!,
+      )
+    : undefined
 }
 
 /**
  * Uses offer_sale_price as the dropship-tier price (per project decision —
  * see /areas notes; not independently verified against the public retail
  * page, proceeding on the assumption this is the correct dropship price).
+ *
+ * AliExpress's product API exposes the variant attribute name/value separately
+ * from the website presentation. The request is made with target_language=EN,
+ * and seller-defined property_value_definition_name is used when supplied.
  */
 export function mapProductResult(result: AliExpressProductGetResult): MappedAliExpressProduct {
   const base = result.ae_item_base_info_dto
@@ -70,10 +83,14 @@ export function mapProductResult(result: AliExpressProductGetResult): MappedAliE
   const skus: MappedAliExpressSku[] = rawSkus.map((sku) => {
     const specs: Record<string, string> = {}
     const properties = sku.ae_sku_property_dtos?.ae_sku_property_d_t_o ?? []
-    for (const prop of properties) {
-      specs[prop.sku_property_name] = prop.sku_property_value
+
+    for (const property of properties) {
+      const name = property.sku_property_name.trim()
+      if (!name) continue
+      specs[name] = getDisplayValue(property)
     }
-    const variantImageUrl = properties.find((prop) => prop.sku_image?.trim())?.sku_image?.trim()
+
+    const variantImageUrl = properties.find((property) => property.sku_image?.trim())?.sku_image?.trim()
 
     return {
       skuId: sku.sku_id,

@@ -10,6 +10,7 @@
 export interface AliExpressSkuPropertyDto {
   sku_property_name: string
   sku_property_value: string
+  property_value_definition_name?: string
   sku_image?: string
   property_value_id?: number
   sku_property_id?: number
