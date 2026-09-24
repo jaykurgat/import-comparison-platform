@@ -96,12 +96,12 @@ export default async function ImportProductGroupPage({ params }: { params: Promi
           </div>
 
           <ImportVariantProvider variants={data.variants}>
-            <div className="grid gap-6 lg:grid-cols-[1.08fr_.92fr]">
-              <section className="rounded-[2rem] border border-slate-200 bg-white p-4 shadow-sm sm:p-6">
+            <div className="grid items-start gap-6 lg:grid-cols-[1.08fr_.92fr]">
+              <section className="rounded-sm border border-slate-200 bg-white p-4 shadow-sm sm:p-6 lg:sticky lg:top-24 lg:self-start">
                 <ImportVariantGallery title={data.title} fallbackImages={data.imageUrls} />
               </section>
 
-              <section className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
+              <section className="rounded-sm border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
                 <div className="flex flex-wrap gap-2 text-[10px] font-black uppercase tracking-[0.16em]">
                   <span className="rounded-full bg-[#eef7f2] px-3 py-1.5 text-emerald-800">Supplier product</span>
                   {data.categoryName && (
