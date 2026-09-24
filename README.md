@@ -57,7 +57,7 @@ Before exposing the admin/catalog operations publicly, configure the required da
 
 ### 1. Database migration
 
-Use the manual **Production Database Migration** GitHub Actions workflow against the production environment. It runs:
+The **Production Database Migration** GitHub Actions workflow remains manually dispatchable and also runs automatically on pushes to `main` that change Prisma migrations, the Prisma schema, or the migration workflow itself. It runs:
 
 ```bash
 npm ci
@@ -65,12 +65,12 @@ npx prisma migrate deploy
 npx prisma migrate status
 ```
 
-The workflow does not run migrations as part of the application build. Configure these GitHub Actions production secrets:
+This keeps production schema changes aligned with schema-changing commits without running migrations inside the Next.js build. Configure these GitHub Actions production secrets:
 
 - `DATABASE_URL`
 - `DIRECT_URL` when required by the Prisma datasource/provider
 
-Review the migration output before deploying the corresponding application version.
+The migration job uses the protected `production` GitHub environment and serializes concurrent migration runs.
 
 ### 2. Application deployment
 
@@ -123,8 +123,8 @@ Do not use a customer payment to perform a smoke test while Daraja is sandbox/pa
 ## First-release sequence
 
 1. Ensure the production database has a verified backup/PITR posture.
-2. Run the manual production migration workflow.
-3. Deploy the exact CI-green application commit.
+2. Merge the CI-green schema-changing commit; the production migration workflow runs automatically from `main`.
+3. Deploy the exact application commit after the migration run succeeds.
 4. Confirm `/api/health` is healthy.
 5. Run production smoke validation.
 6. Log in to `/admin` and verify catalog health, order recovery, and supplier readiness.
@@ -133,7 +133,7 @@ Do not use a customer payment to perform a smoke test while Daraja is sandbox/pa
 9. Keep supplier SKUs unpublished until title, image, stock, and current sell price are verified.
 10. Keep Daraja sandbox/paused until a separate controlled live-payment acceptance test has passed.
 
-Do not run Prisma migrations as part of the Next.js build command. The production build should remain a deterministic application build, while database schema changes are applied explicitly with `prisma migrate deploy`.
+Do not run Prisma migrations as part of the Next.js build command. The production build remains a deterministic application build, while database schema changes are applied by the protected migration workflow.
 
 ## Project structure
 
