@@ -19,7 +19,7 @@ export default function CategoryGrid({ categories }: { categories: StorefrontCat
           <Link
             key={category.id}
             href={{ pathname: '/products', query: { category: category.id } }}
-            className="group overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:border-emerald-200 hover:shadow-md"
+            className="group overflow-hidden rounded-sm border border-slate-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:border-emerald-200 hover:shadow-md"
           >
             <div className="relative aspect-square overflow-hidden bg-[#f0f1ec]">
               {category.imageUrl ? (
