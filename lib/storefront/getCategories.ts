@@ -64,22 +64,13 @@ export async function getStorefrontCategories(limit = 24): Promise<StorefrontCat
   ])
 
   const roots = categories.filter((category) => category.parentId === null)
-  const childrenByParent = new Map<string, CategoryRow[]>()
-
-  for (const category of categories) {
-    if (!category.parentId) continue
-    const children = childrenByParent.get(category.parentId) ?? []
-    children.push(category)
-    childrenByParent.set(category.parentId, children)
-  }
-
+  const categoryById = new Map(categories.map((category) => [category.id, category]))
   const counts = new Map<string, number>()
   const images = new Map<string, string>()
 
   function addProduct(categoryId: string | null, imageUrls: string[]) {
     if (!categoryId) return
 
-    const categoryById = new Map(categories.map((category) => [category.id, category]))
     let current = categoryById.get(categoryId)
     if (!current) return
 
