@@ -35,8 +35,8 @@ export default function ProductGallery({
   }
 
   return (
-    <div className="grid gap-4 sm:grid-cols-[88px_1fr]">
-      <div className="order-2 flex max-w-full gap-2 overflow-x-auto pb-1">
+    <div className="space-y-3">
+      <div className="flex max-w-full gap-2 overflow-x-auto pb-1">
         {images.slice(0, 8).map((src, index) => (
           <button
             key={src + index}
@@ -53,7 +53,7 @@ export default function ProductGallery({
       </div>
 
       <div
-        className="order-1 relative aspect-[4/3] w-full touch-pan-y select-none overflow-hidden rounded-sm bg-[#f1f1ec] sm:aspect-[5/4] lg:aspect-[4/3]"
+        className="relative aspect-[4/3] w-full touch-pan-y select-none overflow-hidden rounded-sm bg-[#f1f1ec] sm:aspect-[5/4] lg:aspect-[4/3]"
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
       >
