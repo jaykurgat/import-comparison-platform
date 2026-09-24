@@ -16,7 +16,7 @@ export default async function CatalogAdminPage() {
       <div className="mx-auto max-w-7xl">
         <div className="flex flex-col gap-4 border-b border-[#E3E3DF] pb-6 md:flex-row md:items-end md:justify-between">
           <div>
-            <h1 className="text-2xl font-semibold tracking-tight">Import Catalog</h1>
+            <h1 className="text-2xl font-semibold tracking-tight">Supplier Catalog</h1>
             <p className="mt-1 text-sm text-[#6B6B6E]">
               {catalog.length} persisted supplier SKU{catalog.length === 1 ? '' : 's'}.
               Supplier stock is synchronized from AliExpress and is not manually overridden here.
@@ -44,7 +44,7 @@ export default async function CatalogAdminPage() {
           <table className="w-full min-w-[980px] text-sm">
             <thead className="border-b border-[#E3E3DF] bg-[#FAFAF9] text-left text-xs uppercase tracking-wide text-[#8A8A8E]">
               <tr>
-                <th className="px-4 py-3">Product / variant</th>
+                <th className="px-4 py-3">Product</th>
                 <th className="px-4 py-3">Category</th>
                 <th className="px-4 py-3">Supplier</th>
                 <th className="px-4 py-3">Stock</th>
@@ -113,7 +113,7 @@ export default async function CatalogAdminPage() {
               {catalog.length === 0 && (
                 <tr>
                   <td colSpan={8} className="px-4 py-12 text-center text-[#6B6B6E]">
-                    No supplier SKUs yet. Run a catalog sync after local products have been ingested.
+                    No supplier products yet. Run a catalog sync after local products have been ingested.
                   </td>
                 </tr>
               )}
