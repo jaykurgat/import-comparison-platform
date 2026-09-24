@@ -16,6 +16,36 @@ type OptionGroup = {
   values: string[]
 }
 
+export function displayOptionName(name: string): string {
+  const normalized = name.trim().toLowerCase().replace(/[_-]+/g, ' ')
+  const known: Record<string, string> = {
+    color: 'Color',
+    colour: 'Color',
+    size: 'Size',
+    texture: 'Texture',
+    pattern: 'Pattern',
+    style: 'Style',
+    material: 'Material',
+    model: 'Model',
+    capacity: 'Capacity',
+    flavor: 'Flavor',
+    flavour: 'Flavor',
+    scent: 'Scent',
+    finish: 'Finish',
+    length: 'Length',
+    width: 'Width',
+    height: 'Height',
+    pack: 'Pack',
+  }
+
+  if (known[normalized]) return known[normalized]
+  return normalized
+    .split(' ')
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(' ')
+}
+
 type ImportVariantContextValue = {
   variants: ImportVariant[]
   selectedVariant: ImportVariant | undefined
