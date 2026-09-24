@@ -92,7 +92,7 @@ export default async function ProductPage({ params }: { params: Promise<{ sku: s
               <div className="flex flex-wrap gap-2 text-[10px] font-black uppercase tracking-[0.16em]">
                 <span className="rounded-full bg-slate-100 px-3 py-1.5 text-slate-600">Local listing</span>
                 {local.categoryName && <span className="rounded-full bg-[#eef7f2] px-3 py-1.5 text-emerald-800">{local.categoryName}</span>}
-                {importIsBetter && <span className="rounded-full bg-amber-50 px-3 py-1.5 text-amber-800">Import comparison</span>}
+                {comparison && <span className="rounded-full bg-slate-100 px-3 py-1.5 text-slate-600">Supplier option available</span>}
               </div>
 
               <h1 className="mt-5 text-3xl font-black leading-[1.08] tracking-[-0.035em] sm:text-4xl">{local.title}</h1>
@@ -132,9 +132,9 @@ export default async function ProductPage({ params }: { params: Promise<{ sku: s
           <section className="mt-6 rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
             <div className="flex flex-wrap items-end justify-between gap-4">
               <div>
-                <p className="text-xs font-black uppercase tracking-[0.18em] text-emerald-700">Comparison</p>
-                <h2 className="mt-2 text-2xl font-black tracking-tight sm:text-3xl">Local vs. direct import</h2>
-                <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500">Import data is enrichment. It never determines whether this local product is shown in the catalog.</p>
+                <p className="text-xs font-black uppercase tracking-[0.18em] text-emerald-700">More ways to shop</p>
+                <h2 className="mt-2 text-2xl font-black tracking-tight sm:text-3xl">Other ways to get this product</h2>
+                <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500">We keep supplier pricing and availability in the background and surface a matching option here when one is verified.</p>
               </div>
               {comparison?.isStale && <span className="text-xs font-semibold text-slate-400">Last confirmed {comparison.priceDataAsOf.toLocaleDateString()}</span>}
             </div>
@@ -142,33 +142,33 @@ export default async function ProductPage({ params }: { params: Promise<{ sku: s
             {!comparison ? (
               <div className="mt-6 grid gap-4 rounded-2xl border border-dashed border-slate-300 bg-[#f7f7f3] p-6 md:grid-cols-[1fr_auto] md:items-center">
                 <div>
-                  <p className="font-black text-slate-900">No verified import alternative yet</p>
-                  <p className="mt-1 text-sm leading-6 text-slate-600">The local listing remains available while matching and landed-cost data are reviewed.</p>
+                  <p className="font-black text-slate-900">No matching supplier option yet</p>
+                  <p className="mt-1 text-sm leading-6 text-slate-600">The local product remains available while supplier data is being matched and refreshed.</p>
                 </div>
-                <span className="rounded-xl bg-white px-4 py-2 text-xs font-bold text-slate-500">Local catalog active</span>
+                <span className="rounded-xl bg-white px-4 py-2 text-xs font-bold text-slate-500">Available in the catalogue</span>
               </div>
             ) : (
               <div className="mt-6 grid gap-4 md:grid-cols-2">
                 <div className="rounded-2xl border border-slate-200 p-6">
                   <p className="text-xs font-black uppercase tracking-wider text-slate-500">Buy locally</p>
                   <p className="mt-3 text-3xl font-black tabular-nums">{local.currency} {comparison.localTotalPrice.toLocaleString()}</p>
-                  <p className="mt-2 text-sm text-slate-500">Local retail reference</p>
+                  <p className="mt-2 text-sm text-slate-500">Current local price</p>
                 </div>
 
                 <div className={importIsBetter ? 'rounded-2xl border-2 border-[#123f2b] bg-[#f2f8f5] p-6' : 'rounded-2xl border border-slate-200 p-6'}>
                   <div className="flex items-center justify-between gap-3">
-                    <p className="text-xs font-black uppercase tracking-wider text-emerald-800">Direct import</p>
-                    {importIsBetter && <span className="rounded-full bg-[#123f2b] px-2.5 py-1 text-[10px] font-black text-white">LOWER ESTIMATED COST</span>}
+                    <p className="text-xs font-black uppercase tracking-wider text-emerald-800">Supplier option</p>
+                    {importIsBetter && <span className="rounded-full bg-[#123f2b] px-2.5 py-1 text-[10px] font-black text-white">CURRENT SUPPLIER OPTION</span>}
                   </div>
                   <p className="mt-3 text-3xl font-black tabular-nums">{local.currency} {comparison.sellPrice.toLocaleString()}</p>
-                  <p className="mt-2 text-sm leading-6 text-slate-500">Landed-cost estimate plus marketplace markup. Supplier freight and exchange rates can change.</p>
+                  <p className="mt-2 text-sm leading-6 text-slate-500">Current supplier price based on landed cost and marketplace pricing. Freight and exchange rates can change.</p>
                   <div className="mt-5 flex flex-wrap gap-3">
                     <a href={comparison.remote.url} target="_blank" rel="noopener noreferrer" className="inline-flex rounded-xl border border-slate-200 bg-white px-5 py-3 text-sm font-black text-slate-700 transition hover:border-slate-300">
                       View supplier listing →
                     </a>
                     {comparison.remote.isPublished && comparison.remote.availableStock > 0 && (
                       <Link href={`/import/${encodeURIComponent(comparison.remote.productId)}/${encodeURIComponent(comparison.remote.skuId)}`} className="inline-flex rounded-xl bg-[#123f2b] px-5 py-3 text-sm font-black text-white transition hover:bg-[#0d3021]">
-                        Import this product →
+                        Shop this option →
                       </Link>
                     )}
                   </div>
