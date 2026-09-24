@@ -16,7 +16,7 @@ function Rail({
   if (products.length === 0) return null
 
   return (
-    <section className="mt-6 rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
+    <section className="mt-6 rounded-sm border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <p className="text-xs font-black uppercase tracking-[0.18em] text-emerald-700">{eyebrow}</p>
