@@ -88,6 +88,7 @@ function toImportTeaser(sku: {
   availableStock: number
   createdAt: Date
   category?: { name: string } | null
+  aliExpressCategory?: { name: string } | null
   importListingPrice: { sellPrice: { toString(): string }; currency: string } | null
 }): ProductTeaser | null {
   if (!sku.importListingPrice || Number(sku.importListingPrice.sellPrice) <= 0) return null
@@ -102,7 +103,7 @@ function toImportTeaser(sku: {
     hasDeal: false,
     savingsAmount: null,
     source: 'import',
-    categoryName: sku.category?.name ?? null,
+    categoryName: sku.aliExpressCategory?.name ?? sku.category?.name ?? null,
     inStock: sku.availableStock > 0,
     variantCount: 1,
     availableVariantCount: sku.availableStock > 0 ? 1 : 0,
@@ -134,7 +135,7 @@ export async function getRelatedProductsForLocal(
         isPublished: true,
         importListingPrice: { isStale: false },
       },
-      include: { category: true, importListingPrice: true },
+      include: { category: true, aliExpressCategory: true, importListingPrice: true },
       orderBy: { createdAt: 'desc' },
       take: 60,
     }),
@@ -231,7 +232,7 @@ export async function getComparableImportsForLocal(
     },
     include: {
       aliExpressSku: {
-        include: { category: true, importListingPrice: true },
+        include: { category: true, aliExpressCategory: true, importListingPrice: true },
       },
     },
     orderBy: { updatedAt: 'desc' },
