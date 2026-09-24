@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 
 export default function ProductGallery({
   title,
@@ -11,6 +11,20 @@ export default function ProductGallery({
 }) {
   const images = imageUrls.filter(Boolean)
   const [active, setActive] = useState(0)
+  const touchStart = useRef<number | null>(null)
+
+  const goTo = (next: number) => setActive((next + images.length) % images.length)
+  const handleTouchStart = (event: React.TouchEvent<HTMLDivElement>) => {
+    touchStart.current = event.touches[0]?.clientX ?? null
+  }
+  const handleTouchEnd = (event: React.TouchEvent<HTMLDivElement>) => {
+    if (touchStart.current === null) return
+    const end = event.changedTouches[0]?.clientX ?? touchStart.current
+    const delta = end - touchStart.current
+    touchStart.current = null
+    if (Math.abs(delta) < 45 || images.length < 2) return
+    goTo(active + (delta < 0 ? 1 : -1))
+  }
 
   if (!images.length) {
     return (
@@ -22,7 +36,7 @@ export default function ProductGallery({
 
   return (
     <div className="grid gap-4 sm:grid-cols-[88px_1fr]">
-      <div className="order-2 flex gap-2 overflow-x-auto sm:order-1 sm:flex-col">
+      <div className="order-2 flex max-w-full gap-2 overflow-x-auto pb-1">
         {images.slice(0, 8).map((src, index) => (
           <button
             key={src + index}
@@ -38,9 +52,9 @@ export default function ProductGallery({
         ))}
       </div>
 
-      <div className="order-1 aspect-square overflow-hidden rounded-sm bg-[#f1f1ec] sm:order-2">
+      <div\n        className="order-1 relative aspect-[4/3] w-full touch-pan-y select-none overflow-hidden rounded-sm bg-[#f1f1ec] sm:aspect-[5/4] lg:aspect-[4/3]"\n        onTouchStart={handleTouchStart}\n        onTouchEnd={handleTouchEnd}\n      >
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={images[active]} alt={title} className="h-full w-full object-contain" />
+        <img src={images[active]} alt={title} className="h-full w-full object-contain" draggable={false} />
       </div>
     </div>
   )
