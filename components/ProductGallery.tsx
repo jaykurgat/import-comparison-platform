@@ -28,6 +28,13 @@ export default function ProductGallery({
 
   if (!images.length) {
     return (
+      <div className="flex aspect-square items-center justify-center rounded-sm bg-[#f1f1ec] text-sm font-semibold text-slate-400">
+        Image unavailable
+      </div>
+    )
+  }
+
+  return (
     <div className="grid gap-3 sm:grid-cols-[76px_1fr]">
       <div className="order-2 flex gap-2 overflow-x-auto pb-1 sm:order-1 sm:flex-col sm:overflow-y-auto sm:pb-0">
         {images.slice(0, 8).map((src, index) => (
