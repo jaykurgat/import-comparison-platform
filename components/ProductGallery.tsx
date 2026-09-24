@@ -52,7 +52,8 @@ export default function ProductGallery({
         ))}
       </div>
 
-      <div\n        className="order-1 relative aspect-[4/3] w-full touch-pan-y select-none overflow-hidden rounded-sm bg-[#f1f1ec] sm:aspect-[5/4] lg:aspect-[4/3]"\n        onTouchStart={handleTouchStart}\n        onTouchEnd={handleTouchEnd}\n      >
+      <div
+        className="order-1 relative aspect-[4/3] w-full touch-pan-y select-none overflow-hidden rounded-sm bg-[#f1f1ec] sm:aspect-[5/4] lg:aspect-[4/3]"\n        onTouchStart={handleTouchStart}\n        onTouchEnd={handleTouchEnd}\n      >
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={images[active]} alt={title} className="h-full w-full object-contain" draggable={false} />
       </div>
