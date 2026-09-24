@@ -4,7 +4,7 @@ import type { ProductTeaser } from '@/lib/storefront/productTeaser'
 export default function ProductCard({ product }: { product: ProductTeaser }) {
   return (
     <Link href={product.href} className="group block h-full">
-      <article className="flex h-full flex-col overflow-hidden rounded-[1.35rem] border border-slate-200/90 bg-white shadow-[0_4px_18px_rgba(15,23,42,0.04)] transition duration-300 hover:-translate-y-1 hover:border-emerald-200 hover:shadow-[0_16px_36px_rgba(15,23,42,0.10)]">
+      <article className="flex h-full flex-col overflow-hidden rounded-sm border border-slate-200/90 bg-white shadow-[0_4px_18px_rgba(15,23,42,0.04)] transition duration-300 hover:-translate-y-1 hover:border-emerald-200 hover:shadow-[0_16px_36px_rgba(15,23,42,0.10)]">
         <div className="relative aspect-[.94] overflow-hidden bg-[#f1f2ee]">
           {product.imageUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
