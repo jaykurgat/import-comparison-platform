@@ -1,5 +1,6 @@
 import { prisma } from '../prisma'
 import { buildProductDescription } from '../product/buildProductDescription'
+import { resolveAliExpressCategory } from './categories'
 import { resolveCanonicalCategory } from '../categories/resolveCanonicalCategory'
 import { withCache, type CacheResult } from '../cache/withCache'
 import { callAliExpressSync, getAliExpressCredentials } from './client'
@@ -102,6 +103,8 @@ async function persistProduct(data: MappedAliExpressProduct): Promise<void> {
     })
   }
 
+  const exactCategory = await resolveAliExpressCategory(data.rawCategoryId)
+
   for (const sku of data.skus) {
     const resolvedCategory = await resolveCanonicalCategory({
       source: 'ALIEXPRESS',
@@ -135,6 +138,7 @@ async function persistProduct(data: MappedAliExpressProduct): Promise<void> {
         imageUrls,
         rawCategoryId: data.rawCategoryId,
         categoryId: resolvedCategory?.categoryId ?? undefined,
+        aliExpressCategoryId: exactCategory?.leafDbId ?? undefined,
         color: sku.color,
         size: sku.size,
         specs: sku.specs,
@@ -152,6 +156,7 @@ async function persistProduct(data: MappedAliExpressProduct): Promise<void> {
         imageUrls,
         rawCategoryId: data.rawCategoryId,
         ...(resolvedCategory ? { categoryId: resolvedCategory.categoryId } : {}),
+        aliExpressCategoryId: exactCategory?.leafDbId ?? undefined,
         color: sku.color,
         size: sku.size,
         specs: sku.specs,
