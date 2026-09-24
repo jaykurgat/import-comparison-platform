@@ -80,13 +80,17 @@ export default async function ImportProductGroupPage({ params }: { params: Promi
         <div className="mx-auto max-w-[1440px] px-4 py-6 sm:px-6 lg:py-9">
           <div className="mb-5 flex flex-wrap items-center gap-2 text-xs text-slate-500">
             <Link href="/products" className="font-bold text-emerald-800 hover:underline">Products</Link>
-            <span>/</span>
-            {data.categoryPath.length > 0 ? data.categoryPath.map((category, index) => (
-              <span key={category + index} className={index === data.categoryPath.length - 1 ? 'font-semibold text-slate-700' : ''}>
-                {index > 0 && <span className="mr-2">/</span>}
-                {category}
-              </span>
-            )) : <span>Direct import</span>}
+            {data.categoryPath.length > 0 && (
+              <>
+                <span>/</span>
+                {data.categoryPath.map((category, index) => (
+                  <span key={category + index} className={index === data.categoryPath.length - 1 ? 'font-semibold text-slate-700' : ''}>
+                    {index > 0 && <span className="mr-2">/</span>}
+                    {category}
+                  </span>
+                ))}
+              </>
+            )}
             <span>/</span>
             <span className="truncate">{data.title}</span>
           </div>
@@ -99,7 +103,7 @@ export default async function ImportProductGroupPage({ params }: { params: Promi
 
               <section className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
                 <div className="flex flex-wrap gap-2 text-[10px] font-black uppercase tracking-[0.16em]">
-                  <span className="rounded-full bg-[#eef7f2] px-3 py-1.5 text-emerald-800">Direct import</span>
+                  <span className="rounded-full bg-[#eef7f2] px-3 py-1.5 text-emerald-800">Supplier product</span>
                   {data.categoryName && (
                     <Link
                       href={data.categoryKey ? `/products?category=${encodeURIComponent(data.categoryKey)}` : '/products'}
@@ -115,17 +119,11 @@ export default async function ImportProductGroupPage({ params }: { params: Promi
                   <div className="text-3xl font-black tracking-tight tabular-nums">{currency} {lowPrice.toLocaleString()}</div>
                   {highPrice !== lowPrice && <div className="text-sm font-bold text-slate-400">to {currency} {highPrice.toLocaleString()}</div>}
                 </div>
-                <p className="mt-2 text-sm text-slate-500">Price varies by selected supplier variant.</p>
+                <p className="mt-2 text-sm text-slate-500">Price depends on the options you choose.</p>
 
-                <div className="mt-6 grid grid-cols-2 gap-3">
-                  <div className="rounded-2xl bg-[#f7f7f3] p-4">
-                    <div className="text-[10px] font-black uppercase tracking-wider text-slate-400">Variants</div>
-                    <div className="mt-2 text-sm font-bold text-slate-800">{data.variants.length}</div>
-                  </div>
-                  <div className="rounded-2xl bg-[#f7f7f3] p-4">
-                    <div className="text-[10px] font-black uppercase tracking-wider text-slate-400">Availability</div>
-                    <div className="mt-2 text-sm font-bold text-emerald-800">{hasStock ? 'Some variants available' : 'Currently unavailable'}</div>
-                  </div>
+                <div className="mt-6 rounded-2xl bg-[#f7f7f3] p-4">
+                  <div className="text-[10px] font-black uppercase tracking-wider text-slate-400">Availability</div>
+                  <div className="mt-2 text-sm font-bold text-emerald-800">{hasStock ? 'Available to order' : 'Currently unavailable'}</div>
                 </div>
 
                 <ImportVariantSelector productId={data.productId} title={data.title} />
