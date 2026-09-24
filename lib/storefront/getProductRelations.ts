@@ -1,6 +1,7 @@
 import { prisma } from '../prisma'
 import { isCatalogEligible } from './catalogEligibility'
 import { titleSimilarity } from '../matching/similarity'
+import { getStorefrontCategoryFilterScope } from './getCategories'
 import type { ProductTeaser } from './productTeaser'
 
 const CONFIRMED_MATCH_STATUSES: Array<'AUTO_MATCHED' | 'MANUAL_CONFIRMED'> = ['AUTO_MATCHED', 'MANUAL_CONFIRMED']
