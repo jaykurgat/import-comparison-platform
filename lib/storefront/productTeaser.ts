@@ -38,37 +38,21 @@ interface MatchWithComparisonLike {
 
 export function toProductTeaser(localSku: LocalSkuLike, matches: MatchWithComparisonLike[]): ProductTeaser {
   const dealMatch = matches.find((m) => m.comparison?.renderMode === 'IMPORT_ADVANTAGE')
-
-  if (dealMatch?.comparison) {
-    const sellPrice = Number(dealMatch.comparison.sellPrice)
-    const localTotalPrice = Number(dealMatch.comparison.localTotalPrice)
-    return {
-      sku: localSku.sku,
-      href: `/product/${encodeURIComponent(localSku.sku)}`,
-      title: localSku.title,
-      imageUrl: localSku.imageUrls[0] ?? null,
-      price: sellPrice,
-      currency: localSku.currency,
-      hasDeal: true,
-      savingsAmount: Math.max(0, localTotalPrice - sellPrice),
-      source: 'local',
-      categoryName: localSku.category?.name ?? null,
-      inStock: localSku.inStock,
-      variantCount: 1,
-      availableVariantCount: localSku.inStock ? 1 : 0,
-      createdAt: localSku.createdAt,
-    }
-  }
+  const savingsAmount = dealMatch?.comparison
+    ? Math.max(0, Number(dealMatch.comparison.localTotalPrice) - Number(dealMatch.comparison.sellPrice))
+    : null
 
   return {
     sku: localSku.sku,
     href: `/product/${encodeURIComponent(localSku.sku)}`,
     title: localSku.title,
     imageUrl: localSku.imageUrls[0] ?? null,
+    // The storefront always shows the price of the product being browsed.
+    // Comparison data stays available to the product page/recommendation layer.
     price: Number(localSku.currentPrice),
     currency: localSku.currency,
-    hasDeal: false,
-    savingsAmount: null,
+    hasDeal: Boolean(dealMatch?.comparison),
+    savingsAmount,
     source: 'local',
     categoryName: localSku.category?.name ?? null,
     inStock: localSku.inStock,
