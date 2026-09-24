@@ -237,6 +237,11 @@ model AliExpressSKU {
   rawCategoryId String?
   shipFromCountry String?
 
+  // Exact AliExpress source category. This is separate from the internal
+  // canonical matching category so storefront labels remain supplier-native.
+  aliExpressCategoryId String?
+  aliExpressCategory   AliExpressCategory? @relation(fields: [aliExpressCategoryId], references: [id])
+
   matches         SKUMatch[]
   freightQuotes   FreightSnapshot[]
   priceHistory    AliExpressPriceSnapshot[]
@@ -245,6 +250,27 @@ model AliExpressSKU {
   @@unique([productId, skuId])
   @@index([productId])
   @@index([categoryId])
+  @@index([aliExpressCategoryId])
+}
+
+model AliExpressCategory {
+  id         String  @id @default(cuid())
+  categoryId String  @unique
+  name       String
+  names      Json?
+  level      Int?
+  isLeaf     Boolean @default(false)
+
+  parentId String?
+  parent   AliExpressCategory?  @relation("AliExpressCategoryHierarchy", fields: [parentId], references: [id])
+  children AliExpressCategory[] @relation("AliExpressCategoryHierarchy")
+  skus     AliExpressSKU[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([parentId])
+  @@index([name])
 }
 
 model AliExpressPriceSnapshot {
