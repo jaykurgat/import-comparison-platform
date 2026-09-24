@@ -1,5 +1,6 @@
 import { prisma } from '../prisma'
 import { buildProductDescription, type ProductDescriptionFeature } from './buildProductDescription'
+import { getStoredCategoryPath } from '../aliexpress/categories'
 
 export interface ImportProductVariant {
   skuId: string
@@ -20,6 +21,7 @@ export interface ImportProductGroupPageData {
   imageUrls: string[]
   categoryId: string | null
   categoryName: string | null
+  categoryPath: string[]
   variants: ImportProductVariant[]
   aliExpressUrl: string
 }
@@ -34,6 +36,7 @@ export async function getImportProductGroupPageData(productId: string): Promise<
     },
     include: {
       category: true,
+      aliExpressCategory: true,
       importListingPrice: true,
     },
     orderBy: [
@@ -47,11 +50,17 @@ export async function getImportProductGroupPageData(productId: string): Promise<
   if (priced.length === 0) return null
 
   const first = priced[0]
+  const categoryPath = first.aliExpressCategoryId
+    ? (await getStoredCategoryPath(first.aliExpressCategoryId)).map((node) => node.name)
+    : []
+
+  const displayCategoryName = first.aliExpressCategory?.name ?? first.category?.name ?? null
+
   const description = buildProductDescription({
     title: first.title,
     description: first.description,
     source: 'import',
-    categoryName: first.category?.name,
+    categoryName: displayCategoryName,
     additionalColors: priced.map((sku) => sku.color).filter((value): value is string => Boolean(value)),
     additionalSizes: priced.map((sku) => sku.size).filter((value): value is string => Boolean(value)),
     additionalSpecs: priced.map((sku) => (sku.specs as Record<string, unknown> | null) ?? null),
@@ -64,8 +73,9 @@ export async function getImportProductGroupPageData(productId: string): Promise<
     description: description.overview,
     coreFeatures: description.coreFeatures,
     imageUrls: priced.flatMap((sku) => sku.imageUrls).filter(Boolean).slice(0, 12),
-    categoryId: first.categoryId,
-    categoryName: first.category?.name ?? null,
+    categoryId: first.aliExpressCategoryId ?? first.categoryId,
+    categoryName: displayCategoryName,
+    categoryPath,
     variants: priced.map((sku) => ({
       skuId: sku.skuId,
       color: sku.color,
