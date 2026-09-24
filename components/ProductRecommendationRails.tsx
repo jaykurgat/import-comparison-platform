@@ -55,12 +55,12 @@ export function ComparableProductsRail({
 }) {
   return (
     <Rail
-      eyebrow="Comparable"
-      title={importSide ? 'Local products to compare' : 'Comparable import products'}
+      eyebrow="More to explore"
+      title={importSide ? 'Available locally' : 'Other ways to shop'}
       description={
         importSide
-          ? 'Local catalog products with a verified supplier match.'
-          : 'Supplier products with a verified local-to-import match.'
+          ? 'A matching local product is available in the KijijiCart catalogue.'
+          : 'A matching supplier product is available if you want another way to get this item.'
       }
       products={products}
     />
