@@ -121,7 +121,13 @@ export async function categorizeExistingCatalog(): Promise<{
     }),
     prisma.aliExpressSKU.findMany({
       where: { categoryId: null },
-      select: { id: true, title: true, rawCategoryId: true, specs: true },
+      select: {
+        id: true,
+        title: true,
+        rawCategoryId: true,
+        specs: true,
+        aliExpressCategory: { select: { name: true } },
+      },
     }),
   ])
 
@@ -147,6 +153,7 @@ export async function categorizeExistingCatalog(): Promise<{
     const resolved = await resolveCanonicalCategory({
       source: 'ALIEXPRESS',
       sourceCategoryId: sku.rawCategoryId,
+      sourceCategoryName: sku.aliExpressCategory?.name ?? null,
       title: sku.title,
       specs: (sku.specs as Record<string, unknown> | null) ?? null,
     })
