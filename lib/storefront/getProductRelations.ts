@@ -176,23 +176,26 @@ export async function getRelatedProductsForLocal(
 
 export async function getRelatedProductsForImport(
   productId: string,
-  categoryId: string | null,
+  categoryKey: string | null,
   title: string,
   color: string | null = null,
   size: string | null = null,
   specs: unknown = null,
   limit = 6,
 ): Promise<ProductTeaser[]> {
-  if (!categoryId) return []
+  if (!categoryKey) return []
+
+  const categoryScope = await getStorefrontCategoryFilterScope(categoryKey)
+  if (!categoryScope || categoryScope.aliExpressCategoryIds.length === 0) return []
 
   const imports = await prisma.aliExpressSKU.findMany({
     where: {
       productId: { not: productId },
-      categoryId,
+      aliExpressCategoryId: { in: categoryScope.aliExpressCategoryIds },
       isPublished: true,
       importListingPrice: { isStale: false },
     },
-    include: { category: true, importListingPrice: true },
+    include: { category: true, aliExpressCategory: true, importListingPrice: true },
     orderBy: { createdAt: 'desc' },
     take: 80,
   })
