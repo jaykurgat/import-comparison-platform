@@ -20,6 +20,7 @@ export interface ImportProductGroupPageData {
   coreFeatures: ProductDescriptionFeature[]
   imageUrls: string[]
   categoryId: string | null
+  categoryKey: string | null
   categoryName: string | null
   categoryPath: string[]
   variants: ImportProductVariant[]
@@ -74,6 +75,7 @@ export async function getImportProductGroupPageData(productId: string): Promise<
     coreFeatures: description.coreFeatures,
     imageUrls: priced.flatMap((sku) => sku.imageUrls).filter(Boolean).slice(0, 12),
     categoryId: first.aliExpressCategoryId ?? first.categoryId,
+    categoryKey: first.aliExpressCategory?.categoryId ? `ae:${first.aliExpressCategory.categoryId}` : null,
     categoryName: displayCategoryName,
     categoryPath,
     variants: priced.map((sku) => ({
