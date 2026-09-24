@@ -32,7 +32,7 @@ export default function CategoryGrid({ categories }: { categories: StorefrontCat
                 />
               ) : (
                 <div className="flex h-full items-center justify-center text-xs font-black uppercase tracking-wider text-slate-400">
-                  {category.source === 'ALIEXPRESS' ? 'AliExpress' : 'Local'}
+                  Browse products
                 </div>
               )}
               <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/55 to-transparent px-4 pb-3 pt-10">
