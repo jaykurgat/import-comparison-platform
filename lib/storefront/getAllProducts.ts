@@ -40,12 +40,11 @@ export async function getAllProducts(
     : await prisma.aliExpressSKU.findMany({
         where: {
           ...(textFilter ? { title: textFilter } : {}),
-          ...(categoryId ? { categoryId } : {}),
           isPublished: true,
           importListingPrice: { isStale: false },
           matches: { none: { status: { in: ['AUTO_MATCHED', 'MANUAL_CONFIRMED'] } } },
         },
-        include: { category: true, importListingPrice: true },
+        include: { category: true, aliExpressCategory: true, importListingPrice: true },
       })
 
   const groupedImports = new Map<string, StandaloneImportSkuLike[]>()
