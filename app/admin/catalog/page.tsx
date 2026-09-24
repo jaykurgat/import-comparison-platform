@@ -45,6 +45,7 @@ export default async function CatalogAdminPage() {
             <thead className="border-b border-[#E3E3DF] bg-[#FAFAF9] text-left text-xs uppercase tracking-wide text-[#8A8A8E]">
               <tr>
                 <th className="px-4 py-3">Product / variant</th>
+                <th className="px-4 py-3">Category</th>
                 <th className="px-4 py-3">Supplier</th>
                 <th className="px-4 py-3">Stock</th>
                 <th className="px-4 py-3">Landed</th>
@@ -71,6 +72,13 @@ export default async function CatalogAdminPage() {
                         </div>
                       </div>
                     </div>
+                  </td>
+                  <td className="px-4 py-4">
+                    {item.categoryName ? (
+                      <span className="text-xs font-semibold text-slate-700">{item.categoryName}</span>
+                    ) : (
+                      <span className="text-xs text-[#8A8A8E]">Not resolved</span>
+                    )}
                   </td>
                   <td className="px-4 py-4 tabular-nums">
                     {item.currency} {item.itemPrice.toFixed(2)}
@@ -104,7 +112,7 @@ export default async function CatalogAdminPage() {
               ))}
               {catalog.length === 0 && (
                 <tr>
-                  <td colSpan={7} className="px-4 py-12 text-center text-[#6B6B6E]">
+                  <td colSpan={8} className="px-4 py-12 text-center text-[#6B6B6E]">
                     No supplier SKUs yet. Run a catalog sync after local products have been ingested.
                   </td>
                 </tr>
