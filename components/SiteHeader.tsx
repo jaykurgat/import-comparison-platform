@@ -17,10 +17,10 @@ export default async function SiteHeader() {
       </div>
 
       <div className="mx-auto flex max-w-[1440px] items-center gap-3 px-4 py-3.5 sm:px-6">
-        <Link href="/" className="flex shrink-0 items-center gap-2.5" aria-label="KijijiCart home">
+        <Link href="/" className="flex shrink-0 items-center gap-2.5 rounded-sm bg-[#0b2a21] px-2.5 py-1.5" aria-label="KijijiCart home">
           <Image src="/kijijcart-mark.svg" alt="" width={36} height={36} className="h-9 w-9" priority />
-          <span className="text-[1.45rem] font-bold tracking-[-0.045em] text-[#123f2b]">
-            Kijiji<span className="text-[#45bd45]">Cart</span>
+          <span className="text-[1.45rem] font-bold tracking-[-0.045em] text-white">
+            Kijiji<span className="text-[#f5a400]">Cart</span>
           </span>
         </Link>
 
