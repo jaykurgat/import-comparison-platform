@@ -1,14 +1,9 @@
 'use client'
 
 import { ImportCheckoutForm } from '@/app/import/[productId]/[skuId]/ImportCheckoutForm'
-import { useImportVariantContext, type ImportVariant } from './ImportVariantContext'
+import { useImportVariantContext, displayOptionName } from './ImportVariantContext'
 
-function formatVariant(variant: ImportVariant): string {
-  const entries = Object.entries(variant.options)
-  return entries.length ? entries.map(([name, value]) => name + ': ' + value).join(' · ') : 'Supplier SKU ' + variant.skuId
-}
-
-function getOptionImage(variants: ImportVariant[], group: string, value: string): string | null {
+function getOptionImage(variants: ReturnType<typeof useImportVariantContext>['variants'], group: string, value: string): string | null {
   return variants.find(
     (variant) => variant.options[group] === value && variant.imageUrl,
   )?.imageUrl ?? null
@@ -31,11 +26,13 @@ export default function ImportVariantSelector({ productId, title }: { productId:
     <div className="mt-7 border-t border-slate-100 pt-6">
       <div className="flex items-end justify-between gap-4">
         <div>
-          <h2 className="text-sm font-black text-slate-900">Choose a variant</h2>
+          <h2 className="text-sm font-black text-slate-900">
+            {optionGroups.length > 0 ? 'Choose options' : 'Product options'}
+          </h2>
           <p className="mt-1 text-xs text-slate-500">
             {availableVariantCount > 0
-              ? availableVariantCount + ' of ' + variants.length + ' variants currently available'
-              : 'All supplier variants are currently unavailable'}
+              ? availableVariantCount + ' option' + (availableVariantCount === 1 ? '' : 's') + ' available'
+              : 'Currently unavailable'}
           </p>
         </div>
         <div className="text-lg font-black tabular-nums text-slate-950">
@@ -47,24 +44,21 @@ export default function ImportVariantSelector({ productId, title }: { productId:
         <div className="mt-4 flex flex-wrap gap-2">
           {fixedOptions.map((option) => (
             <span key={option.name} className="rounded-full bg-slate-100 px-3 py-1.5 text-[11px] font-bold text-slate-600">
-              {option.name}: {option.value}
+              {displayOptionName(option.name)}: {option.value}
             </span>
           ))}
         </div>
       )}
 
-      {optionGroups.length === 0 ? (
-        <div className="mt-5 rounded-2xl border border-slate-200 bg-white p-4 text-sm text-slate-600">
-          This product has one customer-facing supplier configuration. The exact supplier SKU is retained for checkout.
-        </div>
-      ) : (
+      {optionGroups.length > 0 && (
         <div className="mt-5 space-y-5">
           {optionGroups.map((group) => (
             <section key={group.name}>
               <div className="flex items-center justify-between gap-3">
-                <h3 className="text-sm font-black text-slate-900">{group.name}</h3>
+                <h3 className="text-sm font-black text-slate-900">{displayOptionName(group.name)}</h3>
                 <span className="text-xs font-bold text-slate-400">{selectedOptions[group.name] ?? 'Choose'}</span>
               </div>
+
               <div className="mt-3 grid gap-2 sm:grid-cols-2">
                 {group.values.map((value) => {
                   const active = selectedOptions[group.name] === value
@@ -117,9 +111,21 @@ export default function ImportVariantSelector({ productId, title }: { productId:
             <img src={selectedVariant.imageUrl} alt="" className="h-16 w-16 shrink-0 rounded-xl object-cover" />
           )}
           <div className="min-w-0 flex-1">
-            <div className="text-[10px] font-black uppercase tracking-[0.14em] text-slate-400">Selected supplier variant</div>
-            <div className="mt-1 text-sm font-black text-slate-900">{formatVariant(selectedVariant)}</div>
-            <div className="mt-1 text-xs text-slate-500">Stock: {selectedVariant.availableStock} · SKU {selectedVariant.skuId}</div>
+            <div className="text-[10px] font-black uppercase tracking-[0.14em] text-slate-400">Your selection</div>
+            <div className="mt-2 flex flex-wrap gap-2">
+              {Object.entries(selectedVariant.options).length > 0 ? (
+                Object.entries(selectedVariant.options).map(([name, value]) => (
+                  <span key={name} className="rounded-full bg-white px-3 py-1.5 text-xs font-bold text-slate-700">
+                    {displayOptionName(name)}: {value}
+                  </span>
+                ))
+              ) : (
+                <span className="text-sm font-bold text-slate-700">Standard option</span>
+              )}
+            </div>
+            <div className="mt-2 text-xs text-slate-500">
+              {selectedVariant.availableStock} available
+            </div>
           </div>
           <div className="text-lg font-black tabular-nums text-slate-950">
             {selectedVariant.currency} {selectedVariant.sellPrice.toLocaleString()}
@@ -137,8 +143,8 @@ export default function ImportVariantSelector({ productId, title }: { productId:
         />
       ) : (
         <div className="mt-5 rounded-2xl border border-amber-100 bg-amber-50 p-4">
-          <div className="text-sm font-black text-amber-900">This variant is currently unavailable</div>
-          <p className="mt-1 text-xs text-amber-800">Choose another available option above, or check back after supplier stock is refreshed.</p>
+          <div className="text-sm font-black text-amber-900">This selection is currently unavailable</div>
+          <p className="mt-1 text-xs text-amber-800">Choose another available option above, or check back after stock is refreshed.</p>
         </div>
       )}
     </div>
