@@ -22,6 +22,7 @@ export async function getAllProducts(
   sort: CatalogSort = 'featured',
   limit?: number,
 ): Promise<ProductTeaser[]> {
+  void _source
   const q = query.trim()
   const textFilter = q ? { contains: q, mode: 'insensitive' as const } : undefined
   const categoryScope = categoryKey ? await getStorefrontCategoryFilterScope(categoryKey) : null
