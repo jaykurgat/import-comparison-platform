@@ -4,6 +4,7 @@ import { getAliExpressFreight } from './freight'
 import { discoverAliExpressProducts } from './discovery'
 import { getAliExpressProduct } from './product'
 import { backfillAliExpressCategories } from './categories'
+import { categorizeExistingCatalog } from '../categories/resolveCanonicalCategory'
 import { repriceImportSku } from '../pricing/repriceImportSku'
 
 export interface CatalogSyncOptions {
@@ -66,6 +67,8 @@ export async function syncAliExpressCatalog(
 
   try {
     result.categoriesResolved = await backfillAliExpressCategories()
+    const categorized = await categorizeExistingCatalog()
+    result.categoriesResolved += categorized.localCategorized + categorized.importCategorized
   } catch (error) {
     result.errors.push({
       localSku: 'category-backfill',
