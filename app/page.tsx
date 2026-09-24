@@ -20,7 +20,6 @@ export default async function HomePage() {
 
   const heroProducts = [...featured, ...catalog.filter((product) => !featured.some((item) => item.sku === product.sku))].slice(0, 5)
   const featuredProducts = [...featured, ...catalog.filter((product) => !featured.some((item) => item.sku === product.sku))].slice(0, 12)
-  const deals = catalog.filter((product) => product.hasDeal).slice(0, 6)
 
   return (
     <>
@@ -52,24 +51,6 @@ export default async function HomePage() {
               </div>
             )}
           </section>
-
-          {deals.length > 0 && (
-            <section className="mt-12 overflow-hidden rounded-[2rem] bg-[#123f2b]">
-              <div className="flex flex-col gap-4 px-6 py-7 text-white sm:flex-row sm:items-end sm:justify-between sm:px-8">
-                <div>
-                  <p className="text-xs font-black uppercase tracking-[0.2em] text-emerald-200">Compare & save</p>
-                  <h2 className="mt-2 text-2xl font-black tracking-tight sm:text-3xl">Import comparisons</h2>
-                  <p className="mt-2 max-w-2xl text-sm leading-6 text-emerald-50/75">
-                    See products where a persisted import comparison is currently available.
-                  </p>
-                </div>
-                <Link href="/products?source=deals" className="shrink-0 text-sm font-black text-white hover:underline">See all comparisons →</Link>
-              </div>
-              <div className="grid grid-cols-2 gap-3 px-5 pb-6 sm:grid-cols-3 sm:px-8 lg:grid-cols-6">
-                {deals.map((product) => <ProductCard key={product.sku} product={product} />)}
-              </div>
-            </section>
-          )}
 
           <section className="mt-12">
             <div className="flex items-end justify-between gap-4">
