@@ -11,7 +11,6 @@ export interface StorefrontCategory {
 
 interface CategoryRow {
   id: string
-  name: string
   parentId: string | null
 }
 
