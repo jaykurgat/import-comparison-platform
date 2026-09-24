@@ -19,11 +19,11 @@ export function SyncButton({
         setMessage(null)
         try {
           const result = await action()
-          const value = result as { errors?: unknown[]; pricesComputed?: number; skusPersisted?: number }
+          const value = result as { errors?: unknown[]; pricesComputed?: number; skusPersisted?: number; categoriesResolved?: number }
           setMessage(
             value.pricesComputed !== undefined
               ? `Repriced ${value.pricesComputed} SKU(s).`
-              : `Sync complete — ${value.skusPersisted ?? 0} SKU(s) persisted.${value.errors?.length ? ` ${value.errors.length} error(s).` : ''}`,
+              : `Sync complete — ${value.skusPersisted ?? 0} SKU(s) persisted.${value.categoriesResolved ? ` ${value.categoriesResolved} categor${value.categoriesResolved === 1 ? 'y' : 'ies'} resolved.` : ''}${value.errors?.length ? ` ${value.errors.length} error(s).` : ''}`,
           )
         } catch (error) {
           setMessage(error instanceof Error ? error.message : 'Operation failed.')
