@@ -1,11 +1,18 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import type { ProductTeaser } from '@/lib/storefront/productTeaser'
 
 export default function HeroCarousel({ slides }: { slides: ProductTeaser[] }) {
   const [index, setIndex] = useState(0)
+
+  const visibleCount = 3
+  const visibleSlides = useMemo(() => {
+    if (!slides.length) return []
+    const count = Math.min(visibleCount, slides.length)
+    return Array.from({ length: count }, (_, offset) => slides[(index + offset) % slides.length])
+  }, [slides, index])
 
   useEffect(() => {
     if (slides.length <= 1) return
@@ -16,23 +23,18 @@ export default function HeroCarousel({ slides }: { slides: ProductTeaser[] }) {
   if (!slides.length) {
     return (
       <section className="relative overflow-hidden rounded-sm bg-[#e8efe9] shadow-sm">
-        <div className="grid h-[320px] items-center lg:h-[280px] lg:grid-cols-[1fr_1fr]">
-          <div className="px-7 py-12 sm:px-10 lg:px-14">
-            <p className="text-xs font-black uppercase tracking-[0.2em] text-emerald-800">KijijiCart</p>
-            <h1 className="mt-4 max-w-2xl text-4xl font-black tracking-[-0.045em] text-slate-950 sm:text-5xl lg:text-6xl">
-              Shop local products and import alternatives.
+        <div className="grid min-h-[240px] items-center lg:min-h-[260px] lg:grid-cols-[1fr_1fr]">
+          <div className="px-6 py-8 sm:px-9 lg:px-12">
+            <p className="text-xs font-bold uppercase tracking-[0.18em] text-emerald-800">KijijiCart</p>
+            <h1 className="mt-3 max-w-2xl text-3xl font-bold tracking-[-0.035em] text-slate-950 sm:text-4xl lg:text-5xl">
+              Shop products from one catalogue.
             </h1>
-            <p className="mt-5 max-w-xl text-base leading-7 text-slate-600">
-              Browse real products, compare available options and continue to checkout when a listing is ready.
+            <p className="mt-4 max-w-xl text-sm leading-6 text-slate-600">
+              Browse products, choose the options you want and shop when a listing is ready.
             </p>
-            <div className="mt-7 flex flex-wrap gap-3">
-              <Link href="/products" className="inline-flex rounded-sm bg-[#123f2b] px-5 py-3 text-sm font-black text-white transition hover:bg-[#0d3021]">
-                Start shopping
-              </Link>
-              <Link href="/products?source=import" className="inline-flex rounded-sm border border-slate-300 bg-white px-5 py-3 text-sm font-black text-slate-700 transition hover:border-slate-400">
-                Shop direct imports
-              </Link>
-            </div>
+            <Link href="/products" className="mt-5 inline-flex rounded-sm bg-[#123f2b] px-5 py-2.5 text-sm font-bold text-white">
+              Start shopping
+            </Link>
           </div>
           <div className="hidden h-full bg-[radial-gradient(circle_at_40%_35%,rgba(255,255,255,.9),transparent_38%),linear-gradient(135deg,#d4e0d7,#b5c9bb)] lg:block" aria-hidden="true" />
         </div>
@@ -40,66 +42,62 @@ export default function HeroCarousel({ slides }: { slides: ProductTeaser[] }) {
     )
   }
 
-  const slide = slides[index]
-
   return (
-    <section className="relative overflow-hidden rounded-sm bg-white shadow-sm">
-      <Link href={slide.href} className="grid h-[320px] overflow-hidden lg:h-[280px] lg:grid-cols-[1fr_1fr]">
-        <div className="order-2 min-h-0 flex flex-col justify-center px-7 py-7 sm:px-10 lg:order-1 lg:px-14">
-          <div className="flex flex-wrap gap-2">
-            <span className="rounded-sm bg-emerald-50 px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.14em] text-emerald-800">
-              Featured product
-            </span>
-            {slide.variantCount > 1 && (
-              <span className="rounded-sm bg-slate-100 px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.14em] text-slate-600">
-                {slide.variantCount} options
-              </span>
-            )}
-          </div>
+    <section className="relative overflow-hidden rounded-sm border border-slate-200 bg-[#f1f2ee] shadow-sm">
+      <div className="grid grid-cols-1 gap-2 p-2 sm:grid-cols-2 lg:grid-cols-3">
+        {visibleSlides.map((slide) => (
+          <Link
+            key={slide.sku}
+            href={slide.href}
+            className="group flex min-w-0 flex-col overflow-hidden rounded-sm border border-slate-200 bg-white"
+          >
+            <div className="relative h-[190px] overflow-hidden bg-white sm:h-[205px] lg:h-[215px]">
+              {slide.imageUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={slide.imageUrl}
+                  alt={slide.title}
+                  className="h-full w-full object-contain p-1 transition duration-500 group-hover:scale-[1.015]"
+                  loading="eager"
+                />
+              ) : (
+                <div className="flex h-full items-center justify-center text-xs text-slate-400">Image unavailable</div>
+              )}
+            </div>
 
-          <p className="mt-5 text-xs font-bold uppercase tracking-[0.16em] text-slate-400">Shop this pick</p>
-          <h1 className="mt-2 line-clamp-3 max-w-xl text-3xl font-black leading-[1.05] tracking-[-0.035em] text-slate-950 sm:text-4xl lg:text-5xl">
-            {slide.title}
-          </h1>
-          <div className="mt-4 flex flex-wrap items-baseline gap-3">
-            <span className="text-3xl font-black tabular-nums text-slate-950">{slide.currency} {slide.price.toLocaleString()}</span>
-            {slide.savingsAmount !== null && (
-              <span className="text-sm font-bold text-emerald-700">Save {slide.currency} {slide.savingsAmount.toLocaleString()}</span>
-            )}
-          </div>
-          <span className="mt-5 inline-flex w-fit rounded-sm bg-[#123f2b] px-5 py-3 text-sm font-black text-white">Shop now →</span>
-        </div>
+            <div className="flex min-h-[112px] flex-col border-t border-slate-100 px-3 py-2.5">
+              <h2 className="line-clamp-2 text-sm font-medium leading-[1.25rem] text-slate-800">
+                {slide.title}
+              </h2>
 
-        <div className="relative order-1 h-[128px] min-h-0 overflow-hidden bg-[#f0f1ed] lg:order-2 lg:h-full">
-          {slide.imageUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={slide.imageUrl} alt={slide.title} className="h-full w-full object-contain p-3 sm:p-4 transition duration-700" />
-          ) : (
-            <div className="flex h-full items-center justify-center text-sm text-slate-400">Product image unavailable</div>
-          )}
-          <div className="absolute inset-0 bg-gradient-to-r from-black/5 via-transparent to-black/10" aria-hidden="true" />
-        </div>
-      </Link>
+              <div className="mt-auto flex items-baseline justify-between gap-2 pt-2">
+                <span className="text-base font-bold tabular-nums text-slate-950">
+                  {slide.source === 'import' && slide.variantCount > 1 ? 'From ' : ''}
+                  {slide.currency} {slide.price.toLocaleString()}
+                </span>
+                <span className="shrink-0 text-xs font-bold text-[#123f2b]">Shop →</span>
+              </div>
+            </div>
+          </Link>
+        ))}
+      </div>
 
       {slides.length > 1 && (
-        <div className="absolute bottom-5 left-7 right-7 z-10 flex items-center justify-between sm:left-10 sm:right-10">
-          <div className="flex items-center gap-2">
-            {slides.map((item, i) => (
+        <div className="flex items-center justify-between border-t border-slate-200 bg-white px-3 py-2">
+          <div className="flex items-center gap-1.5">
+            {slides.map((slide, i) => (
               <button
-                key={item.sku}
+                key={slide.sku}
                 type="button"
-                onClick={(event) => {
-                  event.preventDefault()
-                  setIndex(i)
-                }}
-                aria-label={`Go to slide ${i + 1}`}
+                onClick={() => setIndex(i)}
+                aria-label={`Show featured products starting at slide ${i + 1}`}
                 aria-current={i === index}
-                className={`h-2 rounded-full transition-all ${i === index ? 'w-9 bg-[#123f2b]' : 'w-2 bg-slate-300 hover:bg-slate-400'}`}
+                className={`h-1.5 rounded-sm transition-all ${i === index ? 'w-7 bg-[#123f2b]' : 'w-1.5 bg-slate-300 hover:bg-slate-400'}`}
               />
             ))}
           </div>
-          <span className="rounded-sm bg-white/90 px-3 py-1 text-[10px] font-black uppercase tracking-[0.13em] text-slate-500 shadow-sm">
-            {index + 1} / {slides.length}
+          <span className="text-[10px] font-bold uppercase tracking-[0.12em] text-slate-400">
+            Featured products
           </span>
         </div>
       )}
