@@ -8,6 +8,7 @@ export interface StorefrontCategory {
   productCount: number
   source: StorefrontCategorySource
   level: number
+  imageUrl: string | null
 }
 
 interface CategoryRow {
@@ -52,6 +53,7 @@ export async function getStorefrontCategories(limit = 24): Promise<StorefrontCat
           title: true,
           currentPrice: true,
           currency: true,
+          imageUrls: true,
         },
       }),
       prisma.aliExpressCategory.findMany({
@@ -63,7 +65,7 @@ export async function getStorefrontCategories(limit = 24): Promise<StorefrontCat
           isPublished: true,
           importListingPrice: { isStale: false },
         },
-        select: { aliExpressCategoryId: true },
+        select: { aliExpressCategoryId: true, imageUrls: true },
       }),
       prisma.category.findMany({
         select: { id: true, name: true, parentId: true },
@@ -74,6 +76,8 @@ export async function getStorefrontCategories(limit = 24): Promise<StorefrontCat
   const aliExpressRootById = buildRootMap(aliExpressCategories)
 
   const localCounts = new Map<string, number>()
+  const localImages = new Map<string, string>()
+
   for (const product of localProducts) {
     if (
       !product.categoryId
@@ -85,15 +89,23 @@ export async function getStorefrontCategories(limit = 24): Promise<StorefrontCat
 
     const root = localRootById.get(product.categoryId)
     if (!root) continue
+
     localCounts.set(root.id, (localCounts.get(root.id) ?? 0) + 1)
+    const image = product.imageUrls.find(Boolean)
+    if (image && !localImages.has(root.id)) localImages.set(root.id, image)
   }
 
   const aliExpressCounts = new Map<string, number>()
+  const aliExpressImages = new Map<string, string>()
+
   for (const product of aliExpressProducts) {
     if (!product.aliExpressCategoryId) continue
     const root = aliExpressRootById.get(product.aliExpressCategoryId)
     if (!root) continue
+
     aliExpressCounts.set(root.id, (aliExpressCounts.get(root.id) ?? 0) + 1)
+    const image = product.imageUrls.find(Boolean)
+    if (image && !aliExpressImages.has(root.id)) aliExpressImages.set(root.id, image)
   }
 
   const categories: StorefrontCategory[] = [
@@ -105,6 +117,7 @@ export async function getStorefrontCategories(limit = 24): Promise<StorefrontCat
         productCount: localCounts.get(category.id) ?? 0,
         source: 'LOCAL' as const,
         level: 1,
+        imageUrl: localImages.get(category.id) ?? null,
       })),
     ...aliExpressCategories
       .filter((category) => category.parentId === null && (aliExpressCounts.get(category.id) ?? 0) > 0)
@@ -114,6 +127,7 @@ export async function getStorefrontCategories(limit = 24): Promise<StorefrontCat
         productCount: aliExpressCounts.get(category.id) ?? 0,
         source: 'ALIEXPRESS' as const,
         level: category.level ?? 1,
+        imageUrl: aliExpressImages.get(category.id) ?? null,
       })),
   ]
 

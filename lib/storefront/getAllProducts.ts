@@ -11,6 +11,7 @@ export async function getAllProducts(
   categoryKey = '',
   source: CatalogSourceFilter = 'all',
   sort: CatalogSort = 'featured',
+  limit?: number,
 ): Promise<ProductTeaser[]> {
   const q = query.trim()
   const textFilter = q ? { contains: q, mode: 'insensitive' as const } : undefined
@@ -78,5 +79,5 @@ export async function getAllProducts(
     return Number(b.hasDeal) - Number(a.hasDeal) || b.createdAt.getTime() - a.createdAt.getTime()
   })
 
-  return products
+  return typeof limit === 'number' ? products.slice(0, Math.max(1, limit)) : products
 }
