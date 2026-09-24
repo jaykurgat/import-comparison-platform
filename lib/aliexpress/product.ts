@@ -14,7 +14,7 @@ export async function getAliExpressProduct(
   shipToCountry = 'KE',
 ): Promise<CacheResult<MappedAliExpressProduct>> {
   return withCache<MappedAliExpressProduct>({
-    cacheKey: `aliexpress:product:${productId}:${shipToCountry}`,
+    cacheKey: `aliexpress:product:v3:${productId}:${shipToCountry}:EN`,
     ttlSeconds: PRODUCT_TTL_SECONDS,
     serviceName: 'aliexpress',
 
@@ -22,7 +22,11 @@ export async function getAliExpressProduct(
       const credentials = getAliExpressCredentials()
       const response = await callAliExpressSync<AliExpressProductGetResponse>(
         'aliexpress.ds.product.get',
-        { product_id: productId, ship_to_country: shipToCountry },
+        {
+          product_id: productId,
+          ship_to_country: shipToCountry,
+          target_language: 'EN',
+        },
         credentials,
       )
 
