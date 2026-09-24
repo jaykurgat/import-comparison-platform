@@ -63,7 +63,7 @@ export default async function ImportProductPage({ params }: { params: Promise<{ 
           <div className="mb-5 flex flex-wrap items-center gap-2 text-xs text-slate-500">
             <Link href="/products" className="font-bold text-emerald-800 hover:underline">Products</Link>
             <span>/</span>
-            <span className="truncate">Direct import</span>
+            <span className="truncate">Supplier product</span>
           </div>
 
           <div className="grid gap-6 lg:grid-cols-[1.08fr_.92fr]">
@@ -73,13 +73,13 @@ export default async function ImportProductPage({ params }: { params: Promise<{ 
 
             <section className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
               <div className="flex flex-wrap gap-2 text-[10px] font-black uppercase tracking-[0.16em]">
-                <span className="rounded-full bg-[#eef7f2] px-3 py-1.5 text-emerald-800">Direct import</span>
+                <span className="rounded-full bg-[#eef7f2] px-3 py-1.5 text-emerald-800">Supplier product</span>
                 {data.categoryName && <span className="rounded-full bg-slate-100 px-3 py-1.5 text-slate-600">{data.categoryName}</span>}
               </div>
 
               <h1 className="mt-5 text-3xl font-black leading-[1.08] tracking-[-0.035em] sm:text-4xl">{data.title}</h1>
               <div className="mt-6 text-3xl font-black tracking-tight tabular-nums">{data.currency} {data.sellPrice.toLocaleString()}</div>
-              <p className="mt-2 text-sm text-slate-500">Current persisted landed-cost price plus marketplace markup.</p>
+              <p className="mt-2 text-sm text-slate-500">Current supplier price based on landed cost and marketplace pricing.</p>
 
               <div className="mt-6 grid grid-cols-2 gap-3">
                 <div className="rounded-2xl bg-[#f7f7f3] p-4">
