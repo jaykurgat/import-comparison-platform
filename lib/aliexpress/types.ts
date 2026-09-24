@@ -166,3 +166,34 @@ export interface AliExpressSearchCandidate {
   similarityScore?: number
   orders?: number
 }
+
+
+export interface AliExpressCategoryDto {
+  id: number
+  isleaf: boolean
+  level?: number
+  names?: string
+  features?: string
+}
+
+export interface AliExpressCategoryListResult {
+  aliexpress_category_redefining_getchildrenpostcategorybyid_response?: {
+    result?: {
+      aeop_post_category_list?: {
+        aeop_post_category_dto?: AliExpressCategoryDto[]
+      }
+      success?: boolean
+    }
+  }
+}
+
+export interface AliExpressSingleCategoryResult {
+  aliexpress_category_redefining_getpostcategorybyid_response?: {
+    result?: {
+      aeop_post_category_list?: {
+        aeop_post_category_dto?: AliExpressCategoryDto[]
+      }
+      success?: boolean
+    }
+  }
+}
