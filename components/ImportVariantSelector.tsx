@@ -41,9 +41,9 @@ export default function ImportVariantSelector({ productId, title }: { productId:
       </div>
 
       {fixedOptions.length > 0 && (
-        <div className="mt-4 flex flex-wrap gap-2">
+        <div className="mt-4 flex gap-2 overflow-x-auto pb-1">
           {fixedOptions.map((option) => (
-            <span key={option.name} className="rounded-full bg-slate-100 px-3 py-1.5 text-[11px] font-bold text-slate-600">
+            <span key={option.name} className="shrink-0 rounded-sm bg-slate-100 px-3 py-1.5 text-[11px] font-bold text-slate-600">
               {displayOptionName(option.name)}: {option.value}
             </span>
           ))}
@@ -51,7 +51,7 @@ export default function ImportVariantSelector({ productId, title }: { productId:
       )}
 
       {optionGroups.length > 0 && (
-        <div className="mt-5 space-y-5">
+        <div className="mt-5 space-y-4">
           {optionGroups.map((group) => (
             <section key={group.name}>
               <div className="flex items-center justify-between gap-3">
@@ -59,7 +59,7 @@ export default function ImportVariantSelector({ productId, title }: { productId:
                 <span className="text-xs font-bold text-slate-400">{selectedOptions[group.name] ?? 'Choose'}</span>
               </div>
 
-              <div className="mt-3 grid gap-2 sm:grid-cols-2">
+              <div className="mt-3 flex gap-2 overflow-x-auto pb-2 snap-x snap-mandatory">
                 {group.values.map((value) => {
                   const active = selectedOptions[group.name] === value
                   const imageUrl = getOptionImage(variants, group.name, value)
@@ -78,14 +78,14 @@ export default function ImportVariantSelector({ productId, title }: { productId:
                       disabled={!available}
                       onClick={() => selectOption(group.name, value)}
                       className={[
-                        'flex min-h-20 items-center gap-3 rounded-xl border px-3 py-2.5 text-left transition',
+                        'flex w-[210px] shrink-0 snap-start items-center gap-3 rounded-sm border px-3 py-2.5 text-left transition',
                         active ? 'border-[#123f2b] bg-[#f2f8f5]' : 'border-slate-200 bg-white hover:border-slate-300',
                         !available ? 'cursor-not-allowed opacity-45' : '',
                       ].join(' ')}
                     >
                       {imageUrl ? (
                         // eslint-disable-next-line @next/next/no-img-element
-                        <img src={imageUrl} alt="" className="h-14 w-14 shrink-0 rounded-lg object-cover" loading="lazy" />
+                        <img src={imageUrl} alt="" className="h-14 w-14 shrink-0 rounded-sm object-cover" loading="lazy" />
                       ) : (
                         <span className="h-14 w-14 shrink-0 rounded-lg bg-slate-100" aria-hidden="true" />
                       )}
@@ -104,18 +104,18 @@ export default function ImportVariantSelector({ productId, title }: { productId:
         </div>
       )}
 
-      <div className="mt-5 rounded-2xl border border-slate-200 bg-[#f7f7f3] p-4">
+      <div className="mt-5 rounded-sm border border-slate-200 bg-[#f7f7f3] p-4">
         <div className="flex items-start gap-3">
           {selectedVariant.imageUrl && (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={selectedVariant.imageUrl} alt="" className="h-16 w-16 shrink-0 rounded-xl object-cover" />
+            <img src={selectedVariant.imageUrl} alt="" className="h-16 w-16 shrink-0 rounded-sm object-cover" />
           )}
           <div className="min-w-0 flex-1">
             <div className="text-[10px] font-black uppercase tracking-[0.14em] text-slate-400">Your selection</div>
             <div className="mt-2 flex flex-wrap gap-2">
               {Object.entries(selectedVariant.options).length > 0 ? (
                 Object.entries(selectedVariant.options).map(([name, value]) => (
-                  <span key={name} className="rounded-full bg-white px-3 py-1.5 text-xs font-bold text-slate-700">
+                  <span key={name} className="rounded-sm bg-white px-3 py-1.5 text-xs font-bold text-slate-700">
                     {displayOptionName(name)}: {value}
                   </span>
                 ))
@@ -142,7 +142,7 @@ export default function ImportVariantSelector({ productId, title }: { productId:
           title={title}
         />
       ) : (
-        <div className="mt-5 rounded-2xl border border-amber-100 bg-amber-50 p-4">
+        <div className="mt-5 rounded-sm border border-amber-100 bg-amber-50 p-4">
           <div className="text-sm font-black text-amber-900">This selection is currently unavailable</div>
           <p className="mt-1 text-xs text-amber-800">Choose another available option above, or check back after stock is refreshed.</p>
         </div>
