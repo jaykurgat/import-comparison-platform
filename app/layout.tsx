@@ -8,15 +8,15 @@ import AnalyticsConsent from '@/components/AnalyticsConsent'
 const retailSans = Roboto({ variable: '--font-retail-sans', subsets: ['latin'], weight: ['400', '500', '700'] })
 
 export const metadata: Metadata = {
-  title: 'KijijiCart — Compare local and imported prices',
-  description: 'Shop and compare Kenyan retail products with landed import alternatives.',
+  title: 'KijijiCart — Shop the marketplace',
+  description: 'Shop products from one unified marketplace.'
 }
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   const verification = process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION
   return (
     <html lang="en" className={retailSans.variable + ' antialiased'}>
-      <head>{verification && <meta name="google-site-verification" content={verification} />}</head>
+      <head>{verification && <meta name="google-site-verification" content={verification} />}<link rel="icon" href="/kijijcart-mark.svg" /></head>
       <body className="min-h-screen bg-[#f5f6f7]">
         {children}
         <Analytics />
