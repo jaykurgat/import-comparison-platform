@@ -6,28 +6,34 @@ import { getStorefrontCategoryFilterScope } from './getCategories'
 export type CatalogSourceFilter = 'all' | 'local' | 'import' | 'deals'
 export type CatalogSort = 'featured' | 'newest' | 'price_asc' | 'price_desc' | 'name'
 
+/**
+ * Returns one unified customer-facing catalogue.
+ *
+ * Local products and standalone supplier products share the same grid. A
+ * confirmed supplier match is enrichment for the local product, not a second
+ * catalogue entry. The source argument is retained for backwards compatibility
+ * with older callers, but source-specific storefront filters are intentionally
+ * ignored.
+ */
 export async function getAllProducts(
   query = '',
   categoryKey = '',
-  source: CatalogSourceFilter = 'all',
+  _source: CatalogSourceFilter = 'all',
   sort: CatalogSort = 'featured',
   limit?: number,
 ): Promise<ProductTeaser[]> {
   const q = query.trim()
   const textFilter = q ? { contains: q, mode: 'insensitive' as const } : undefined
   const categoryScope = categoryKey ? await getStorefrontCategoryFilterScope(categoryKey) : null
-  const localCategoryIds = categoryScope?.localCategoryIds ?? []
-  const aliExpressCategoryIds = categoryScope?.aliExpressCategoryIds ?? []
+  const categoryIds = categoryScope?.categoryIds ?? []
   const invalidCategoryFilter = Boolean(categoryKey) && !categoryScope
 
-  const localProducts = invalidCategoryFilter || source === 'import' || (categoryKey && categoryScope?.source === 'ALIEXPRESS')
+  const localProducts = invalidCategoryFilter
     ? []
     : await prisma.localSKU.findMany({
         where: {
           ...(textFilter ? { title: textFilter } : {}),
-          ...(categoryScope?.source === 'LOCAL'
-            ? { categoryId: { in: localCategoryIds } }
-            : {}),
+          ...(categoryScope ? { categoryId: { in: categoryIds } } : {}),
         },
         include: {
           category: true,
@@ -41,16 +47,13 @@ export async function getAllProducts(
   const localTeasers = localProducts
     .filter(isCatalogEligible)
     .map((product) => toProductTeaser(product, product.matches))
-    .filter((product) => source !== 'deals' || product.hasDeal)
 
-  const standaloneImportSkus = invalidCategoryFilter || source === 'local' || source === 'deals'
+  const standaloneImportSkus = invalidCategoryFilter
     ? []
     : await prisma.aliExpressSKU.findMany({
         where: {
           ...(textFilter ? { title: textFilter } : {}),
-          ...(categoryScope?.source === 'ALIEXPRESS'
-            ? { aliExpressCategoryId: { in: aliExpressCategoryIds } }
-            : {}),
+          ...(categoryScope ? { categoryId: { in: categoryIds } } : {}),
           isPublished: true,
           importListingPrice: { isStale: false },
           matches: { none: { status: { in: ['AUTO_MATCHED', 'MANUAL_CONFIRMED'] } } },
@@ -67,7 +70,7 @@ export async function getAllProducts(
 
   const importTeasers = [...groupedImports.values()]
     .map((group) => toImportProductTeaser(group))
-    .filter((t): t is ProductTeaser => t !== null)
+    .filter((product): product is ProductTeaser => product !== null)
 
   const products = [...localTeasers, ...importTeasers]
 
@@ -76,7 +79,7 @@ export async function getAllProducts(
     if (sort === 'price_desc') return b.price - a.price || a.title.localeCompare(b.title)
     if (sort === 'name') return a.title.localeCompare(b.title)
     if (sort === 'newest') return b.createdAt.getTime() - a.createdAt.getTime()
-    return Number(b.hasDeal) - Number(a.hasDeal) || b.createdAt.getTime() - a.createdAt.getTime()
+    return b.createdAt.getTime() - a.createdAt.getTime()
   })
 
   return typeof limit === 'number' ? products.slice(0, Math.max(1, limit)) : products
