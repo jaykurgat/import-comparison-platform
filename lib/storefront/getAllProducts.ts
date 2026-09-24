@@ -17,8 +17,9 @@ export async function getAllProducts(
   const categoryScope = categoryKey ? await getStorefrontCategoryFilterScope(categoryKey) : null
   const localCategoryIds = categoryScope?.localCategoryIds ?? []
   const aliExpressCategoryIds = categoryScope?.aliExpressCategoryIds ?? []
+  const invalidCategoryFilter = Boolean(categoryKey) && !categoryScope
 
-  const localProducts = source === 'import' || (categoryKey && categoryScope?.source === 'ALIEXPRESS')
+  const localProducts = invalidCategoryFilter || source === 'import' || (categoryKey && categoryScope?.source === 'ALIEXPRESS')
     ? []
     : await prisma.localSKU.findMany({
         where: {
@@ -41,7 +42,7 @@ export async function getAllProducts(
     .map((product) => toProductTeaser(product, product.matches))
     .filter((product) => source !== 'deals' || product.hasDeal)
 
-  const standaloneImportSkus = source === 'local' || source === 'deals'
+  const standaloneImportSkus = invalidCategoryFilter || source === 'local' || source === 'deals'
     ? []
     : await prisma.aliExpressSKU.findMany({
         where: {
