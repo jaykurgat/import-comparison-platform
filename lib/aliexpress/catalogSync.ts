@@ -3,6 +3,7 @@ import { isCatalogEligible } from '../storefront/catalogEligibility'
 import { getAliExpressFreight } from './freight'
 import { discoverAliExpressProducts } from './discovery'
 import { getAliExpressProduct } from './product'
+import { backfillAliExpressCategories } from './categories'
 import { repriceImportSku } from '../pricing/repriceImportSku'
 
 export interface CatalogSyncOptions {
@@ -21,6 +22,7 @@ export interface CatalogSyncResult {
   skusPersisted: number
   freightQuotesFetched: number
   pricesComputed: number
+  categoriesResolved: number
   errors: Array<{ localSku: string; productId?: string; skuId?: string; message: string }>
 }
 
@@ -58,7 +60,17 @@ export async function syncAliExpressCatalog(
     skusPersisted: 0,
     freightQuotesFetched: 0,
     pricesComputed: 0,
+    categoriesResolved: 0,
     errors: [],
+  }
+
+  try {
+    result.categoriesResolved = await backfillAliExpressCategories()
+  } catch (error) {
+    result.errors.push({
+      localSku: 'category-backfill',
+      message: error instanceof Error ? error.message : String(error),
+    })
   }
 
   const seenProducts = new Set<string>()

@@ -76,7 +76,7 @@ export default async function ProductPage({ params }: { params: Promise<{ sku: s
             {local.categoryName && (
               <>
                 <span>/</span>
-                <Link href={`/products?category=${encodeURIComponent(data.local.categoryId ?? '')}`} className="font-semibold hover:text-emerald-800">{local.categoryName}</Link>
+                <Link href={`/products?category=${encodeURIComponent(data.local.categoryId ? 'local:' + data.local.categoryId : '')}`} className="font-semibold hover:text-emerald-800">{local.categoryName}</Link>
               </>
             )}
             <span>/</span>

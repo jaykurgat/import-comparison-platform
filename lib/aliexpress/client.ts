@@ -86,3 +86,60 @@ export function getAliExpressCredentials(): CallOptions {
 
   return { appKey, appSecret, accessToken }
 }
+
+
+interface AppCredentials {
+  appKey: string
+  appSecret: string
+}
+
+const TOP_ENDPOINT = 'https://eco.taobao.com/router/rest'
+
+/**
+ * Calls a classic AliExpress/TOP category API. Category endpoints are public,
+ * so an access token is not required.
+ */
+export async function callAliExpressTop<T extends object>(
+  method: string,
+  businessParams: Record<string, string>,
+  { appKey, appSecret }: AppCredentials,
+): Promise<T> {
+  const params: Record<string, string> = {
+    method,
+    app_key: appKey,
+    timestamp: getTopTimestamp(),
+    format: 'json',
+    v: '2.0',
+    sign_method: 'hmac-sha256',
+    ...businessParams,
+  }
+
+  const sign = generateSignature('', params, appSecret, 'hmac-sha256')
+  const body = new URLSearchParams({ ...params, sign })
+
+  const res = await fetch(TOP_ENDPOINT, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: body.toString(),
+  })
+
+  const json = (await res.json()) as T | AliExpressErrorResponse
+
+  if ('error_response' in json) {
+    const { code, msg, request_id } = json.error_response
+    throw new AliExpressApiError(code, msg, request_id)
+  }
+
+  return json as T
+}
+
+export function getAliExpressAppCredentials(): AppCredentials {
+  const appKey = process.env.ALIEXPRESS_APP_KEY
+  const appSecret = process.env.ALIEXPRESS_APP_SECRET
+
+  if (!appKey || !appSecret) {
+    throw new Error('Missing ALIEXPRESS_APP_KEY or ALIEXPRESS_APP_SECRET in environment.')
+  }
+
+  return { appKey, appSecret }
+}

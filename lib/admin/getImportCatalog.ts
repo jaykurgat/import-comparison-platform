@@ -11,6 +11,7 @@ export interface ImportCatalogRow {
   stock: number
   isPublished: boolean
   shipFromCountry: string | null
+  categoryName: string | null
   price: {
     landed: number
     sell: number
@@ -23,7 +24,7 @@ export interface ImportCatalogRow {
 
 export async function getImportCatalog(): Promise<ImportCatalogRow[]> {
   const skus = await prisma.aliExpressSKU.findMany({
-    include: { importListingPrice: true },
+    include: { importListingPrice: true, aliExpressCategory: true },
     orderBy: { updatedAt: 'desc' },
     take: 250,
   })
@@ -39,6 +40,7 @@ export async function getImportCatalog(): Promise<ImportCatalogRow[]> {
     stock: sku.availableStock,
     isPublished: sku.isPublished,
     shipFromCountry: sku.shipFromCountry,
+    categoryName: sku.aliExpressCategory?.name ?? null,
     price: sku.importListingPrice
       ? {
           landed: Number(sku.importListingPrice.landedImportPrice),

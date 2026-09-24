@@ -46,7 +46,7 @@ export default async function ImportProductGroupPage({ params }: { params: Promi
 
   const [comparableLocals, relatedProducts] = await Promise.all([
     getComparableLocalsForImportProduct(productId, 4),
-    getRelatedProductsForImport(productId, data.categoryId, data.title, null, null, null, 6),
+    getRelatedProductsForImport(productId, data.categoryKey, data.title, null, null, null, 6),
   ])
 
   return (
@@ -81,7 +81,14 @@ export default async function ImportProductGroupPage({ params }: { params: Promi
           <div className="mb-5 flex flex-wrap items-center gap-2 text-xs text-slate-500">
             <Link href="/products" className="font-bold text-emerald-800 hover:underline">Products</Link>
             <span>/</span>
-            <span className="truncate">Direct import</span>
+            {data.categoryPath.length > 0 ? data.categoryPath.map((category, index) => (
+              <span key={category + index} className={index === data.categoryPath.length - 1 ? 'font-semibold text-slate-700' : ''}>
+                {index > 0 && <span className="mr-2">/</span>}
+                {category}
+              </span>
+            )) : <span>Direct import</span>}
+            <span>/</span>
+            <span className="truncate">{data.title}</span>
           </div>
 
           <ImportVariantProvider variants={data.variants}>
@@ -93,7 +100,14 @@ export default async function ImportProductGroupPage({ params }: { params: Promi
               <section className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
                 <div className="flex flex-wrap gap-2 text-[10px] font-black uppercase tracking-[0.16em]">
                   <span className="rounded-full bg-[#eef7f2] px-3 py-1.5 text-emerald-800">Direct import</span>
-                  {data.categoryName && <span className="rounded-full bg-slate-100 px-3 py-1.5 text-slate-600">{data.categoryName}</span>}
+                  {data.categoryName && (
+                    <Link
+                      href={data.categoryKey ? `/products?category=${encodeURIComponent(data.categoryKey)}` : '/products'}
+                      className="rounded-full bg-slate-100 px-3 py-1.5 text-slate-600 hover:bg-slate-200"
+                    >
+                      {data.categoryName}
+                    </Link>
+                  )}
                 </div>
 
                 <h1 className="mt-5 text-3xl font-black leading-[1.08] tracking-[-0.035em] sm:text-4xl">{data.title}</h1>

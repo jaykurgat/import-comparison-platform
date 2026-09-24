@@ -87,6 +87,7 @@ export interface StandaloneImportSkuLike {
   availableStock: number
   createdAt: Date
   category?: { name: string } | null
+  aliExpressCategory?: { name: string } | null
   importListingPrice: {
     sellPrice: { toString(): string }
     currency: string
@@ -121,7 +122,9 @@ export function toImportProductTeaser(skus: StandaloneImportSkuLike[]): ProductT
     hasDeal: false,
     savingsAmount: null,
     source: 'import',
-    categoryName: skus.find((sku) => sku.category?.name)?.category?.name ?? null,
+    categoryName: skus.find((sku) => sku.aliExpressCategory?.name)?.aliExpressCategory?.name
+      ?? skus.find((sku) => sku.category?.name)?.category?.name
+      ?? null,
     inStock: availableVariantCount > 0,
     variantCount: skus.length,
     availableVariantCount,
