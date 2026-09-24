@@ -121,6 +121,7 @@ async function persistProduct(data: MappedAliExpressProduct): Promise<void> {
     const resolvedCategory = await resolveCanonicalCategory({
       source: 'ALIEXPRESS',
       sourceCategoryId: data.rawCategoryId,
+      sourceCategoryName: exactCategory?.nodes.at(-1)?.name ?? null,
       title: data.title,
       specs: sku.specs,
     })
