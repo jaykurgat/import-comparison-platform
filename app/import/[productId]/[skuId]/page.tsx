@@ -8,7 +8,7 @@ import SiteHeader from '@/components/SiteHeader'
 import SiteFooter from '@/components/SiteFooter'
 import ProductGallery from '@/components/ProductGallery'
 import ProductDescription from '@/components/ProductDescription'
-import { ImportCheckoutForm } from './ImportCheckoutForm'
+import AddToCartActions from '@/components/cart/AddToCartActions'
 
 export async function generateMetadata({ params }: { params: Promise<{ productId: string; skuId: string }> }): Promise<Metadata> {
   const { productId, skuId } = await params
@@ -104,7 +104,25 @@ export default async function ImportProductPage({ params }: { params: Promise<{ 
                 <p className="mt-1 text-xs leading-5 text-slate-600">Payment is collected in KES through M-PESA. Supplier order submission happens only after successful payment confirmation.</p>
               </div>
 
-              <ImportCheckoutForm productId={data.productId} skuId={data.skuId} sellPrice={data.sellPrice} title={data.title} />
+              <AddToCartActions
+                item={{
+                  key: 'supplier:' + data.productId + ':' + data.skuId,
+                  kind: 'supplier',
+                  title: data.title,
+                  imageUrl: data.imageUrls[0] ?? null,
+                  price: data.sellPrice,
+                  currency: data.currency,
+                  quantity: 1,
+                  availableStock: data.availableStock,
+                  sku: data.skuId,
+                  productId: data.productId,
+                  skuId: data.skuId,
+                  options: {
+                    ...(data.color ? { Color: data.color } : {}),
+                    ...(data.size ? { Size: data.size } : {}),
+                  },
+                }}
+              />
 
               <a href={data.aliExpressUrl} target="_blank" rel="noopener noreferrer" className="mt-5 inline-flex w-full items-center justify-center rounded-xl border border-slate-200 bg-white px-5 py-3 text-sm font-bold text-slate-700 hover:border-slate-300">View supplier listing →</a>
 
