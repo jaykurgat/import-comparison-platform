@@ -78,7 +78,7 @@ export default function ImportCheckoutSuccessPage() {
       stopped = true
       if (timer) clearTimeout(timer)
     }
-  }, [])
+  }, [accessToken, orderId])
 
   return (
     <main className="min-h-screen bg-[#f5f6f7] px-4 py-16 text-slate-950">
