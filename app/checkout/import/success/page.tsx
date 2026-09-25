@@ -1,7 +1,6 @@
 'use client'
 
 import Link from 'next/link'
-import { useSearchParams } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { trackPurchase } from '@/lib/analytics/events'
 
@@ -9,15 +8,12 @@ export default function ImportCheckoutSuccessPage() {
   const [status, setStatus] = useState('PAYMENT_PENDING')
   const [message, setMessage] = useState('Waiting for the M-PESA payment confirmation…')
   const [orderTotal, setOrderTotal] = useState<number | null>(null)
-  const searchParams = useSearchParams()
-  const orderId = searchParams.get('orderId')
-  const accessToken = searchParams.get('token')
-  const trackingUrl = orderId && accessToken
-    ? '/track-order?orderId=' + encodeURIComponent(orderId) + '&token=' + encodeURIComponent(accessToken)
-    : '/track-order'
   const [orderCurrency, setOrderCurrency] = useState('KES')
 
   useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    const orderId = params.get('orderId')
+    const accessToken = params.get('token')
     if (!orderId || !accessToken) return
 
     let stopped = false
@@ -78,7 +74,7 @@ export default function ImportCheckoutSuccessPage() {
       stopped = true
       if (timer) clearTimeout(timer)
     }
-  }, [accessToken, orderId])
+  }, [])
 
   return (
     <main className="min-h-screen bg-[#f5f6f7] px-4 py-16 text-slate-950">
@@ -90,9 +86,13 @@ export default function ImportCheckoutSuccessPage() {
         <p className="mt-4 text-sm leading-6 text-slate-600">{message}</p>
         {orderTotal !== null && <p className="mt-3 text-sm font-bold text-slate-900">Order total: {orderCurrency} {orderTotal.toLocaleString()}</p>}
         {status === 'SUBMITTED' && (
-          <Link href={trackingUrl} className="mt-6 inline-flex rounded-lg bg-[#0f5132] px-5 py-3 text-sm font-bold text-white">
+          <button
+            type="button"
+            onClick={() => window.location.assign('/track-order' + window.location.search)}
+            className="mt-6 inline-flex rounded-lg bg-[#0f5132] px-5 py-3 text-sm font-bold text-white"
+          >
             Track your order
-          </Link>
+          </button>
         )}
         <Link href="/products" className="mt-3 inline-flex rounded-lg border border-slate-200 bg-white px-5 py-3 text-sm font-bold text-slate-700">
           Continue shopping
