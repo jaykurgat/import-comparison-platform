@@ -17,14 +17,15 @@ export async function submitPaidImportOrder(orderId: string): Promise<void> {
       where: { id: orderId },
       include: { items: true },
     })
-    if (!order || order.items.length !== 1) throw new Error('Paid import order is missing its order item.')
+    if (!order || order.items.length === 0) throw new Error('Paid order is missing its order items.')
 
-    const item = order.items[0]
-    const sku = await prisma.aliExpressSKU.findUnique({
-      where: { id: item.aliExpressSkuId },
-    })
-    if (!sku || sku.availableStock < item.quantity) {
-      throw new Error('Supplier stock is no longer sufficient for this paid order.')
+    const supplierItems = order.items.filter((item) => item.aliExpressSkuId)
+    if (supplierItems.length === 0) {
+      await prisma.importOrder.update({
+        where: { id: order.id },
+        data: { status: 'SUBMITTED', errorMessage: null },
+      })
+      return
     }
 
     const resolved = await resolveAliExpressAddress({
@@ -33,16 +34,31 @@ export async function submitPaidImportOrder(orderId: string): Promise<void> {
       city: order.city,
     })
 
-    const freight = await getAliExpressFreight({
-      productId: item.productId,
-      skuId: item.skuId,
-      shipToCountry: resolved.country,
-      quantity: item.quantity,
-      currency: 'USD',
-    })
-    const option = freight.data.options[0]
-    if (!option || option.currency !== 'USD') {
-      throw new Error('No valid supplier delivery option is available after payment.')
+    const supplierItemsForApi: Array<{ product_count: number; product_id: number; logistics_service_name?: string }> = []
+
+    for (const item of supplierItems) {
+      const sku = await prisma.aliExpressSKU.findUnique({ where: { id: item.aliExpressSkuId! } })
+      if (!sku || sku.availableStock < item.quantity) {
+        throw new Error('Supplier stock is no longer sufficient for a paid order.')
+      }
+
+      const freight = await getAliExpressFreight({
+        productId: item.productId,
+        skuId: item.skuId,
+        shipToCountry: resolved.country,
+        quantity: item.quantity,
+        currency: 'USD',
+      })
+      const option = freight.data.options[0]
+      if (!option || option.currency !== 'USD') {
+        throw new Error('No valid supplier delivery option is available after payment.')
+      }
+
+      supplierItemsForApi.push({
+        product_count: item.quantity,
+        product_id: Number(item.productId),
+        ...(option.code ? { logistics_service_name: option.code } : {}),
+      })
     }
 
     const supplier = await createAliExpressDsOrder({
@@ -58,11 +74,7 @@ export async function submitPaidImportOrder(orderId: string): Promise<void> {
         province: resolved.province,
         ...(order.zip ? { zip: order.zip } : {}),
       },
-      items: [{
-        product_count: item.quantity,
-        product_id: Number(item.productId),
-        ...(option.code ? { logistics_service_name: option.code } : {}),
-      }],
+      items: supplierItemsForApi,
       payCurrency: 'USD',
       tryToPay: false,
     })
@@ -75,8 +87,7 @@ export async function submitPaidImportOrder(orderId: string): Promise<void> {
     try {
       await syncImportOrderTracking(order.id)
     } catch {
-      // Tracking is best-effort at submission time. The scheduled tracking
-      // sync will retry after the supplier has created the shipment record.
+      // Scheduled tracking sync will retry.
     }
   } catch (error) {
     await prisma.importOrder.update({
