@@ -21,12 +21,51 @@ export async function GET(request: Request) {
       supplierOrderIds: true,
       items: { select: { productId: true, skuId: true, quantity: true, unitSellPrice: true, aliExpressSkuId: true } },
       payment: { select: { status: true, mpesaReceiptNumber: true, paidAt: true } },
+      shipments: {
+        orderBy: { createdAt: 'asc' },
+        select: {
+          id: true,
+          supplierOrderId: true,
+          carrier: true,
+          trackingNumber: true,
+          shippingMethod: true,
+          currentStatus: true,
+          currentRawStatus: true,
+          estimatedDeliveryStart: true,
+          estimatedDeliveryEnd: true,
+          shippedAt: true,
+          deliveredAt: true,
+          lastSyncedAt: true,
+          events: {
+            orderBy: { eventDate: 'desc' },
+            select: {
+              id: true,
+              status: true,
+              rawStatus: true,
+              description: true,
+              location: true,
+              eventDate: true,
+            },
+          },
+        },
+      },
     },
   })
 
   if (!order) return NextResponse.json({ error: 'Order not found.' }, { status: 404 })
   return NextResponse.json(
-    { ...order, customerTotal: Number(order.customerTotal), items: order.items.map((item) => ({ item_id: `${item.productId}-${item.skuId}`, item_name: `Imported product ${item.productId}`, quantity: item.quantity, price: Number(item.unitSellPrice), currency: order.currency })) },
+    {
+      ...order,
+      customerTotal: Number(order.customerTotal),
+      items: order.items.map((item) => ({
+        item_id: item.productId + '-' + item.skuId,
+        item_name: 'Imported product',
+        quantity: item.quantity,
+        price: Number(item.unitSellPrice),
+        currency: order.currency,
+      })),
+      shipments: order.shipments,
+    },
     { headers: { 'Cache-Control': 'no-store' } },
   )
 }
