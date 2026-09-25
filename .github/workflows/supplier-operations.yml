@@ -15,6 +15,7 @@ on:
           - all
           - sync
           - reprice
+          - tracking
 
 permissions:
   contents: read
@@ -61,3 +62,19 @@ jobs:
             -H "content-type: application/json" \
             -H "x-catalog-sync-secret: $CATALOG_SYNC_SECRET" \
             --data '{"limit":500,"publishedOnly":false}'
+
+  tracking:
+    if: github.event_name == 'workflow_dispatch' && (github.event.inputs.operation == 'all' || github.event.inputs.operation == 'tracking') || github.event_name == 'schedule' && github.event.schedule == '47 */6 * * *'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment: production
+    steps:
+      - name: Sync AliExpress shipment tracking
+        env:
+          APP_URL: ${{ secrets.PRODUCTION_APP_URL }}
+          CATALOG_SYNC_SECRET: ${{ secrets.CATALOG_SYNC_SECRET }}
+        run: |
+          set -euo pipefail
+          test -n "$APP_URL"
+          test -n "$CATALOG_SYNC_SECRET"
+          curl --fail-with-body --silent --show-error             --retry 2 --retry-delay 5 --max-time 900             -X POST "$APP_URL/api/admin/aliexpress/tracking-sync"             -H "content-type: application/json"             -H "x-catalog-sync-secret: $CATALOG_SYNC_SECRET"             --data '{"limit":50}'
