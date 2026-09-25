@@ -48,7 +48,6 @@ export default async function SiteHeader() {
       <nav className="border-t border-slate-100 bg-white" aria-label="Product categories">
         <div className="mx-auto flex max-w-[1440px] gap-7 overflow-x-auto px-4 py-3 sm:px-6">
           <Link href="/products" className="whitespace-nowrap text-xs font-bold text-slate-600 transition hover:text-[#123f2b]">All products</Link>
-          <Link href="/products?source=deals" className="whitespace-nowrap text-xs font-bold text-slate-600 transition hover:text-[#123f2b]">Comparisons</Link>
           {categories.map((category) => (
             <Link key={category.id} href={{ pathname: '/products', query: { category: category.id } }} className="whitespace-nowrap text-xs font-bold text-slate-600 transition hover:text-[#123f2b]">
               {category.name}
