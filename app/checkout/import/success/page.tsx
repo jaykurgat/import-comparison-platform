@@ -9,11 +9,15 @@ export default function ImportCheckoutSuccessPage() {
   const [message, setMessage] = useState('Waiting for the M-PESA payment confirmation…')
   const [orderTotal, setOrderTotal] = useState<number | null>(null)
   const [orderCurrency, setOrderCurrency] = useState('KES')
+  const [trackingUrl, setTrackingUrl] = useState('/track-order')
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
     const orderId = params.get('orderId')
     const accessToken = params.get('token')
+    if (orderId && accessToken) {
+      setTrackingUrl('/track-order?orderId=' + encodeURIComponent(orderId) + '&token=' + encodeURIComponent(accessToken))
+    }
     if (!orderId || !accessToken) return
 
     let stopped = false
@@ -86,12 +90,7 @@ export default function ImportCheckoutSuccessPage() {
         <p className="mt-4 text-sm leading-6 text-slate-600">{message}</p>
         {orderTotal !== null && <p className="mt-3 text-sm font-bold text-slate-900">Order total: {orderCurrency} {orderTotal.toLocaleString()}</p>}
         {status === 'SUBMITTED' && (
-          <Link
-            href={typeof window !== 'undefined'
-              ? '/track-order?orderId=' + encodeURIComponent(new URLSearchParams(window.location.search).get('orderId') ?? '') + '&token=' + encodeURIComponent(new URLSearchParams(window.location.search).get('token') ?? '')
-              : '/track-order'}
-            className="mt-6 inline-flex rounded-lg bg-[#0f5132] px-5 py-3 text-sm font-bold text-white"
-          >
+          <Link href={trackingUrl} className="mt-6 inline-flex rounded-lg bg-[#0f5132] px-5 py-3 text-sm font-bold text-white">
             Track your order
           </Link>
         )}
