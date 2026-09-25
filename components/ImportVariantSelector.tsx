@@ -1,6 +1,6 @@
 'use client'
 
-import { ImportCheckoutForm } from '@/app/import/[productId]/[skuId]/ImportCheckoutForm'
+import AddToCartActions from './cart/AddToCartActions'
 import { useImportVariantContext, displayOptionName } from './ImportVariantContext'
 
 function getOptionImage(variants: ReturnType<typeof useImportVariantContext>['variants'], group: string, value: string): string | null {
@@ -134,12 +134,22 @@ export default function ImportVariantSelector({ productId, title }: { productId:
       </div>
 
       {selectedVariant.availableStock > 0 ? (
-        <ImportCheckoutForm
+        <AddToCartActions
           key={selectedVariant.skuId}
-          productId={productId}
-          skuId={selectedVariant.skuId}
-          sellPrice={selectedVariant.sellPrice}
-          title={title}
+          item={{
+            key: 'supplier:' + productId + ':' + selectedVariant.skuId,
+            kind: 'supplier',
+            title,
+            imageUrl: selectedVariant.imageUrl,
+            price: selectedVariant.sellPrice,
+            currency: selectedVariant.currency,
+            quantity: 1,
+            availableStock: selectedVariant.availableStock,
+            sku: selectedVariant.skuId,
+            productId,
+            skuId: selectedVariant.skuId,
+            options: selectedVariant.options,
+          }}
         />
       ) : (
         <div className="mt-5 rounded-sm border border-amber-100 bg-amber-50 p-4">
