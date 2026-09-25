@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import { useSearchParams } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { trackPurchase } from '@/lib/analytics/events'
 
@@ -8,16 +9,15 @@ export default function ImportCheckoutSuccessPage() {
   const [status, setStatus] = useState('PAYMENT_PENDING')
   const [message, setMessage] = useState('Waiting for the M-PESA payment confirmation…')
   const [orderTotal, setOrderTotal] = useState<number | null>(null)
+  const searchParams = useSearchParams()
+  const orderId = searchParams.get('orderId')
+  const accessToken = searchParams.get('token')
+  const trackingUrl = orderId && accessToken
+    ? '/track-order?orderId=' + encodeURIComponent(orderId) + '&token=' + encodeURIComponent(accessToken)
+    : '/track-order'
   const [orderCurrency, setOrderCurrency] = useState('KES')
-  const [trackingUrl, setTrackingUrl] = useState('/track-order')
 
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search)
-    const orderId = params.get('orderId')
-    const accessToken = params.get('token')
-    if (orderId && accessToken) {
-      setTrackingUrl('/track-order?orderId=' + encodeURIComponent(orderId) + '&token=' + encodeURIComponent(accessToken))
-    }
     if (!orderId || !accessToken) return
 
     let stopped = false
