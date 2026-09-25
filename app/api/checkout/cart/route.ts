@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getAliExpressFreight } from '@/lib/aliexpress/freight'
-import { resolveAliExpressAddress } from '@/lib/aliexpress/addressResolver'
 import { createDarajaStkPush } from '@/lib/payments/daraja'
 import { createOrderAccessToken } from '@/lib/checkout/orderAccess'
 
@@ -24,7 +23,6 @@ export async function POST(request: Request) {
     const address2 = String(body.address2 ?? '').trim()
     const zip = String(body.zip ?? '').trim()
     if (!fullName || !mobileNo || !province || !city || !address) throw new Error('Please complete your delivery details.')
-    const resolved = await resolveAliExpressAddress({ countryCode: country, province, city })
     const orderItems: Array<{ aliExpressSkuId?: string; localSkuId?: string; productId: string; skuId: string; quantity: number; unitSellPrice: number }> = []
     for (const item of items) {
       const quantity = Math.min(20, Math.max(1, Math.trunc(Number(item.quantity) || 0)))
@@ -39,12 +37,12 @@ export async function POST(request: Request) {
       const skuId = String(item.skuId ?? '')
       const sku = await prisma.aliExpressSKU.findUnique({ where: { productId_skuId: { productId, skuId } }, include: { importListingPrice: true } })
       if (!sku || !sku.isPublished || sku.availableStock < quantity || !sku.importListingPrice || sku.importListingPrice.isStale) throw new Error('One of the supplier products is no longer available at the current price.')
-      const freight = await getAliExpressFreight({ productId, skuId, shipToCountry: resolved.country, quantity, currency: 'USD' })
+      const freight = await getAliExpressFreight({ productId, skuId, shipToCountry: country, quantity, currency: 'USD' })
       if (!freight.data.options[0] || freight.data.options[0].currency !== 'USD') throw new Error('Delivery is not currently available for one of the supplier products.')
       orderItems.push({ aliExpressSkuId: sku.id, productId, skuId, quantity, unitSellPrice: Number(sku.importListingPrice.sellPrice) })
     }
     const customerTotal = orderItems.reduce((sum, item) => sum + item.unitSellPrice * item.quantity, 0)
-    const order = await prisma.importOrder.create({ data: { outOrderId: 'KC-' + crypto.randomUUID().slice(0, 8).toUpperCase(), status: 'PAYMENT_PENDING', country: resolved.country, province: resolved.province, city: resolved.city, address, address2: address2 || null, fullName, mobileNo, zip: zip || null, customerTotal, items: { create: orderItems } } })
+    const order = await prisma.importOrder.create({ data: { outOrderId: 'KC-' + crypto.randomUUID().slice(0, 8).toUpperCase(), status: 'PAYMENT_PENDING', country, province, city, address, address2: address2 || null, fullName, mobileNo, zip: zip || null, customerTotal, items: { create: orderItems } } })
     try {
       const payment = await createDarajaStkPush({ amountKes: Math.round(customerTotal), phoneNumber: mobileNo, accountReference: order.outOrderId, transactionDesc: 'KijijiCart order' })
       await prisma.importPayment.create({ data: { orderId: order.id, provider: 'DARAJA', status: 'PENDING', checkoutRequestId: payment.checkoutRequestId, merchantRequestId: payment.merchantRequestId, amount: Math.round(customerTotal), currency: 'KES' } })
