@@ -10,6 +10,7 @@ import SiteFooter from '@/components/SiteFooter'
 import TrackProductView from '@/components/TrackProductView'
 import ProductGallery from '@/components/ProductGallery'
 import ProductDescription from '@/components/ProductDescription'
+import AddToCartActions from '@/components/cart/AddToCartActions'
 import { ComparableProductsRail, RelatedProductsRail } from '@/components/ProductRecommendationRails'
 
 export async function generateMetadata({ params }: { params: Promise<{ sku: string }> }): Promise<Metadata> {
@@ -118,6 +119,24 @@ export default async function ProductPage({ params }: { params: Promise<{ sku: s
                 </div>
                 <p className="mt-2 text-xs leading-5 text-slate-500">This local listing remains part of the catalog independently of comparison status.</p>
               </div>
+
+              <AddToCartActions
+                item={{
+                  key: 'local:' + local.sku,
+                  kind: 'local',
+                  title: local.title,
+                  imageUrl: local.imageUrls[0] ?? null,
+                  price: local.price,
+                  currency: local.currency,
+                  quantity: 1,
+                  availableStock: local.inStock ? 20 : 0,
+                  sku: local.sku,
+                  options: {
+                    ...(local.color ? { Color: local.color } : {}),
+                    ...(local.size ? { Size: local.size } : {}),
+                  },
+                }}
+              />
 
               <ProductDescription description={local.description} coreFeatures={local.coreFeatures} />
 
