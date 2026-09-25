@@ -405,6 +405,7 @@ enum ImportPaymentStatus {
 
 enum PaymentProvider {
   DARAJA
+  PAYSTACK
 }
 
 model ImportOrder {
@@ -417,6 +418,7 @@ model ImportOrder {
   address          String
   address2         String?
   fullName         String?
+  email            String?
   mobileNo         String?
   zip              String?
   currency         String            @default("KES")
@@ -437,7 +439,8 @@ model ImportPayment {
   order             ImportOrder        @relation(fields: [orderId], references: [id])
   provider          PaymentProvider     @default(DARAJA)
   status            ImportPaymentStatus @default(PENDING)
-  checkoutRequestId String              @unique
+  checkoutRequestId String?             @unique
+  providerReference String?             @unique
   merchantRequestId String?
   mpesaReceiptNumber String?
   amount            Decimal             @db.Decimal(12, 2)
