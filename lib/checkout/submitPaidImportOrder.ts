@@ -2,6 +2,7 @@ import { prisma } from '@/lib/prisma'
 import { getAliExpressFreight } from '@/lib/aliexpress/freight'
 import { resolveAliExpressAddress } from '@/lib/aliexpress/addressResolver'
 import { createAliExpressDsOrder } from '@/lib/aliexpress/order'
+import { syncImportOrderTracking } from './syncImportTracking'
 
 export async function submitPaidImportOrder(orderId: string): Promise<void> {
   const claimed = await prisma.importOrder.updateMany({
@@ -70,6 +71,13 @@ export async function submitPaidImportOrder(orderId: string): Promise<void> {
       where: { id: order.id },
       data: { status: 'SUBMITTED', supplierOrderIds: supplier.orderIds, errorMessage: null },
     })
+
+    try {
+      await syncImportOrderTracking(order.id)
+    } catch {
+      // Tracking is best-effort at submission time. The scheduled tracking
+      // sync will retry after the supplier has created the shipment record.
+    }
   } catch (error) {
     await prisma.importOrder.update({
       where: { id: orderId },
