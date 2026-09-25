@@ -3,9 +3,21 @@
 import AddToCartActions from './cart/AddToCartActions'
 import { useImportVariantContext, displayOptionName } from './ImportVariantContext'
 
-function getOptionImage(variants: ReturnType<typeof useImportVariantContext>['variants'], group: string, value: string): string | null {
-  return variants.find(
-    (variant) => variant.options[group] === value && variant.imageUrl,
+function getOptionImage(
+  variants: ReturnType<typeof useImportVariantContext>['variants'],
+  selectedOptions: Record<string, string>,
+  group: string,
+  value: string,
+): string | null {
+  // Only use an image from the SKU that represents this option value
+  // within the current selection. Do not borrow an image from an
+  // unrelated SKU that happens to share the same option value.
+  return variants.find((variant) =>
+    variant.options[group] === value &&
+    Object.entries(selectedOptions).every(([name, selected]) =>
+      name === group || !selected || variant.options[name] === selected,
+    ) &&
+    variant.imageUrl,
   )?.imageUrl ?? null
 }
 
@@ -91,7 +103,7 @@ export default function ImportVariantSelector({ productId, title }: { productId:
               <div className="mt-3 flex flex-wrap gap-2">
                 {group.values.map((value) => {
                   const active = selectedOptions[group.name] === value
-                  const imageUrl = getOptionImage(variants, group.name, value)
+                  const imageUrl = getOptionImage(variants, selectedOptions, group.name, value)
                   const available = variants.some((variant) =>
                     variant.availableStock > 0 &&
                     variant.options[group.name] === value &&
@@ -110,7 +122,7 @@ export default function ImportVariantSelector({ productId, title }: { productId:
                       className={[
                         imageUrl
                           ? 'h-16 w-16 shrink-0 overflow-hidden border bg-white p-0.5 transition'
-                          : 'border px-2 py-1 text-left text-xs leading-5 transition',
+                          : 'border p-0 text-left text-xs leading-5 transition',
                         active ? 'border-[#123f2b] ring-1 ring-[#123f2b]' : 'border-slate-200 hover:border-slate-300',
                         !available ? 'cursor-not-allowed opacity-40' : '',
                       ].join(' ')}
