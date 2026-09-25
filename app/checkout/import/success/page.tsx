@@ -79,7 +79,7 @@ export default function ImportCheckoutSuccessPage() {
   return (
     <main className="min-h-screen bg-[#f5f6f7] px-4 py-16 text-slate-950">
       <div className="mx-auto max-w-xl rounded-2xl bg-white p-8 text-center shadow-sm">
-        <div className="text-xs font-bold uppercase tracking-wider text-[#0f5132]">M-PESA checkout</div>
+        <div className="text-xs font-bold uppercase tracking-wider text-[#0f5132]">Payment checkout</div>
         <h1 className="mt-3 text-3xl font-black">
           {status === 'SUBMITTED' ? 'Your import order is confirmed' : 'Complete your M-PESA payment'}
         </h1>
