@@ -26,6 +26,7 @@ export default function CheckoutPage() {
             quantity: item.quantity,
           })),
           fullName: String(data.get('fullName') ?? ''),
+          email: String(data.get('email') ?? ''),
           mobileNo: String(data.get('mobileNo') ?? ''),
           country: 'KE',
           province: String(data.get('province') ?? ''),
@@ -61,11 +62,12 @@ export default function CheckoutPage() {
             <p className="mt-2 text-sm text-slate-500">Review your order, enter your delivery details, then continue to secure payment.</p>
             <form className="mt-6 grid gap-3" onSubmit={(e)=>{e.preventDefault();void submit(e.currentTarget)}}>
               <input name="fullName" required placeholder="Full name" autoComplete="name" className="border border-slate-200 px-3.5 py-3 text-sm outline-none focus:border-[#123f2b]" />
+              <input name="email" required type="email" placeholder="Email address" autoComplete="email" className="border border-slate-200 px-3.5 py-3 text-sm outline-none focus:border-[#123f2b]" />
               <input name="mobileNo" required placeholder="M-PESA mobile number" autoComplete="tel" className="border border-slate-200 px-3.5 py-3 text-sm outline-none focus:border-[#123f2b]" />
               <div className="grid gap-3 sm:grid-cols-2"><input name="province" required placeholder="County" className="border border-slate-200 px-3.5 py-3 text-sm outline-none" /><input name="city" required placeholder="City / town" className="border border-slate-200 px-3.5 py-3 text-sm outline-none" /></div>
               <input name="address" required placeholder="Street / delivery address" className="border border-slate-200 px-3.5 py-3 text-sm outline-none" />
               <div className="grid gap-3 sm:grid-cols-2"><input name="address2" placeholder="Apartment / additional details" className="border border-slate-200 px-3.5 py-3 text-sm outline-none" /><input name="zip" placeholder="Postal code" className="border border-slate-200 px-3.5 py-3 text-sm outline-none" /></div>
-              <button disabled={pending} className="mt-2 rounded-sm bg-[#123f2b] px-5 py-3.5 text-sm font-black text-white disabled:opacity-50">{pending ? 'Preparing order…' : 'Place order and continue to payment'}</button>
+              <button disabled={pending} className="mt-2 rounded-sm bg-[#123f2b] px-5 py-3.5 text-sm font-black text-white disabled:opacity-50">{pending ? 'Preparing order…' : 'Place order & pay with M-PESA'}</button>
               {message && <p className="text-sm font-bold text-red-700">{message}</p>}
             </form>
           </section>
