@@ -14,9 +14,11 @@ export default function ProductGallery({
   const touchStart = useRef<number | null>(null)
 
   const goTo = (next: number) => setActive((next + images.length) % images.length)
+
   const handleTouchStart = (event: React.TouchEvent<HTMLDivElement>) => {
     touchStart.current = event.touches[0]?.clientX ?? null
   }
+
   const handleTouchEnd = (event: React.TouchEvent<HTMLDivElement>) => {
     if (touchStart.current === null) return
     const end = event.changedTouches[0]?.clientX ?? touchStart.current
@@ -28,6 +30,13 @@ export default function ProductGallery({
 
   if (!images.length) {
     return (
+      <div className="flex aspect-square items-center justify-center bg-[#f7f7f3] text-sm font-semibold text-slate-400">
+        Image unavailable
+      </div>
+    )
+  }
+
+  return (
     <div className="space-y-3">
       <div
         className="relative aspect-square w-full touch-pan-y select-none overflow-hidden bg-[#f7f7f3] lg:h-[min(720px,calc(100vh-250px))] lg:aspect-auto"
