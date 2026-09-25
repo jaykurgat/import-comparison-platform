@@ -36,9 +36,13 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     try {
       const raw = window.localStorage.getItem(STORAGE_KEY)
-      if (raw) setItems(JSON.parse(raw) as CartItem[])
+      if (raw) {
+        // localStorage is an external browser store; hydrate it after the first client render.
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setItems(JSON.parse(raw) as CartItem[])
+      }
     } catch {
-      setItems([])
+      // Ignore malformed local cart data and keep the empty initial state.
     }
   }, [])
 
