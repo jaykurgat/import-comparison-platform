@@ -84,10 +84,7 @@ export default function TrackOrderPage() {
   }
 
   useEffect(() => {
-    if (!orderId || !token) {
-      setError('This tracking link is incomplete.')
-      return
-    }
+    if (!orderId || !token) return
 
     void (async () => {
       try {
@@ -118,8 +115,8 @@ export default function TrackOrderPage() {
           </button>
         </div>
 
-        {error ? (
-          <div className="mt-6 rounded-sm border border-red-200 bg-white p-5 text-sm font-bold text-red-700">{error}</div>
+        {(error || !orderId || !token) ? (
+          <div className="mt-6 rounded-sm border border-red-200 bg-white p-5 text-sm font-bold text-red-700">{error ?? 'This tracking link is incomplete.'}</div>
         ) : (
           <div className="mt-7 space-y-5">
             <section className="rounded-sm bg-white p-5 shadow-sm">
