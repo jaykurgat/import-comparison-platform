@@ -43,12 +43,41 @@ export default function ImportVariantSelector({ productId, title }: { productId:
       {fixedOptions.length > 0 && (
         <div className="mt-4 flex gap-2 overflow-x-auto pb-1">
           {fixedOptions.map((option) => (
-            <span key={option.name} className="shrink-0 rounded-sm bg-slate-100 px-3 py-1.5 text-[11px] font-bold text-slate-600">
+            <span key={option.name} className="shrink-0 bg-slate-100 px-3 py-1.5 text-[11px] font-bold text-slate-600">
               {displayOptionName(option.name)}: {option.value}
             </span>
           ))}
         </div>
       )}
+
+      <div className="mt-5 border border-slate-200 bg-[#f7f7f3] p-4">
+        <div className="flex items-start gap-3">
+          {selectedVariant.imageUrl && (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={selectedVariant.imageUrl} alt="" className="h-16 w-16 shrink-0 rounded-sm object-cover" />
+          )}
+          <div className="min-w-0 flex-1">
+            <div className="text-[10px] font-black uppercase tracking-[0.14em] text-slate-400">Your selection</div>
+            <div className="mt-2 flex flex-wrap gap-2">
+              {Object.entries(selectedVariant.options).length > 0 ? (
+                Object.entries(selectedVariant.options).map(([name, value]) => (
+                  <span key={name} className="bg-white px-3 py-1.5 text-xs font-bold text-slate-700">
+                    {displayOptionName(name)}: {value}
+                  </span>
+                ))
+              ) : (
+                <span className="text-sm font-bold text-slate-700">Standard option</span>
+              )}
+            </div>
+            <div className="mt-2 text-xs text-slate-500">
+              {selectedVariant.availableStock} available
+            </div>
+          </div>
+          <div className="text-lg font-black tabular-nums text-slate-950">
+            {selectedVariant.currency} {selectedVariant.sellPrice.toLocaleString()}
+          </div>
+        </div>
+      </div>
 
       {optionGroups.length > 0 && (
         <div className="mt-5 space-y-4">
@@ -80,8 +109,8 @@ export default function ImportVariantSelector({ productId, title }: { productId:
                       aria-label={`${displayOptionName(group.name)}: ${value}${available ? '' : ' (unavailable)'}`}
                       className={[
                         imageUrl
-                          ? 'h-16 w-16 shrink-0 overflow-hidden rounded-sm border bg-white p-0.5 transition'
-                          : 'min-w-[84px] rounded-sm border px-3 py-2 text-left transition',
+                          ? 'h-16 w-16 shrink-0 overflow-hidden border bg-white p-0.5 transition'
+                          : 'min-w-[84px] border px-3 py-2 text-left transition',
                         active ? 'border-[#123f2b] ring-1 ring-[#123f2b]' : 'border-slate-200 hover:border-slate-300',
                         !available ? 'cursor-not-allowed opacity-40' : '',
                       ].join(' ')}
@@ -106,34 +135,7 @@ export default function ImportVariantSelector({ productId, title }: { productId:
         </div>
       )}
 
-      <div className="mt-5 rounded-sm border border-slate-200 bg-[#f7f7f3] p-4">
-        <div className="flex items-start gap-3">
-          {selectedVariant.imageUrl && (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={selectedVariant.imageUrl} alt="" className="h-16 w-16 shrink-0 rounded-sm object-cover" />
-          )}
-          <div className="min-w-0 flex-1">
-            <div className="text-[10px] font-black uppercase tracking-[0.14em] text-slate-400">Your selection</div>
-            <div className="mt-2 flex flex-wrap gap-2">
-              {Object.entries(selectedVariant.options).length > 0 ? (
-                Object.entries(selectedVariant.options).map(([name, value]) => (
-                  <span key={name} className="rounded-sm bg-white px-3 py-1.5 text-xs font-bold text-slate-700">
-                    {displayOptionName(name)}: {value}
-                  </span>
-                ))
-              ) : (
-                <span className="text-sm font-bold text-slate-700">Standard option</span>
-              )}
-            </div>
-            <div className="mt-2 text-xs text-slate-500">
-              {selectedVariant.availableStock} available
-            </div>
-          </div>
-          <div className="text-lg font-black tabular-nums text-slate-950">
-            {selectedVariant.currency} {selectedVariant.sellPrice.toLocaleString()}
-          </div>
-        </div>
-      </div>
+
 
       {selectedVariant.availableStock > 0 ? (
         <AddToCartActions
@@ -154,7 +156,7 @@ export default function ImportVariantSelector({ productId, title }: { productId:
           }}
         />
       ) : (
-        <div className="mt-5 rounded-sm border border-amber-100 bg-amber-50 p-4">
+        <div className="mt-5 border border-amber-100 bg-amber-50 p-4">
           <div className="text-sm font-black text-amber-900">This selection is currently unavailable</div>
           <p className="mt-1 text-xs text-amber-800">Choose another available option above, or check back after stock is refreshed.</p>
         </div>
