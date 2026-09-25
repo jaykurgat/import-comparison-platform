@@ -59,7 +59,7 @@ export default function ImportVariantSelector({ productId, title }: { productId:
                 <span className="text-xs font-bold text-slate-400">{selectedOptions[group.name] ?? 'Choose'}</span>
               </div>
 
-              <div className="mt-3 flex gap-2 overflow-x-auto pb-2 snap-x snap-mandatory">
+              <div className="mt-3 flex gap-1.5 overflow-x-auto pb-1.5 snap-x snap-mandatory">
                 {group.values.map((value) => {
                   const active = selectedOptions[group.name] === value
                   const imageUrl = getOptionImage(variants, group.name, value)
