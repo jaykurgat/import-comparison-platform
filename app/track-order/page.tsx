@@ -84,8 +84,24 @@ export default function TrackOrderPage() {
   }
 
   useEffect(() => {
-    void load()
-  }, [])
+    if (!orderId || !token) {
+      setError('This tracking link is incomplete.')
+      return
+    }
+
+    void (async () => {
+      try {
+        const response = await fetch('/api/checkout/import/status?orderId=' + encodeURIComponent(orderId) + '&token=' + encodeURIComponent(token), { cache: 'no-store' })
+        const body = await response.json()
+        if (!response.ok) throw new Error(body.error ?? 'Unable to load order tracking.')
+        setOrderStatus(body.status ?? 'UNKNOWN')
+        setShipments(body.shipments ?? [])
+        setError(null)
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Unable to load order tracking.')
+      }
+    })()
+  }, [orderId, token])
 
   return (
     <main className="min-h-screen bg-[#f7f7f3] px-4 py-10 text-slate-950 sm:px-6">
