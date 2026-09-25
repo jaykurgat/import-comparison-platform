@@ -1,6 +1,5 @@
 import { prisma } from '@/lib/prisma'
 import { getAliExpressFreight } from '@/lib/aliexpress/freight'
-import { resolveAliExpressAddress } from '@/lib/aliexpress/addressResolver'
 import { createAliExpressDsOrder } from '@/lib/aliexpress/order'
 import { syncImportOrderTracking } from './syncImportTracking'
 
@@ -28,12 +27,6 @@ export async function submitPaidImportOrder(orderId: string): Promise<void> {
       return
     }
 
-    const resolved = await resolveAliExpressAddress({
-      countryCode: order.country,
-      province: order.province,
-      city: order.city,
-    })
-
     const supplierItemsForApi: Array<{ product_count: number; product_id: number; logistics_service_name?: string }> = []
 
     for (const item of supplierItems) {
@@ -45,7 +38,7 @@ export async function submitPaidImportOrder(orderId: string): Promise<void> {
       const freight = await getAliExpressFreight({
         productId: item.productId,
         skuId: item.skuId,
-        shipToCountry: resolved.country,
+        shipToCountry: order.country,
         quantity: item.quantity,
         currency: 'USD',
       })
@@ -66,12 +59,12 @@ export async function submitPaidImportOrder(orderId: string): Promise<void> {
       address: {
         address: order.address,
         ...(order.address2 ? { address2: order.address2 } : {}),
-        city: resolved.city,
+        city: order.city,
         contact_person: order.fullName ?? '',
-        country: resolved.country,
+        country: order.country,
         full_name: order.fullName ?? '',
         mobile_no: order.mobileNo ?? '',
-        province: resolved.province,
+        province: order.province,
         ...(order.zip ? { zip: order.zip } : {}),
       },
       items: supplierItemsForApi,
