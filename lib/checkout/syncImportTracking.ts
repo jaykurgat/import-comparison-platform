@@ -141,7 +141,14 @@ export async function syncImportOrderTracking(orderId: string): Promise<ImportTr
         const carrier = info.logistics_service?.trim() || null
 
         let shipment = await prisma.importShipment.findFirst({
-          where: { orderId: order.id, supplierOrderId, trackingNumber },
+          where: {
+            orderId: order.id,
+            supplierOrderId,
+            ...(trackingNumber
+              ? { OR: [{ trackingNumber }, { trackingNumber: null }] }
+              : { trackingNumber: null }),
+          },
+          orderBy: { createdAt: 'asc' },
           include: { events: { take: 1, orderBy: { eventDate: 'desc' } } },
         })
 
