@@ -10,7 +10,7 @@ The storefront has two independent catalog paths:
 - **Supplier catalog:** an AliExpress SKU is customer-visible only after it is published, has stock, and has a current persisted storefront price.
 - **Matching:** enriches local products; it never determines whether a valid local product exists in the catalog.
 - **Product detail:** local products remain usable as local-only listings when no valid comparison exists.
-- **Import checkout:** remains behind the persisted supplier-price/stock/address validation boundary. Payment execution is intentionally paused.
+- **Import checkout:** remains behind the persisted supplier-price/stock/address validation boundary. Payment execution uses Paystack M-PESA and remains disabled until the Paystack secret and webhook are configured.
 
 This separation is covered by automated tests so later storefront work does not accidentally restore the old behavior where unmatched local products disappear.
 
@@ -51,7 +51,7 @@ The GitHub Actions CI workflow runs linting, Prisma client generation, TypeScrip
 
 The application can be deployed as a Next.js application. The repository deliberately does not assume a specific hosting vendor. The production application URL is supplied to GitHub Actions as `PRODUCTION_APP_URL`.
 
-Before exposing the admin/catalog operations publicly, configure the required database, Redis, AliExpress, admin, and catalog-sync secrets. Daraja remains sandbox/paused until payment execution is explicitly reopened.
+Before exposing the admin/catalog operations publicly, configure the required database, Redis, AliExpress, admin, and catalog-sync secrets. Paystack remains disabled until the production secret and webhook are configured.
 
 ## Production operations
 
@@ -83,9 +83,9 @@ Deploy the exact commit that passed CI. Configure the application's runtime envi
 - Redis/AliExpress variables when supplier operations are enabled
 - `NEXT_PUBLIC_APP_URL` as the public HTTPS origin
 - analytics and Google verification variables as needed
-- Daraja variables only when payment execution is being enabled
+- Paystack variables when payment execution is being enabled
 
-Keep `DARAJA_ENVIRONMENT=sandbox` until live M-PESA payment execution has been explicitly enabled and the production callback URL has been verified.
+Configure `PAYSTACK_SECRET_KEY` as a server-only runtime secret. Configure the Paystack webhook URL as `https://<production-origin>/api/webhooks/paystack`.
 
 ### 3. Scheduled supplier operations
 
@@ -118,7 +118,7 @@ The smoke script is also available locally as:
 SMOKE_BASE_URL=https://your-production-origin.example npm run smoke:production
 ```
 
-Do not use a customer payment to perform a smoke test while Daraja is sandbox/paused. Payment validation should be a separate controlled M-PESA acceptance test after live credentials and callback routing are explicitly enabled.
+Do not use a customer payment to perform a smoke test. Payment validation should be a separate controlled M-PESA acceptance test after the Paystack test secret and webhook routing are configured.
 
 
 ### 5. AliExpress shipment tracking
@@ -138,7 +138,7 @@ The existing GitHub Actions **Supplier Operations** workflow runs the protected 
 7. Confirm local products are visible independently of matching state.
 8. If supplier operations are enabled, run one manual supplier sync and reprice, review the resulting admin catalog data, and only then leave the schedule enabled.
 9. Keep supplier SKUs unpublished until title, image, stock, and current sell price are verified.
-10. Keep Daraja sandbox/paused until a separate controlled live-payment acceptance test has passed.
+10. Keep Paystack payment execution disabled until a separate controlled M-PESA acceptance test has passed.
 
 Do not run Prisma migrations as part of the Next.js build command. The production build remains a deterministic application build, while database schema changes are applied by the protected migration workflow.
 
