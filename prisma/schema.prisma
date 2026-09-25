@@ -427,6 +427,7 @@ model ImportOrder {
   updatedAt        DateTime          @updatedAt
   payment          ImportPayment?
   items            ImportOrderItem[]
+  shipments        ImportShipment[]
   @@index([status, createdAt])
 }
 
@@ -460,6 +461,59 @@ model ImportOrderItem {
   createdAt       DateTime    @default(now())
   @@index([orderId])
   @@index([aliExpressSkuId])
+}
+
+enum ImportShipmentStatus {
+  PENDING
+  LABEL_CREATED
+  IN_TRANSIT
+  ARRIVED_DESTINATION
+  OUT_FOR_DELIVERY
+  DELIVERED
+  EXCEPTION
+  CANCELLED
+  UNKNOWN
+}
+
+model ImportShipment {
+  id                    String               @id @default(cuid())
+  orderId               String
+  order                 ImportOrder          @relation(fields: [orderId], references: [id])
+  supplierOrderId       String
+  carrier               String?
+  trackingNumber        String?
+  shippingMethod        String?
+  currentStatus         ImportShipmentStatus @default(PENDING)
+  currentRawStatus      String?
+  estimatedDeliveryStart DateTime?
+  estimatedDeliveryEnd   DateTime?
+  shippedAt             DateTime?
+  deliveredAt           DateTime?
+  lastSyncedAt          DateTime?
+  createdAt             DateTime              @default(now())
+  updatedAt             DateTime              @updatedAt
+  events                ImportShipmentEvent[]
+
+  @@index([orderId])
+  @@index([supplierOrderId])
+  @@index([trackingNumber])
+  @@index([currentStatus, lastSyncedAt])
+}
+
+model ImportShipmentEvent {
+  id           String               @id @default(cuid())
+  shipmentId   String
+  shipment     ImportShipment      @relation(fields: [shipmentId], references: [id], onDelete: Cascade)
+  status       ImportShipmentStatus
+  rawStatus    String?
+  description  String?
+  location     String?
+  eventDate    DateTime
+  externalKey  String               @unique
+  raw          Json?
+  createdAt    DateTime             @default(now())
+
+  @@index([shipmentId, eventDate])
 }
 
 model ExchangeRateSnapshot {
