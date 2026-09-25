@@ -1,6 +1,7 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import { getStorefrontCategories } from '@/lib/storefront/getCategories'
+import CartHeaderLink from '@/components/CartHeaderLink'
 
 export const dynamic = 'force-dynamic'
 
@@ -12,7 +13,7 @@ export default async function SiteHeader() {
       <div className="bg-[#123f2b] text-[11px] font-semibold text-white/90">
         <div className="mx-auto flex max-w-[1440px] items-center justify-between gap-4 px-4 py-2 sm:px-6">
           <span>Clear local prices. Verified import alternatives.</span>
-          <Link href="/products?source=deals" className="hidden hover:text-white sm:block">Browse comparisons →</Link>
+          <Link href="/cart" className="hidden hover:text-white sm:block">View cart →</Link>
         </div>
       </div>
 
@@ -32,7 +33,7 @@ export default async function SiteHeader() {
 
         <nav className="hidden items-center gap-5 lg:flex">
           <Link href="/products" className="text-sm font-bold text-slate-700 hover:text-[#123f2b]">Shop</Link>
-          <Link href="/products?source=deals" className="text-sm font-bold text-slate-700 hover:text-[#123f2b]">Compare</Link>
+          <CartHeaderLink />
         </nav>
       </div>
 
