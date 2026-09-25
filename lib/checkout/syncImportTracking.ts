@@ -1,4 +1,5 @@
 import { createHash } from 'node:crypto'
+import type { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { callAliExpressTop, getAliExpressAppCredentials } from '@/lib/aliexpress/client'
 
@@ -53,12 +54,6 @@ function normalizeStatus(raw: string | undefined) {
   return STATUS_MAP[raw.trim().toUpperCase()] ?? 'UNKNOWN'
 }
 
-function parseAliExpressDate(value?: string): Date | null {
-  if (!value) return null
-  const parsed = new Date(value.replace(/\t/g, '').trim())
-  return Number.isNaN(parsed.getTime()) ? null : parsed
-}
-
 function eventKey(shipmentId: string, status: string, eventDate: Date, description?: string, location?: string) {
   return createHash('sha256')
     .update([shipmentId, status, eventDate.toISOString(), description ?? '', location ?? ''].join('|'))
@@ -72,7 +67,7 @@ async function addEventIfMissing(input: {
   description?: string
   location?: string
   eventDate: Date
-  raw?: unknown
+  raw?: Prisma.InputJsonValue
 }) {
   const externalKey = eventKey(input.shipmentId, input.status, input.eventDate, input.description, input.location)
   const existing = await prisma.importShipmentEvent.findUnique({ where: { externalKey } })
@@ -87,7 +82,7 @@ async function addEventIfMissing(input: {
       location: input.location ?? null,
       eventDate: input.eventDate,
       externalKey,
-      raw: input.raw as any,
+      raw: input.raw ?? undefined,
     },
   })
   return true
@@ -200,7 +195,13 @@ export async function syncImportOrderTracking(orderId: string): Promise<ImportTr
               ? 'AliExpress shipment status: ' + (rawStatus ?? currentStatus)
               : 'Awaiting carrier and tracking information.',
             eventDate: now,
-            raw: { supplierOrderId, trackingNumber, carrier, rawStatus, orderStatus: supplier.order_status },
+            raw: {
+              supplierOrderId,
+              trackingNumber: trackingNumber ?? '',
+              carrier: carrier ?? '',
+              rawStatus: rawStatus ?? '',
+              orderStatus: supplier.order_status ?? '',
+            },
           })
           if (added) result.eventsAdded += 1
         }
