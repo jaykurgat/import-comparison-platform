@@ -110,7 +110,7 @@ export default function ImportVariantSelector({ productId, title }: { productId:
                       className={[
                         imageUrl
                           ? 'h-16 w-16 shrink-0 overflow-hidden border bg-white p-0.5 transition'
-                          : 'min-w-[84px] border px-3 py-2 text-left transition',
+                          : 'border px-2 py-1 text-left text-xs leading-5 transition',
                         active ? 'border-[#123f2b] ring-1 ring-[#123f2b]' : 'border-slate-200 hover:border-slate-300',
                         !available ? 'cursor-not-allowed opacity-40' : '',
                       ].join(' ')}
@@ -124,7 +124,7 @@ export default function ImportVariantSelector({ productId, title }: { productId:
                           loading="lazy"
                         />
                       ) : (
-                        <span className="block text-xs font-black text-slate-800">{value}</span>
+                        <span className="block font-black text-slate-800">{value}</span>
                       )}
                     </button>
                   )
