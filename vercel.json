@@ -1,0 +1,8 @@
+{
+  "crons": [
+    {
+      "path": "/api/cron/aliexpress-tracking",
+      "schedule": "0 */6 * * *"
+    }
+  ]
+}
