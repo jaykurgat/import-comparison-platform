@@ -80,6 +80,7 @@ Deploy the exact commit that passed CI. Configure the application's runtime envi
 - `ADMIN_PASSWORD`
 - `ADMIN_SESSION_SECRET`
 - `CATALOG_SYNC_SECRET`
+- `CRON_SECRET`
 - Redis/AliExpress variables when supplier operations are enabled
 - `NEXT_PUBLIC_APP_URL` as the public HTTPS origin
 - analytics and Google verification variables as needed
@@ -119,6 +120,13 @@ SMOKE_BASE_URL=https://your-production-origin.example npm run smoke:production
 ```
 
 Do not use a customer payment to perform a smoke test while Daraja is sandbox/paused. Payment validation should be a separate controlled M-PESA acceptance test after live credentials and callback routing are explicitly enabled.
+
+
+### 5. AliExpress shipment tracking
+
+Paid import orders are linked to their AliExpress supplier order IDs. KijijiCart polls the AliExpress dropshipper order API for logistics status, carrier/service, and tracking numbers, stores shipment snapshots/events, and exposes the customer tracking page at `/track-order` through a tokenized order link.
+
+A Vercel cron runs the protected `/api/cron/aliexpress-tracking` endpoint every 6 hours. Configure `CRON_SECRET` in the application environment. The customer can also manually refresh tracking from the tokenized tracking page.
 
 ## First-release sequence
 
