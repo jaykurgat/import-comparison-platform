@@ -54,7 +54,7 @@ export default function ImportVariantSelector({ productId, title }: { productId:
         <div className="flex items-start gap-3">
           {selectedVariant.imageUrl && (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={selectedVariant.imageUrl} alt="" className="h-16 w-16 shrink-0 rounded-sm object-cover" />
+            <img src={selectedVariant.imageUrl} alt="" className="h-16 w-16 shrink-0 object-contain" />
           )}
           <div className="min-w-0 flex-1">
             <div className="text-[10px] font-black uppercase tracking-[0.14em] text-slate-400">Your selection</div>
@@ -120,7 +120,7 @@ export default function ImportVariantSelector({ productId, title }: { productId:
                         <img
                           src={imageUrl}
                           alt=""
-                          className="h-full w-full rounded-sm object-contain"
+                          className="h-full w-full object-contain"
                           loading="lazy"
                         />
                       ) : (
