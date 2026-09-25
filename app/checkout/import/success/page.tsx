@@ -85,7 +85,17 @@ export default function ImportCheckoutSuccessPage() {
         </h1>
         <p className="mt-4 text-sm leading-6 text-slate-600">{message}</p>
         {orderTotal !== null && <p className="mt-3 text-sm font-bold text-slate-900">Order total: {orderCurrency} {orderTotal.toLocaleString()}</p>}
-        <Link href="/products" className="mt-6 inline-flex rounded-lg bg-[#0f5132] px-5 py-3 text-sm font-bold text-white">
+        {status === 'SUBMITTED' && (
+          <Link
+            href={typeof window !== 'undefined'
+              ? '/track-order?orderId=' + encodeURIComponent(new URLSearchParams(window.location.search).get('orderId') ?? '') + '&token=' + encodeURIComponent(new URLSearchParams(window.location.search).get('token') ?? '')
+              : '/track-order'}
+            className="mt-6 inline-flex rounded-lg bg-[#0f5132] px-5 py-3 text-sm font-bold text-white"
+          >
+            Track your order
+          </Link>
+        )}
+        <Link href="/products" className="mt-3 inline-flex rounded-lg border border-slate-200 bg-white px-5 py-3 text-sm font-bold text-slate-700">
           Continue shopping
         </Link>
       </div>
