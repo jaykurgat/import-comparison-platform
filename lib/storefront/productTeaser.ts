@@ -72,12 +72,12 @@ export interface StandaloneImportSkuLike {
   currency: string
   availableStock: number
   createdAt: Date
-  freightQuotes?: Array<{ freightCost: { toString(): string } }>
   category?: { name: string } | null
   aliExpressCategory?: { name: string } | null
   importListingPrice: {
     sellPrice: { toString(): string }
     currency: string
+    freeShipping: boolean
   } | null
 }
 
@@ -90,7 +90,7 @@ export function toImportProductTeaser(skus: StandaloneImportSkuLike[]): ProductT
       sku,
       sellPrice: Number(sku.importListingPrice!.sellPrice),
       currency: sku.importListingPrice!.currency,
-      freeShipping: sku.freightQuotes?.some((quote) => Number(quote.freightCost) === 0) ?? false,
+      freeShipping: sku.importListingPrice!.freeShipping,
     }))
     .filter((item) => Number.isFinite(item.sellPrice) && item.sellPrice > 0)
 
