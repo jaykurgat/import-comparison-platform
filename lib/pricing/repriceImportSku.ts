@@ -10,6 +10,7 @@ export interface RepriceImportSkuResult {
   sellPrice: number
   markup: number
   isStale: boolean
+  freeShipping: boolean
   priceDataAsOf: Date
 }
 
@@ -72,8 +73,7 @@ export async function repriceImportSku(
 
   const fx = await getUsdToKesRate()
   const itemPriceUsd = Number(sku.itemPrice)
-  const freightUsd = Number(freight.freightCost)
-  const landedImportPrice = Math.round((itemPriceUsd + freightUsd) * fx.data)
+  const landedImportPrice = Math.round(itemPriceUsd * fx.data)
   const markup = getMarkupForLandedCost(landedImportPrice)
   const sellPrice = landedImportPrice + markup
 
@@ -81,7 +81,7 @@ export async function repriceImportSku(
     (oldest, current) => (current < oldest ? current : oldest),
   )
   const isStale =
-    freight.expiresAt <= new Date() || fx.source === 'fallback'
+    Boolean(freight && freight.expiresAt <= new Date()) || fx.source === 'fallback'
 
   await prisma.importListingPrice.upsert({
     where: { aliExpressSkuId: sku.id },
@@ -92,14 +92,14 @@ export async function repriceImportSku(
       markup,
       priceDataAsOf,
       isStale,
-      freeShipping: freightUsd === 0,
+      freeShipping: !hasShippingCost,
     },
     update: {
       landedImportPrice,
       sellPrice,
       markup,
       priceDataAsOf,
-      freeShipping: freightUsd === 0,
+      freeShipping: !hasShippingCost,
       isStale,
     },
   })
@@ -111,6 +111,7 @@ export async function repriceImportSku(
     sellPrice,
     markup,
     isStale,
+    freeShipping: !hasShippingCost,
     priceDataAsOf,
   }
 }
