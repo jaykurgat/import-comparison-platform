@@ -92,12 +92,14 @@ export async function repriceImportSku(
       markup,
       priceDataAsOf,
       isStale,
+      freeShipping: freightUsd === 0,
     },
     update: {
       landedImportPrice,
       sellPrice,
       markup,
       priceDataAsOf,
+      freeShipping: freightUsd === 0,
       isStale,
     },
   })
