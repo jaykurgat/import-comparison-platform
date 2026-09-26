@@ -1,5 +1,5 @@
 import { prisma } from '../prisma'
-import { buildProductDescription, type ProductDescriptionFeature } from './buildProductDescription'
+import { buildProductDescription, type ProductDescriptionFeature } from '../buildProductDescription'
 
 export interface ImportProductVariant {
   skuId: string
@@ -23,6 +23,7 @@ export interface ImportProductGroupPageData {
   categoryName: string | null
   categoryPath: string[]
   variants: ImportProductVariant[]
+  freeShipping: boolean
   aliExpressUrl: string
 }
 
@@ -38,6 +39,11 @@ export async function getImportProductGroupPageData(productId: string): Promise<
       category: { include: { parent: true } },
       aliExpressCategory: true,
       importListingPrice: true,
+      freightQuotes: {
+        where: { destination: 'KE', expiresAt: { gt: new Date() } },
+        orderBy: { recordedAt: 'desc' },
+        take: 1,
+      },
     },
     orderBy: [
       { color: 'asc' },
@@ -77,6 +83,7 @@ export async function getImportProductGroupPageData(productId: string): Promise<
     categoryKey: first.categoryId,
     categoryName: displayCategoryName,
     categoryPath,
+    freeShipping: priced.some((sku) => sku.freightQuotes.some((quote) => quote.freeShipping)),
     variants: priced.map((sku) => ({
       skuId: sku.skuId,
       color: sku.color,
