@@ -15,10 +15,9 @@ export interface RepriceImportSkuResult {
 }
 
 /**
- * Reprices one persisted AliExpress SKU from the latest durable product and
- * freight snapshots. Shipping is refreshed through the same freight source
- * used by the landed-price calculation, so the displayed free-shipping state
- * and the calculated selling price cannot drift apart.
+ * Reprices one persisted AliExpress SKU. Shipping is never added to the
+ * customer price; it is only reduced to one simple product flag:
+ * zero/no shipping cost = Free Shipping, positive shipping cost = not free.
  */
 export async function repriceImportSku(
   productId: string,
