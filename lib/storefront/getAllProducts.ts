@@ -59,7 +59,16 @@ export async function getAllProducts(
           importListingPrice: { isStale: false },
           matches: { none: { status: { in: ['AUTO_MATCHED', 'MANUAL_CONFIRMED'] } } },
         },
-        include: {\n          category: true,\n          aliExpressCategory: true,\n          importListingPrice: true,\n          freightQuotes: {\n            where: { destination: 'KE', expiresAt: { gt: new Date() } },\n            orderBy: { recordedAt: 'desc' },\n            take: 1,\n          },\n        },
+        include: {
+          category: true,
+          aliExpressCategory: true,
+          importListingPrice: true,
+          freightQuotes: {
+            where: { destination: 'KE', expiresAt: { gt: new Date() } },
+            orderBy: { recordedAt: 'desc' },
+            take: 1,
+          },
+        },
       })
 
   const groupedImports = new Map<string, StandaloneImportSkuLike[]>()
