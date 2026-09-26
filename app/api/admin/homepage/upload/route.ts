@@ -1,31 +1,39 @@
-import { handleUpload, type HandleUploadBody } from '@vercel/blob/client'
+import { put } from '@vercel/blob'
 import { NextResponse } from 'next/server'
 import { requireAdmin } from '@/lib/admin/auth'
 
-export async function POST(request: Request): Promise<NextResponse> {
-  const body = (await request.json()) as HandleUploadBody
+const ALLOWED_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp'])
+const MAX_SIZE = 4 * 1024 * 1024
 
+export async function POST(request: Request): Promise<NextResponse> {
   try {
-    const jsonResponse = await handleUpload({
-      body,
-      request,
-      onBeforeGenerateToken: async () => {
-        await requireAdmin()
-        return {
-          allowedContentTypes: ['image/jpeg', 'image/png', 'image/webp'],
-          addRandomSuffix: true,
-        }
-      },
-      onUploadCompleted: async ({ blob }) => {
-        console.info('Homepage hero image uploaded:', blob.url)
-      },
+    await requireAdmin()
+
+    const form = await request.formData()
+    const file = form.get('file')
+
+    if (!(file instanceof File)) {
+      return NextResponse.json({ error: 'No image file was provided.' }, { status: 400 })
+    }
+
+    if (!ALLOWED_TYPES.has(file.type)) {
+      return NextResponse.json({ error: 'Use JPG, PNG or WebP.' }, { status: 400 })
+    }
+
+    if (file.size > MAX_SIZE) {
+      return NextResponse.json({ error: 'Image must be 4 MB or smaller.' }, { status: 400 })
+    }
+
+    const blob = await put(`homepage-hero/${file.name}`, file, {
+      access: 'public',
+      addRandomSuffix: true,
     })
 
-    return NextResponse.json(jsonResponse)
+    return NextResponse.json({ url: blob.url })
   } catch (error) {
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : String(error) },
-      { status: 400 },
+      { error: error instanceof Error ? error.message : 'Image upload failed.' },
+      { status: 500 },
     )
   }
 }
