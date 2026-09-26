@@ -63,11 +63,6 @@ export async function getAllProducts(
           category: true,
           aliExpressCategory: true,
           importListingPrice: true,
-          freightQuotes: {
-            where: { destination: 'KE', expiresAt: { gt: new Date() } },
-            orderBy: { recordedAt: 'desc' },
-            take: 1,
-          },
         },
       })
 
