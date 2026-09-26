@@ -4,9 +4,9 @@ import { repriceImportSku } from '../pricing/repriceImportSku'
 /**
  * Computes and persists the standalone AliExpress selling price for one SKU.
  *
- * The pricing source of truth is repriceImportSku: shipping is never added to
- * the customer price, and its simple shipping-cost check persists the
- * ImportListingPrice.freeShipping flag used by the storefront.
+ * The pricing source of truth is repriceImportSku: item cost and shipping are
+ * combined before FX conversion and markup, and the persisted freeShipping
+ * flag is used by the storefront.
  */
 export interface ImportOnlyPriceResult {
   productId: string
