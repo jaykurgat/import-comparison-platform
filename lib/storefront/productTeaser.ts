@@ -92,8 +92,8 @@ export function toImportProductTeaser(skus: StandaloneImportSkuLike[]): ProductT
       sellPrice: Number(sku.importListingPrice!.sellPrice),
       currency: sku.importListingPrice!.currency,
       freeShipping:
-        sku.importListingPrice!.freeShipping ||
-        Number(sku.freightQuotes?.[0]?.freightCost ?? 0) <= 0,
+        !sku.freightQuotes?.length ||
+        Number(sku.freightQuotes[0].freightCost) <= 0,
     }))
     .filter((item) => Number.isFinite(item.sellPrice) && item.sellPrice > 0)
 
