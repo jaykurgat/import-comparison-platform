@@ -78,7 +78,7 @@ export async function getImportProductGroupPageData(productId: string): Promise<
     categoryKey: first.categoryId,
     categoryName: displayCategoryName,
     categoryPath,
-    freeShipping: priced.some((sku) => sku.importListingPrice?.freeShipping === true),
+    freeShipping: priced.some(\n      (sku) =>\n        sku.importListingPrice?.freeShipping === true ||\n        Number(sku.freightQuotes?.[0]?.freightCost ?? 0) <= 0,\n    ),
     variants: priced.map((sku) => ({
       skuId: sku.skuId,
       color: sku.color,
