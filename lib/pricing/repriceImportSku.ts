@@ -1,6 +1,7 @@
 import { prisma } from '../prisma'
 import { getUsdToKesRate } from '../fx/getExchangeRate'
 import { getMarkupForLandedCost } from './getMarkupForLandedCost'
+import { getAliExpressFreight } from '../aliexpress/freight'
 
 export interface RepriceImportSkuResult {
   productId: string
@@ -14,8 +15,9 @@ export interface RepriceImportSkuResult {
 
 /**
  * Reprices one persisted AliExpress SKU from the latest durable product and
- * freight snapshots. It deliberately does not invent tax/duty values:
- * estimatedTaxes remains zero until a verified destination-tax source exists.
+ * freight snapshots. Shipping is refreshed through the same freight source
+ * used by the landed-price calculation, so the displayed free-shipping state
+ * and the calculated selling price cannot drift apart.
  */
 export async function repriceImportSku(
   productId: string,
@@ -35,17 +37,30 @@ export async function repriceImportSku(
     )
   }
 
+  // Freight is an input to landed cost, so refresh it through the same
+  // freight service before reading the snapshot. Its cache keeps this cheap
+  // during repeated repricing while ensuring missing/stale freight can be
+  // populated automatically.
+  await getAliExpressFreight({
+    productId,
+    skuId,
+    shipToCountry: 'KE',
+    quantity: 1,
+    currency: sku.currency,
+  })
+
   const freight = await prisma.freightSnapshot.findFirst({
     where: {
       aliExpressSkuId: sku.id,
       destination: 'KE',
+      expiresAt: { gt: new Date() },
     },
     orderBy: { recordedAt: 'desc' },
   })
 
   if (!freight) {
     throw new Error(
-      `No Kenya freight snapshot exists for AliExpress SKU ${productId}/${skuId}.`,
+      `No current Kenya freight snapshot exists for AliExpress SKU ${productId}/${skuId}.`,
     )
   }
 
