@@ -15,9 +15,12 @@ export interface RepriceImportSkuResult {
 }
 
 /**
- * Reprices one persisted AliExpress SKU. Shipping is never added to the
- * customer price; it is only reduced to one simple product flag:
- * zero/no shipping cost = Free Shipping, positive shipping cost = not free.
+ * Reprices one persisted AliExpress SKU.
+ *
+ * The customer price includes the AliExpress item price plus the selected
+ * shipping cost. The combined USD cost is converted to KES, then the tiered
+ * markup is applied to that landed cost. Because shipping is included in the
+ * displayed selling price, imported products are presented as Free Shipping.
  */
 export async function repriceImportSku(
   productId: string,
@@ -37,11 +40,10 @@ export async function repriceImportSku(
     )
   }
 
-  // Free Shipping is a simple product property. It is determined only by the
-  // shipping amount returned by AliExpress: zero/no shipping cost = Free
-  // Shipping; a positive shipping cost = no Free Shipping label. Shipping is
-  // never added to the customer price.
-  let freeShipping = true
+  // Shipping is included in the customer's final selling price. The freight
+  // query is requested in the SKU currency (USD), so the returned freight
+  // amount is added to the item price before FX conversion and markup.
+  let shippingCostUsd = 0
   let freightAsOf = sku.updatedAt
   try {
     const freight = await getAliExpressFreight({
@@ -52,11 +54,13 @@ export async function repriceImportSku(
       currency: sku.currency,
     })
     freightAsOf = freight.asOf
-    const shippingCost = Number(freight.data.options[0]?.freightCost ?? 0)
-    freeShipping = shippingCost <= 0
+    shippingCostUsd = Number(freight.data.options[0]?.freightCost ?? 0)
+    if (!Number.isFinite(shippingCostUsd) || shippingCostUsd < 0) {
+      shippingCostUsd = 0
+    }
   } catch (error) {
-    // No shipping amount available means there is no shipping cost to display.
-    // Keep the product marked Free Shipping rather than blocking repricing.
+    // If no shipping amount is available, keep the shipping component at zero
+    // rather than blocking the import repricing operation.
     console.warn(
       `[repriceImportSku] No shipping cost available for ${productId}/${skuId}; treating as free shipping.`,
       error,
@@ -65,9 +69,11 @@ export async function repriceImportSku(
 
   const fx = await getUsdToKesRate()
   const itemPriceUsd = Number(sku.itemPrice)
-  const landedImportPrice = Math.round(itemPriceUsd * fx.data)
+  const totalImportCostUsd = itemPriceUsd + shippingCostUsd
+  const landedImportPrice = Math.round(totalImportCostUsd * fx.data)
   const markup = getMarkupForLandedCost(landedImportPrice)
   const sellPrice = landedImportPrice + markup
+  const freeShipping = true
 
   const priceDataAsOf = [sku.updatedAt, freightAsOf, fx.asOf].reduce(
     (oldest, current) => (current < oldest ? current : oldest),
