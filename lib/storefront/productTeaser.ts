@@ -14,6 +14,7 @@ export interface ProductTeaser {
   inStock: boolean
   variantCount: number
   availableVariantCount: number
+  freeShipping: boolean
   createdAt: Date
 }
 
@@ -58,6 +59,7 @@ export function toProductTeaser(localSku: LocalSkuLike, matches: MatchWithCompar
     inStock: localSku.inStock,
     variantCount: 1,
     availableVariantCount: localSku.inStock ? 1 : 0,
+    freeShipping: false,
     createdAt: localSku.createdAt,
   }
 }
@@ -70,6 +72,7 @@ export interface StandaloneImportSkuLike {
   currency: string
   availableStock: number
   createdAt: Date
+  freightQuotes?: Array<{ freeShipping: boolean }>
   category?: { name: string } | null
   aliExpressCategory?: { name: string } | null
   importListingPrice: {
@@ -112,6 +115,7 @@ export function toImportProductTeaser(skus: StandaloneImportSkuLike[]): ProductT
     inStock: availableVariantCount > 0,
     variantCount: skus.length,
     availableVariantCount,
+    freeShipping: skus.some((sku) => sku.freightQuotes?.some((quote) => quote.freeShipping) ?? false),
     createdAt: new Date(Math.max(...skus.map((sku) => sku.createdAt.getTime()))),
   }
 }
