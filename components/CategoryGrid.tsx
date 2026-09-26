@@ -35,11 +35,6 @@ export default function CategoryGrid({ categories }: { categories: StorefrontCat
                   Browse products
                 </div>
               )}
-              <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/55 to-transparent px-4 pb-3 pt-10">
-                <span className="text-[10px] font-black uppercase tracking-[0.14em] text-white/80">
-                  {category.productCount} products
-                </span>
-              </div>
             </div>
             <div className="p-4">
               <h3 className="line-clamp-2 text-sm font-extrabold leading-5 text-slate-900">{category.name}</h3>
