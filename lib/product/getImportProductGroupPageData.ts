@@ -39,6 +39,11 @@ export async function getImportProductGroupPageData(productId: string): Promise<
       category: { include: { parent: true } },
       aliExpressCategory: true,
       importListingPrice: true,
+      freightQuotes: {
+        where: { destination: 'KE', expiresAt: { gt: new Date() } },
+        orderBy: { recordedAt: 'desc' },
+        take: 1,
+      },
     },
     orderBy: [
       { color: 'asc' },
@@ -78,7 +83,11 @@ export async function getImportProductGroupPageData(productId: string): Promise<
     categoryKey: first.categoryId,
     categoryName: displayCategoryName,
     categoryPath,
-    freeShipping: priced.some(\n      (sku) =>\n        sku.importListingPrice?.freeShipping === true ||\n        Number(sku.freightQuotes?.[0]?.freightCost ?? 0) <= 0,\n    ),
+    freeShipping: priced.some(
+      (sku) =>
+        sku.importListingPrice?.freeShipping === true ||
+        Number(sku.freightQuotes?.[0]?.freightCost ?? 0) <= 0,
+    ),
     variants: priced.map((sku) => ({
       skuId: sku.skuId,
       color: sku.color,
