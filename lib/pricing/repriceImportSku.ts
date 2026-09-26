@@ -59,17 +59,11 @@ export async function repriceImportSku(
     orderBy: { recordedAt: 'desc' },
   })
 
-  if (!freight) {
-    throw new Error(
-      `No current Kenya freight snapshot exists for AliExpress SKU ${productId}/${skuId}.`,
-    )
-  }
-
-  if (freight.currency !== 'USD') {
-    throw new Error(
-      `Unsupported freight currency "${freight.currency}" — only USD is currently supported.`,
-    )
-  }
+  // Shipping is not added to the customer price. A missing shipping cost is
+  // treated as free shipping; a positive shipping cost is ignored for price
+  // calculation and suppresses the free-shipping label.
+  const freightUsd = freight ? Number(freight.freightCost) : 0
+  const hasShippingCost = freight !== null && freightUsd > 0
 
   const fx = await getUsdToKesRate()
   const itemPriceUsd = Number(sku.itemPrice)
@@ -77,11 +71,10 @@ export async function repriceImportSku(
   const markup = getMarkupForLandedCost(landedImportPrice)
   const sellPrice = landedImportPrice + markup
 
-  const priceDataAsOf = [sku.updatedAt, freight.recordedAt, fx.asOf].reduce(
+  const priceDataAsOf = [sku.updatedAt, freight?.recordedAt ?? sku.updatedAt, fx.asOf].reduce(
     (oldest, current) => (current < oldest ? current : oldest),
   )
-  const isStale =
-    Boolean(freight && freight.expiresAt <= new Date()) || fx.source === 'fallback'
+  const isStale = Boolean(freight && freight.expiresAt <= new Date()) || fx.source === 'fallback'
 
   await prisma.importListingPrice.upsert({
     where: { aliExpressSkuId: sku.id },
