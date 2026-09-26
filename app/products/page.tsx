@@ -90,6 +90,7 @@ export default async function ProductsPage({
 {category.name}
                     </Link>
                   ))}
+                  </div>
                 </div>
               )}
 
