@@ -122,6 +122,9 @@ export default async function ImportProductGroupPage({ params }: { params: Promi
                   {highPrice !== lowPrice && <div className="text-sm font-bold text-slate-400">to {currency} {highPrice.toLocaleString()}</div>}
                 </div>
                 <p className="mt-1.5 text-sm text-slate-500">Price depends on the options you choose.</p>
+                {data.freeShipping && (
+                  <p className="mt-2 text-sm font-bold text-emerald-700">Free shipping to Kenya</p>
+                )}
 
                 <div className="mt-5 rounded-xl bg-[#f7f7f3] p-3.5">
                   <div className="text-[10px] font-black uppercase tracking-wider text-slate-400">Availability</div>
