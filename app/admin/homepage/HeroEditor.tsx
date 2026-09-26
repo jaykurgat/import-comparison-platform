@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import type { HeroConfig, HeroSlide, HeroColumn } from '@/lib/homepage/hero'
 import { saveHomepageHero, resetHomepageHero } from './actions'
+import HeroImageUpload from './HeroImageUpload'
 
 const blankSlide = (): HeroSlide => ({ backgroundColor: '#e8efe9', overlayOpacity: 0, textColor: '#10241d', textAlign: 'left', verticalAlign: 'center', heading: '', description: '', imageUrl: '', buttons: [], columns: [] })
 const blankColumn = (): HeroColumn => ({ width: 1, backgroundColor: '#eef2ed', overlayOpacity: 0, imageUrl: '', heading: '', description: '', textColor: '#10241d', textAlign: 'left', verticalAlign: 'center', buttons: [] })
@@ -40,7 +41,11 @@ export default function HeroEditor({ initial }: { initial: HeroConfig }) {
 
         {slide && <div className="mt-6 border-t pt-6">
           <div className="grid gap-4 md:grid-cols-3">
-            <label className="text-sm font-bold md:col-span-2">Background image URL<input className="mt-2 w-full border p-2 font-normal" value={slide.imageUrl || ''} onChange={e => patchSlide({ imageUrl: e.target.value })} placeholder="https://..." /></label>
+            <HeroImageUpload
+              label="Background image"
+              value={slide.imageUrl || ''}
+              onChange={(imageUrl) => patchSlide({ imageUrl })}
+            />
             <label className="text-sm font-bold">Background<input className="mt-2 h-10 w-full border p-1" type="color" value={slide.backgroundColor || '#e8efe9'} onChange={e => patchSlide({ backgroundColor: e.target.value })} /></label>
             <label className="text-sm font-bold">Overlay / dimming<input className="mt-3 w-full" type="range" min="0" max="0.9" step="0.05" value={slide.overlayOpacity || 0} onChange={e => patchSlide({ overlayOpacity: Number(e.target.value) })} /></label>
             <label className="text-sm font-bold">Image position<select className="mt-2 w-full border p-2 font-normal" value={slide.imagePosition || 'center'} onChange={e => patchSlide({ imagePosition: e.target.value as HeroSlide['imagePosition'] })}><option>left</option><option>center</option><option>right</option></select></label>
@@ -63,7 +68,14 @@ export default function HeroEditor({ initial }: { initial: HeroConfig }) {
               <div className="flex items-center justify-between"><h4 className="font-black">Column {i + 1}</h4><button type="button" className="text-sm font-bold text-[#A6432D]" onClick={() => patchSlide({ columns: (slide.columns || []).filter((_,n)=>n!==i) })}>Remove</button></div>
               <div className="mt-4 grid gap-3 md:grid-cols-4">
                 <label className="text-xs font-bold">Width<input className="mt-1 w-full border p-2" type="number" min="1" max="10" value={column.width || 1} onChange={e=>patchColumn(i,{width:Number(e.target.value)})}/></label>
-                <label className="text-xs font-bold md:col-span-2">Image URL<input className="mt-1 w-full border p-2 font-normal" value={column.imageUrl || ''} onChange={e=>patchColumn(i,{imageUrl:e.target.value})}/></label>
+                <div className="md:col-span-2">
+                  <HeroImageUpload
+                    label={`Column ${i + 1} image`}
+                    value={column.imageUrl || ''}
+                    onChange={(imageUrl) => patchColumn(i, { imageUrl })}
+                    compact
+                  />
+                </div>
                 <label className="text-xs font-bold">Background<input className="mt-1 h-9 w-full border p-1" type="color" value={column.backgroundColor || '#eef2ed'} onChange={e=>patchColumn(i,{backgroundColor:e.target.value})}/></label>
                 <label className="text-xs font-bold">Overlay<input className="mt-2 w-full" type="range" min="0" max="0.9" step="0.05" value={column.overlayOpacity || 0} onChange={e=>patchColumn(i,{overlayOpacity:Number(e.target.value)})}/></label>
                 <label className="text-xs font-bold md:col-span-2">Heading<input className="mt-1 w-full border p-2 font-normal" value={column.heading || ''} onChange={e=>patchColumn(i,{heading:e.target.value})}/></label>
