@@ -379,7 +379,7 @@ model ImportListingPrice {
   sellPrice         Decimal @db.Decimal(12, 2) // landedImportPrice + tiered markup
   markup            Decimal @db.Decimal(12, 2)
   currency          String  @default("KES")
-  freeShipping      Boolean @default(true)
+  freeShipping      Boolean @default(false)
 
   priceDataAsOf DateTime
   isStale       Boolean  @default(false)
