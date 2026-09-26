@@ -79,6 +79,7 @@ export interface StandaloneImportSkuLike {
     currency: string
     freeShipping: boolean
   } | null
+  freightQuotes?: Array<{ freightCost: { toString(): string } }>
 }
 
 export function toImportProductTeaser(skus: StandaloneImportSkuLike[]): ProductTeaser | null {
@@ -90,7 +91,9 @@ export function toImportProductTeaser(skus: StandaloneImportSkuLike[]): ProductT
       sku,
       sellPrice: Number(sku.importListingPrice!.sellPrice),
       currency: sku.importListingPrice!.currency,
-      freeShipping:\n        sku.importListingPrice!.freeShipping ||\n        Number(sku.freightQuotes?.[0]?.freightCost ?? 0) <= 0,
+      freeShipping:
+        sku.importListingPrice!.freeShipping ||
+        Number(sku.freightQuotes?.[0]?.freightCost ?? 0) <= 0,
     }))
     .filter((item) => Number.isFinite(item.sellPrice) && item.sellPrice > 0)
 
