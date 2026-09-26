@@ -6,15 +6,16 @@ export async function POST(request: Request): Promise<NextResponse> {
   const body = (await request.json()) as HandleUploadBody
 
   try {
-    await requireAdmin()
-
     const jsonResponse = await handleUpload({
       body,
       request,
-      onBeforeGenerateToken: async () => ({
-        allowedContentTypes: ['image/jpeg', 'image/png', 'image/webp'],
-        addRandomSuffix: true,
-      }),
+      onBeforeGenerateToken: async () => {
+        await requireAdmin()
+        return {
+          allowedContentTypes: ['image/jpeg', 'image/png', 'image/webp'],
+          addRandomSuffix: true,
+        }
+      },
       onUploadCompleted: async ({ blob }) => {
         console.info('Homepage hero image uploaded:', blob.url)
       },
