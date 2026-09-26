@@ -4,21 +4,22 @@ import Link from 'next/link'
 import { getFeaturedProducts } from '@/lib/storefront/getFeaturedProducts'
 import { getAllProducts } from '@/lib/storefront/getAllProducts'
 import { getStorefrontCategories } from '@/lib/storefront/getCategories'
-import HeroCarousel from '@/components/HeroCarousel'
+import HomepageHero from '@/components/HomepageHero'
+import { getHomepageHero } from '@/lib/homepage/hero'
 import ProductCard from '@/components/ProductCard'
 import CategoryGrid from '@/components/CategoryGrid'
 import SiteHeader from '@/components/SiteHeader'
 import SiteFooter from '@/components/SiteFooter'
 
 export default async function HomePage() {
-  const [featured, catalog, categories, newest] = await Promise.all([
+  const [featured, catalog, categories, newest, hero] = await Promise.all([
     getFeaturedProducts(8),
     getAllProducts('', '', 'all', 'featured', 18),
     getStorefrontCategories(12),
     getAllProducts('', '', 'all', 'newest', 12),
+    getHomepageHero(),
   ])
 
-  const heroProducts = [...featured, ...catalog.filter((product) => !featured.some((item) => item.sku === product.sku))].slice(0, 5)
   const featuredProducts = [...featured, ...catalog.filter((product) => !featured.some((item) => item.sku === product.sku))].slice(0, 12)
 
   return (
@@ -26,7 +27,7 @@ export default async function HomePage() {
       <SiteHeader />
       <main className="min-h-screen bg-[#f7f7f3] text-slate-950">
         <section className="mx-auto max-w-[1440px] px-4 pt-5 sm:px-6 lg:pt-7">
-          <HeroCarousel slides={heroProducts} />
+          <HomepageHero config={hero} />
         </section>
 
         <div className="mx-auto max-w-[1440px] px-4 pb-16 sm:px-6">
