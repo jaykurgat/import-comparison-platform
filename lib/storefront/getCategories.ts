@@ -50,7 +50,7 @@ export async function getStorefrontCategories(limit = 24): Promise<StorefrontCat
     }),
     prisma.localSKU.findMany({
       where: { categoryId: { not: null } },
-      select: { categoryId: true, imageUrls: true },
+      select: { categoryId: true, imageUrls: true, sourceUrl: true, title: true },
     }),
     prisma.aliExpressSKU.findMany({
       where: {
@@ -58,7 +58,7 @@ export async function getStorefrontCategories(limit = 24): Promise<StorefrontCat
         isPublished: true,
         importListingPrice: { isStale: false },
       },
-      select: { categoryId: true, imageUrls: true },
+      select: { categoryId: true, imageUrls: true, productId: true },
     }),
   ])
 
@@ -66,8 +66,9 @@ export async function getStorefrontCategories(limit = 24): Promise<StorefrontCat
   const categoryById = new Map(categories.map((category) => [category.id, category]))
   const counts = new Map<string, number>()
   const images = new Map<string, string>()
+  const countedProducts = new Map<string, Set<string>>()
 
-  function addProduct(categoryId: string | null, imageUrls: string[]) {
+  function addProduct(categoryId: string | null, imageUrls: string[], productKey: string) {
     if (!categoryId) return
 
     let current = categoryById.get(categoryId)
@@ -77,7 +78,13 @@ export async function getStorefrontCategories(limit = 24): Promise<StorefrontCat
     while (current && !visited.has(current.id)) {
       visited.add(current.id)
       if (current.parentId === null) {
-        counts.set(current.id, (counts.get(current.id) ?? 0) + 1)
+        const key = current.id
+        const seen = countedProducts.get(key) ?? new Set<string>()
+        if (!seen.has(productKey)) {
+          seen.add(productKey)
+          countedProducts.set(key, seen)
+          counts.set(key, (counts.get(key) ?? 0) + 1)
+        }
         const image = imageUrls.find(Boolean)
         if (image && !images.has(current.id)) images.set(current.id, image)
         return
@@ -86,8 +93,13 @@ export async function getStorefrontCategories(limit = 24): Promise<StorefrontCat
     }
   }
 
-  for (const product of localProducts) addProduct(product.categoryId, product.imageUrls)
-  for (const product of importProducts) addProduct(product.categoryId, product.imageUrls)
+  for (const product of localProducts) {
+    const productKey = `local:${product.sourceUrl?.trim() || product.title.trim().toLowerCase()}`
+    addProduct(product.categoryId, product.imageUrls, productKey)
+  }
+  for (const product of importProducts) {
+    addProduct(product.categoryId, product.imageUrls, `supplier:${product.productId}`)
+  }
 
   return roots
     .filter((category) => (counts.get(category.id) ?? 0) > 0)
