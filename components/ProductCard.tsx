@@ -27,6 +27,10 @@ export default function ProductCard({ product }: { product: ProductTeaser }) {
               </span>
             </div>
 
+            {product.freeShipping && (
+              <p className="mt-2 text-xs font-bold text-emerald-700">Free shipping</p>
+            )}
+
             <div className="mt-3 flex items-center justify-between border-t border-slate-100 pt-3 text-xs font-bold text-slate-400 transition group-hover:text-[#123f2b]">
               <span>
                 {product.variantCount > 1
