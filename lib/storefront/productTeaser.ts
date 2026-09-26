@@ -90,6 +90,7 @@ export function toImportProductTeaser(skus: StandaloneImportSkuLike[]): ProductT
       sku,
       sellPrice: Number(sku.importListingPrice!.sellPrice),
       currency: sku.importListingPrice!.currency,
+      freeShipping: sku.freightQuotes?.some((quote) => Number(quote.freightCost) === 0) ?? false,
     }))
     .filter((item) => Number.isFinite(item.sellPrice) && item.sellPrice > 0)
 
@@ -115,7 +116,7 @@ export function toImportProductTeaser(skus: StandaloneImportSkuLike[]): ProductT
     inStock: availableVariantCount > 0,
     variantCount: skus.length,
     availableVariantCount,
-    freeShipping: skus.some((sku) => sku.freightQuotes?.some((quote) => Number(quote.freightCost) === 0) ?? false),
+    freeShipping: lowest.freeShipping,
     createdAt: new Date(Math.max(...skus.map((sku) => sku.createdAt.getTime()))),
   }
 }
