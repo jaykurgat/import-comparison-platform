@@ -71,17 +71,23 @@ export async function getAliExpressFreight({
       }
 
       const rawOptions = result.delivery_options?.delivery_option_d_t_o ?? []
-      const options: MappedFreightOption[] = rawOptions.map((opt) => ({
-        code: opt.code,
-        freeShipping: opt.free_shipping,
-        freightCost: opt.free_shipping ? 0 : Number(opt.shipping_fee_cent ?? 0),
-        currency: opt.shipping_fee_currency ?? currency,
-        minDays: opt.min_delivery_days,
-        maxDays: opt.max_delivery_days,
-        company: opt.company,
-        shipFromCountry: opt.ship_from_country,
-        tracking: opt.tracking,
-      }))
+      const options: MappedFreightOption[] = rawOptions.map((opt) => {
+        // Free shipping is determined directly from the shipping amount used
+        // by landed-price calculation: zero means free, anything above zero is paid.
+        const shippingCost = Number(opt.shipping_fee_cent ?? 0)
+
+        return {
+          code: opt.code,
+          freeShipping: shippingCost === 0,
+          freightCost: shippingCost,
+          currency: opt.shipping_fee_currency ?? currency,
+          minDays: opt.min_delivery_days,
+          maxDays: opt.max_delivery_days,
+          company: opt.company,
+          shipFromCountry: opt.ship_from_country,
+          tracking: opt.tracking,
+        }
+      })
 
       return { destination: shipToCountry, options: selectPreferredFreightOptions(options) }
     },
@@ -102,7 +108,7 @@ function selectPreferredFreightOptions(options: MappedFreightOption[]): MappedFr
   )
   if (valid.length === 0) return []
 
-  const free = valid.filter((option) => option.freeShipping || option.freightCost === 0)
+  const free = valid.filter((option) => option.freightCost === 0)
   const pool = free.length > 0 ? free : valid
   return [...pool].sort((a, b) => a.freightCost - b.freightCost)
 }
