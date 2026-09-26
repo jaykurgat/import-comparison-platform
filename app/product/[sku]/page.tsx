@@ -72,7 +72,8 @@ export default async function ProductPage({ params }: { params: Promise<{ sku: s
 
       <main className="min-h-screen bg-[#f7f7f3] text-slate-950">
         <div className="mx-auto max-w-[1440px] px-4 py-6 sm:px-6 lg:py-9">
-          <div className="sticky top-[215px] z-30 -mx-4 mb-5 border-b border-slate-200 bg-[#f7f7f3]/95 px-4 py-3 text-xs text-slate-500 backdrop-blur sm:-mx-6 sm:px-6 md:top-[145px]">
+          <div className="sticky top-[215px] z-30 -mx-4 mb-5 max-w-[100vw] min-w-0 overflow-x-auto border-b border-slate-200 bg-[#f7f7f3]/95 px-4 py-3 text-xs text-slate-500 backdrop-blur sm:-mx-6 sm:px-6 md:top-[145px]">
+            <div className="flex min-w-max items-center gap-2 whitespace-nowrap">
             <Link href="/products" className="font-bold text-emerald-800 hover:underline">Products</Link>
             {local.categoryName && (
               <>
@@ -81,7 +82,8 @@ export default async function ProductPage({ params }: { params: Promise<{ sku: s
               </>
             )}
             <span>/</span>
-            <span className="truncate">{local.title}</span>
+            <span className="max-w-[55vw] overflow-hidden text-ellipsis">{local.title}</span>
+            </div>
           </div>
 
           <div className="grid items-start gap-8 lg:grid-cols-[1.2fr_.8fr] xl:grid-cols-[1.25fr_.75fr]">
