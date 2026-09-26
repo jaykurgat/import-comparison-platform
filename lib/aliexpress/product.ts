@@ -5,6 +5,7 @@ import { resolveCanonicalCategory } from '../categories/resolveCanonicalCategory
 import { withCache, type CacheResult } from '../cache/withCache'
 import { callAliExpressSync, getAliExpressCredentials } from './client'
 import { mapProductResult, type MappedAliExpressProduct } from './mappers'
+import { getAliExpressFreight } from './freight'
 import type { AliExpressProductGetResponse } from './types'
 
 const PRODUCT_TTL_SECONDS = 18 * 60 * 60
@@ -40,7 +41,10 @@ export async function getAliExpressProduct(
 
     fetchFallback: async () => fetchProductFallback(productId),
 
-    persistFresh: async (data) => persistProduct(data),
+    persistFresh: async (data) => {
+      await persistProduct(data)
+      await refreshProductFreight(data, shipToCountry)
+    },
   })
 }
 
@@ -189,5 +193,31 @@ async function persistProduct(data: MappedAliExpressProduct): Promise<void> {
         itemPrice: sku.itemPrice,
       },
     })
+  }
+}
+
+
+async function refreshProductFreight(
+  data: MappedAliExpressProduct,
+  shipToCountry: string,
+): Promise<void> {
+  const results = await Promise.allSettled(
+    data.skus.map((sku) =>
+      getAliExpressFreight({
+        productId: data.productId,
+        skuId: sku.skuId,
+        shipToCountry,
+        quantity: 1,
+        currency: sku.currency,
+      }),
+    ),
+  )
+
+  const failures = results.filter((result): result is PromiseRejectedResult => result.status === 'rejected')
+  if (failures.length > 0) {
+    console.warn(
+      `[AliExpress] Freight refresh completed with ${failures.length}/${data.skus.length} failures for product ${data.productId}.`,
+      failures[0].reason,
+    )
   }
 }
