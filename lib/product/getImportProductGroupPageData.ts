@@ -85,8 +85,8 @@ export async function getImportProductGroupPageData(productId: string): Promise<
     categoryPath,
     freeShipping: priced.some(
       (sku) =>
-        sku.importListingPrice?.freeShipping === true ||
-        Number(sku.freightQuotes?.[0]?.freightCost ?? 0) <= 0,
+        !sku.freightQuotes?.length ||
+        Number(sku.freightQuotes[0].freightCost) <= 0,
     ),
     variants: priced.map((sku) => ({
       skuId: sku.skuId,
