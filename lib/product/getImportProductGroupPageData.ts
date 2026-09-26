@@ -1,5 +1,5 @@
 import { prisma } from '../prisma'
-import { buildProductDescription, type ProductDescriptionFeature } from '../buildProductDescription'
+import { buildProductDescription, type ProductDescriptionFeature } from './buildProductDescription'
 
 export interface ImportProductVariant {
   skuId: string
