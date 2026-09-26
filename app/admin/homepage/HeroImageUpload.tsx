@@ -1,6 +1,5 @@
 'use client'
 
-import { upload } from '@vercel/blob/client'
 import { useRef, useState } from 'react'
 
 type HeroImageUploadProps = {
@@ -28,17 +27,27 @@ export default function HeroImageUpload({
       return
     }
 
+    if (file.size > 4 * 1024 * 1024) {
+      setError('Image must be 4 MB or smaller.')
+      return
+    }
+
     setUploading(true)
     try {
-      const blob = await upload(
-        `homepage-hero/${file.name}`,
-        file,
-        {
-          access: 'public',
-          handleUploadUrl: '/api/admin/homepage/upload',
-        },
-      )
-      onChange(blob.url)
+      const formData = new FormData()
+      formData.append('file', file)
+
+      const response = await fetch('/api/admin/homepage/upload', {
+        method: 'POST',
+        body: formData,
+      })
+      const result = await response.json()
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Image upload failed.')
+      }
+
+      onChange(result.url)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Image upload failed.')
     } finally {
