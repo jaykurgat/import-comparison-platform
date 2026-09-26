@@ -38,32 +38,31 @@ export async function repriceImportSku(
     )
   }
 
-  // Freight is an input to landed cost, so refresh it through the same
-  // freight service before reading the snapshot. Its cache keeps this cheap
-  // during repeated repricing while ensuring missing/stale freight can be
-  // populated automatically.
-  await getAliExpressFreight({
-    productId,
-    skuId,
-    shipToCountry: 'KE',
-    quantity: 1,
-    currency: sku.currency,
-  })
-
-  const freight = await prisma.freightSnapshot.findFirst({
-    where: {
-      aliExpressSkuId: sku.id,
-      destination: 'KE',
-      expiresAt: { gt: new Date() },
-    },
-    orderBy: { recordedAt: 'desc' },
-  })
-
-  // Shipping is not added to the customer price. A missing shipping cost is
-  // treated as free shipping; a positive shipping cost is ignored for price
-  // calculation and suppresses the free-shipping label.
-  const freightUsd = freight ? Number(freight.freightCost) : 0
-  const hasShippingCost = freight !== null && freightUsd > 0
+  // Free Shipping is a simple product property. It is determined only by the
+  // shipping amount returned by AliExpress: zero/no shipping cost = Free
+  // Shipping; a positive shipping cost = no Free Shipping label. Shipping is
+  // never added to the customer price.
+  let freeShipping = true
+  let freightAsOf = sku.updatedAt
+  try {
+    const freight = await getAliExpressFreight({
+      productId,
+      skuId,
+      shipToCountry: 'KE',
+      quantity: 1,
+      currency: sku.currency,
+    })
+    freightAsOf = freight.asOf
+    const shippingCost = Number(freight.data.options[0]?.freightCost ?? 0)
+    freeShipping = shippingCost <= 0
+  } catch (error) {
+    // No shipping amount available means there is no shipping cost to display.
+    // Keep the product marked Free Shipping rather than blocking repricing.
+    console.warn(
+      `[repriceImportSku] No shipping cost available for ${productId}/${skuId}; treating as free shipping.`,
+      error,
+    )
+  }
 
   const fx = await getUsdToKesRate()
   const itemPriceUsd = Number(sku.itemPrice)
@@ -71,10 +70,10 @@ export async function repriceImportSku(
   const markup = getMarkupForLandedCost(landedImportPrice)
   const sellPrice = landedImportPrice + markup
 
-  const priceDataAsOf = [sku.updatedAt, freight?.recordedAt ?? sku.updatedAt, fx.asOf].reduce(
+  const priceDataAsOf = [sku.updatedAt, freightAsOf, fx.asOf].reduce(
     (oldest, current) => (current < oldest ? current : oldest),
   )
-  const isStale = Boolean(freight && freight.expiresAt <= new Date()) || fx.source === 'fallback'
+  const isStale = fx.source === 'fallback'
 
   await prisma.importListingPrice.upsert({
     where: { aliExpressSkuId: sku.id },
@@ -85,14 +84,14 @@ export async function repriceImportSku(
       markup,
       priceDataAsOf,
       isStale,
-      freeShipping: !hasShippingCost,
+      freeShipping,
     },
     update: {
       landedImportPrice,
       sellPrice,
       markup,
       priceDataAsOf,
-      freeShipping: !hasShippingCost,
+      freeShipping,
       isStale,
     },
   })
@@ -104,7 +103,7 @@ export async function repriceImportSku(
     sellPrice,
     markup,
     isStale,
-    freeShipping: !hasShippingCost,
+    freeShipping,
     priceDataAsOf,
   }
 }
