@@ -72,7 +72,7 @@ export interface StandaloneImportSkuLike {
   currency: string
   availableStock: number
   createdAt: Date
-  freightQuotes?: Array<{ freeShipping: boolean }>
+  freightQuotes?: Array<{ freightCost: { toString(): string } }>
   category?: { name: string } | null
   aliExpressCategory?: { name: string } | null
   importListingPrice: {
@@ -115,7 +115,7 @@ export function toImportProductTeaser(skus: StandaloneImportSkuLike[]): ProductT
     inStock: availableVariantCount > 0,
     variantCount: skus.length,
     availableVariantCount,
-    freeShipping: skus.some((sku) => sku.freightQuotes?.some((quote) => quote.freeShipping) ?? false),
+    freeShipping: skus.some((sku) => sku.freightQuotes?.some((quote) => Number(quote.freightCost) === 0) ?? false),
     createdAt: new Date(Math.max(...skus.map((sku) => sku.createdAt.getTime()))),
   }
 }
