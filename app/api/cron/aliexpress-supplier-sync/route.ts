@@ -1,3 +1,5 @@
+import { revalidatePath } from 'next/cache'
+import { redis } from '@/lib/redis/client'
 import { synchronizeAliExpressSupplierCatalog } from '@/lib/aliexpress/supplierSynchronizer'
 
 export const runtime = 'nodejs'
@@ -10,8 +12,21 @@ export async function GET(request: Request) {
     return new Response('Unauthorized', { status: 401 })
   }
 
+  const lockKey = 'lock:cron:aliexpress-supplier-sync'
+  const lockToken = crypto.randomUUID()
+  const gotLock = await redis.set(lockKey, lockToken, { nx: true, ex: 10 * 60 })
+
+  if (!gotLock) {
+    return Response.json({ ok: true, skipped: true, reason: 'Another supplier sync is already running.' })
+  }
+
   try {
     const summary = await synchronizeAliExpressSupplierCatalog()
+
+    if (summary.repricedSkus > 0 || summary.changedSkus > 0) {
+      revalidatePath('/products')
+      revalidatePath('/')
+    }
 
     if (summary.failedProducts > 0) {
       console.error('[AliExpress supplier sync] Completed with failures.', summary)
