@@ -3,46 +3,93 @@ export const dynamic = 'force-dynamic'
 import { getImportCatalog } from '@/lib/admin/getImportCatalog'
 import { requireAdmin } from '@/lib/admin/auth'
 import { logoutAdmin } from '../actions'
-import { runCatalogReprice, runCatalogSync, runManualSupplierPriceUpdate, getManualSupplierPriceUpdateTotal } from './actions'
+import {
+  runCatalogReprice,
+  runCatalogSync,
+  runManualSupplierPriceUpdate,
+  getManualSupplierPriceUpdateTotal,
+} from './actions'
 import { PublishToggle } from './PublishToggle'
 import { BatchPriceUpdateButton } from './BatchPriceUpdateButton'
 import { SyncButton } from './SyncButton'
 
-export default async function CatalogAdminPage() {
+const PAGE_SIZES = [20, 30, 50]
+
+export default async function CatalogAdminPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ page?: string; pageSize?: string }>
+}) {
   await requireAdmin()
-  const catalog = await getImportCatalog()
+
+  const params = await searchParams
+  const page = Math.max(1, Number.parseInt(params.page ?? '1', 10) || 1)
+  const pageSize = PAGE_SIZES.includes(Number.parseInt(params.pageSize ?? '30', 10))
+    ? Number.parseInt(params.pageSize ?? '30', 10)
+    : 30
+
+  const catalog = await getImportCatalog(page, pageSize)
+
+  function pageHref(nextPage: number, nextPageSize = catalog.pageSize) {
+    return `/admin/catalog?page=${nextPage}&pageSize=${nextPageSize}`
+  }
 
   return (
     <main className="min-h-screen bg-[#F7F7F5] px-6 py-10 text-[#1C1C1E]">
       <div className="mx-auto max-w-7xl">
-        <div className="flex flex-col gap-4 border-b border-[#E3E3DF] pb-6 md:flex-row md:items-end md:justify-between">
-          <div>
-            <h1 className="text-2xl font-semibold tracking-tight">Supplier Catalog</h1>
-            <p className="mt-1 text-sm text-[#6B6B6E]">
-              {catalog.length} persisted supplier SKU{catalog.length === 1 ? '' : 's'}.
-              Supplier stock is synchronized from AliExpress and is not manually overridden here.
-            </p>
+        <div className="border-b border-[#E3E3DF] pb-6">
+          <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+            <div>
+              <h1 className="text-2xl font-semibold tracking-tight">Supplier Catalog</h1>
+              <p className="mt-1 text-sm text-[#6B6B6E]">
+                {catalog.total.toLocaleString()} supplier SKU{catalog.total === 1 ? '' : 's'}.
+                Showing {catalog.rows.length ? (catalog.page - 1) * catalog.pageSize + 1 : 0}–
+                {(catalog.page - 1) * catalog.pageSize + catalog.rows.length}.
+              </p>
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+              <a href="/admin/catalog/add" className="rounded bg-[#123F2B] px-4 py-2 text-sm font-bold text-white hover:bg-[#0D3021]">
+                Add AliExpress product
+              </a>
+              <SyncButton action={runCatalogSync} label="Sync supplier catalog" />
+              <SyncButton action={runCatalogReprice} label="Reprice catalog" />
+              <form action={logoutAdmin}>
+                <button type="submit" className="rounded border border-[#D8D8D3] px-4 py-2 text-sm font-medium hover:bg-[#F7F7F5]">
+                  Sign out
+                </button>
+              </form>
+            </div>
           </div>
-          <div className="flex flex-wrap items-center gap-2">
-            <a href="/admin/catalog/add" className="rounded bg-[#123F2B] px-4 py-2 text-sm font-bold text-white hover:bg-[#0D3021]">
-              Add AliExpress product
-            </a>
-            <SyncButton action={runCatalogSync} label="Sync supplier catalog" />
-            <SyncButton action={runCatalogReprice} label="Reprice catalog" />
-            <BatchPriceUpdateButton action={runManualSupplierPriceUpdate} totalAction={getManualSupplierPriceUpdateTotal} />
-            <form action={logoutAdmin}>
-              <button type="submit" className="rounded border border-[#D8D8D3] px-4 py-2 text-sm font-medium hover:bg-[#F7F7F5]">
-                Sign out
-              </button>
-            </form>
+
+          <div className="mt-4">
+            <BatchPriceUpdateButton
+              action={runManualSupplierPriceUpdate}
+              totalAction={getManualSupplierPriceUpdateTotal}
+            />
           </div>
         </div>
 
-        <div className="mb-4 flex flex-wrap gap-2">
-          <a href="/admin" className="rounded border border-[#D8D8D3] bg-white px-4 py-2 text-sm font-medium hover:bg-[#F7F7F5]">Dashboard</a>
-          <a href="/admin/health" className="rounded border border-[#D8D8D3] bg-white px-4 py-2 text-sm font-medium hover:bg-[#F7F7F5]">Health</a>
+        <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+          <div className="flex flex-wrap gap-2">
+            <a href="/admin" className="rounded border border-[#D8D8D3] bg-white px-4 py-2 text-sm font-medium hover:bg-[#F7F7F5]">Dashboard</a>
+            <a href="/admin/health" className="rounded border border-[#D8D8D3] bg-white px-4 py-2 text-sm font-medium hover:bg-[#F7F7F5]">Health</a>
+          </div>
+
+          <div className="flex items-center gap-2 text-sm">
+            <span className="text-[#6B6B6E]">Rows:</span>
+            {PAGE_SIZES.map((size) => (
+              <a
+                key={size}
+                href={pageHref(1, size)}
+                className={`border px-3 py-1.5 text-sm font-medium ${catalog.pageSize === size ? 'border-[#123F2B] bg-[#123F2B] text-white' : 'border-[#D8D8D3] bg-white hover:bg-[#F7F7F5]'}`}
+              >
+                {size}
+              </a>
+            ))}
+          </div>
         </div>
-        <div className="mt-6 overflow-x-auto rounded-lg border border-[#E3E3DF] bg-white">
+
+        <div className="mt-4 overflow-x-auto rounded-lg border border-[#E3E3DF] bg-white">
           <table className="w-full min-w-[980px] text-sm">
             <thead className="border-b border-[#E3E3DF] bg-[#FAFAF9] text-left text-xs uppercase tracking-wide text-[#8A8A8E]">
               <tr>
@@ -57,7 +104,7 @@ export default async function CatalogAdminPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-[#E3E3DF]">
-              {catalog.map((item) => (
+              {catalog.rows.map((item) => (
                 <tr key={item.id} className="align-middle">
                   <td className="px-4 py-4">
                     <div className="flex items-center gap-3">
@@ -99,20 +146,22 @@ export default async function CatalogAdminPage() {
                         <span className={item.price.isStale ? 'font-medium text-[#A6432D]' : 'text-[#2F6B4F]'}>
                           {item.price.isStale ? 'Stale' : 'Current'}
                         </span>
-                        <div className="mt-1 text-xs text-[#8A8A8E]">
-                          {item.price.priceDataAsOf.toLocaleString()}
-                        </div>
+                        <div className="mt-1 text-xs text-[#8A8A8E]">{item.price.priceDataAsOf.toLocaleString()}</div>
                       </div>
                     ) : (
                       <span className="text-[#8A8A8E]">Not priced</span>
                     )}
                   </td>
                   <td className="px-4 py-4">
-                    <PublishToggle id={item.id} published={item.isPublished} canPublish={Boolean(item.price) && !item.price?.isStale && Boolean(item.title.trim()) && Boolean(item.imageUrl)} />
+                    <PublishToggle
+                      id={item.id}
+                      published={item.isPublished}
+                      canPublish={Boolean(item.price) && !item.price?.isStale && Boolean(item.title.trim()) && Boolean(item.imageUrl)}
+                    />
                   </td>
                 </tr>
               ))}
-              {catalog.length === 0 && (
+              {catalog.rows.length === 0 && (
                 <tr>
                   <td colSpan={8} className="px-4 py-12 text-center text-[#6B6B6E]">
                     No supplier products yet. Run a catalog sync after local products have been ingested.
@@ -122,6 +171,45 @@ export default async function CatalogAdminPage() {
             </tbody>
           </table>
         </div>
+
+        {catalog.totalPages > 1 && (
+          <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+            <div className="text-sm text-[#6B6B6E]">
+              Page {catalog.page} of {catalog.totalPages}
+            </div>
+            <div className="flex flex-wrap items-center gap-1">
+              <a
+                href={pageHref(Math.max(1, catalog.page - 1))}
+                aria-disabled={catalog.page === 1}
+                className={catalog.page === 1 ? 'pointer-events-none border border-[#E3E3DF] px-3 py-1.5 text-sm text-[#B8B8B4]' : 'border border-[#D8D8D3] bg-white px-3 py-1.5 text-sm hover:bg-[#F7F7F5]'}
+              >
+                Previous
+              </a>
+              {Array.from({ length: Math.min(7, catalog.totalPages) }, (_, index) => {
+                const start = Math.min(
+                  Math.max(1, catalog.page - 3),
+                  Math.max(1, catalog.totalPages - 6),
+                )
+                return start + index
+              }).filter((value) => value <= catalog.totalPages).map((value) => (
+                <a
+                  key={value}
+                  href={pageHref(value)}
+                  className={value === catalog.page ? 'border border-[#123F2B] bg-[#123F2B] px-3 py-1.5 text-sm font-medium text-white' : 'border border-[#D8D8D3] bg-white px-3 py-1.5 text-sm hover:bg-[#F7F7F5]'}
+                >
+                  {value}
+                </a>
+              ))}
+              <a
+                href={pageHref(Math.min(catalog.totalPages, catalog.page + 1))}
+                aria-disabled={catalog.page === catalog.totalPages}
+                className={catalog.page === catalog.totalPages ? 'pointer-events-none border border-[#E3E3DF] px-3 py-1.5 text-sm text-[#B8B8B4]' : 'border border-[#D8D8D3] bg-white px-3 py-1.5 text-sm hover:bg-[#F7F7F5]'}
+              >
+                Next
+              </a>
+            </div>
+          </div>
+        )}
       </div>
     </main>
   )
