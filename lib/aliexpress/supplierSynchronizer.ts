@@ -47,11 +47,9 @@ async function mapWithConcurrency<T>(
 /**
  * Refreshes the oldest-synced published AliExpress products first.
  *
- * The cron runs repeatedly throughout the day in 100-product batches. Because
- * candidates are ordered by lastSupplierSyncAt, the next invocation continues
- * from the products that have gone the longest without a supplier refresh.
- * Once the catalogue is exhausted, the cycle starts again with the oldest
- * refreshed products.
+ * Candidates are ordered by lastSupplierSyncAt so repeated small batches continue
+ * from products that have gone the longest without a supplier refresh. A `before`
+ * cutoff can be supplied for a bounded manual pass over the catalogue.
  */
 export async function synchronizeAliExpressSupplierCatalog(
   options: SupplierSyncOptions = {},
@@ -158,7 +156,7 @@ export async function synchronizeAliExpressSupplierCatalog(
         error: `${productId}: ${error instanceof Error ? error.message : String(error)}`,
       }
     }
-  })
+  }, concurrency)
 
   const errors = results.flatMap((result) => (result.error ? [result.error] : []))
 
