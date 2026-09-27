@@ -51,6 +51,8 @@ export default function CheckoutPage() {
 
   if (items.length === 0) return <main className="min-h-screen bg-[#f7f7f3] p-8 text-center"><h1 className="text-2xl font-black">Your cart is empty</h1><Link href="/products" className="mt-4 inline-flex font-bold text-emerald-800">Shop products</Link></main>
 
+  const hasImportedItems = items.some((item) => item.kind === 'import')
+
   return (
     <main className="min-h-screen bg-[#f7f7f3] text-slate-950">
       <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
@@ -60,6 +62,7 @@ export default function CheckoutPage() {
             <p className="text-xs font-black uppercase tracking-[0.18em] text-emerald-700">Checkout</p>
             <h1 className="mt-2 text-3xl font-black">Delivery details</h1>
             <p className="mt-2 text-sm text-slate-500">Review your order, enter your delivery details, then continue to secure payment.</p>
+            {hasImportedItems && <p className="mt-2 text-[11px] leading-4 text-slate-400">Imported items are estimated to arrive within 14–45 days. Delivery times may vary.</p>}
             <form className="mt-6 grid gap-3" onSubmit={(e)=>{e.preventDefault();void submit(e.currentTarget)}}>
               <input name="fullName" required placeholder="Full name" autoComplete="name" className="border border-slate-200 px-3.5 py-3 text-sm outline-none focus:border-[#123f2b]" />
               <input name="email" required type="email" placeholder="Email address" autoComplete="email" className="border border-slate-200 px-3.5 py-3 text-sm outline-none focus:border-[#123f2b]" />
