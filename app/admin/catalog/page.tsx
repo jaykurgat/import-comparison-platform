@@ -18,7 +18,7 @@ const PAGE_SIZES = [20, 30, 50]
 export default async function CatalogAdminPage({
   searchParams,
 }: {
-  searchParams: Promise<{ page?: string; pageSize?: string }>
+  searchParams: Promise<{ page?: string; pageSize?: string; search?: string }>
 }) {
   await requireAdmin()
 
@@ -27,11 +27,17 @@ export default async function CatalogAdminPage({
   const pageSize = PAGE_SIZES.includes(Number.parseInt(params.pageSize ?? '30', 10))
     ? Number.parseInt(params.pageSize ?? '30', 10)
     : 30
+  const search = params.search?.trim() ?? ''
 
-  const catalog = await getImportCatalog(page, pageSize)
+  const catalog = await getImportCatalog(page, pageSize, search)
 
   function pageHref(nextPage: number, nextPageSize = catalog.pageSize) {
-    return `/admin/catalog?page=${nextPage}&pageSize=${nextPageSize}`
+    const query = new URLSearchParams({
+      page: String(nextPage),
+      pageSize: String(nextPageSize),
+    })
+    if (search) query.set('search', search)
+    return `/admin/catalog?${query.toString()}`
   }
 
   return (
@@ -69,7 +75,34 @@ export default async function CatalogAdminPage({
           </div>
         </div>
 
-        <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+        <div className="mt-4 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+          <form method="get" className="flex w-full max-w-2xl items-center gap-2">
+            <input type="hidden" name="pageSize" value={String(catalog.pageSize)} />
+            <input
+              type="search"
+              name="search"
+              defaultValue={search}
+              placeholder="Search by product name, SKU, or AliExpress ID"
+              aria-label="Search supplier catalog"
+              className="min-w-0 flex-1 border border-[#D8D8D3] bg-white px-3 py-2 text-sm outline-none transition placeholder:text-[#A0A09B] hover:border-[#F5A400] focus:border-[#123F2B] focus:ring-2 focus:ring-[#F5A400]/30"
+            />
+            <button
+              type="submit"
+              className="border border-[#123F2B] bg-[#123F2B] px-4 py-2 text-sm font-semibold text-white hover:bg-[#0D3021]"
+            >
+              Search
+            </button>
+            {search && (
+              <a
+                href={pageHref(1)}
+                className="border border-[#D8D8D3] bg-white px-4 py-2 text-sm font-medium hover:border-[#F5A400] hover:bg-[#FFF4D6]"
+              >
+                Clear
+              </a>
+            )}
+          </form>
+
+          <div className="flex flex-wrap items-center justify-between gap-3 lg:justify-end">
           <div className="flex flex-wrap gap-2">
             <a href="/admin" className="rounded border border-[#D8D8D3] bg-white px-4 py-2 text-sm font-medium hover:bg-[#F7F7F5]">Dashboard</a>
             <a href="/admin/health" className="rounded border border-[#D8D8D3] bg-white px-4 py-2 text-sm font-medium hover:bg-[#F7F7F5]">Health</a>
@@ -86,6 +119,7 @@ export default async function CatalogAdminPage({
                 {size}
               </a>
             ))}
+          </div>
           </div>
         </div>
 
@@ -164,7 +198,9 @@ export default async function CatalogAdminPage({
               {catalog.rows.length === 0 && (
                 <tr>
                   <td colSpan={8} className="px-4 py-12 text-center text-[#6B6B6E]">
-                    No supplier products yet. Run a catalog sync after local products have been ingested.
+                    {search
+                      ? `No supplier products match “${search}”.`
+                      : 'No supplier products yet. Run a catalog sync after local products have been ingested.'}
                   </td>
                 </tr>
               )}
