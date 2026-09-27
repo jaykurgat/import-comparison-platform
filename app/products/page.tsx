@@ -66,7 +66,7 @@ export default async function ProductsPage({
                   </h1>
 
                 </div>
-                <Link href="/" className="text-sm font-bold text-white/80 hover:text-white">← Home</Link>
+                <Link href="/" className="rounded-sm px-2 py-1 text-sm font-bold text-white/80 transition hover:bg-white/10 hover:text-[#f5a400] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f5a400]/70">← Home</Link>
               </div>
             </div>
 
@@ -76,7 +76,7 @@ export default async function ProductsPage({
                   <div className="flex max-w-full gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
                   <Link
                     href={{ pathname: '/products', query: { ...(query ? { q: query } : {}), ...(sort !== 'featured' ? { sort } : {}) } }}
-                    className={'whitespace-nowrap rounded-full px-4 py-2 text-xs font-bold ' + (!categoryId ? 'bg-[#0f5132] text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200')}
+                    className={'whitespace-nowrap rounded-full border px-4 py-2 text-xs font-bold transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f5a400]/60 ' + (!categoryId ? 'border-[#123f2b] bg-[#123f2b] text-white shadow-sm' : 'border-[#dfe4df] bg-[#f7f7f3] text-[#345447] hover:border-[#f5a400] hover:bg-[#fff4d6] hover:text-[#123f2b] hover:shadow-[0_2px_10px_rgba(245,164,0,0.16)]')}
                   >
                     All categories
                   </Link>
@@ -85,7 +85,7 @@ export default async function ProductsPage({
                     <Link
                       key={category.id}
                       href={{ pathname: '/products', query: { ...(query ? { q: query } : {}), category: category.id, ...(sort !== 'featured' ? { sort } : {}) } }}
-                      className={'whitespace-nowrap rounded-full px-4 py-2 text-xs font-bold ' + (category.id === categoryId ? 'bg-[#0f5132] text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200')}
+                      className={'whitespace-nowrap rounded-full border px-4 py-2 text-xs font-bold transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f5a400]/60 ' + (category.id === categoryId ? 'border-[#123f2b] bg-[#123f2b] text-white shadow-sm' : 'border-[#dfe4df] bg-[#f7f7f3] text-[#345447] hover:border-[#f5a400] hover:bg-[#fff4d6] hover:text-[#123f2b] hover:shadow-[0_2px_10px_rgba(245,164,0,0.16)]')}
                     >
 {category.name}
                     </Link>
@@ -106,7 +106,7 @@ export default async function ProductsPage({
                 {query || categoryId ? 'Try a different search or category.' : 'Products will appear here once they are published.'}
               </p>
               {(query || categoryId) && (
-                <Link href="/products" className="mt-5 inline-flex rounded-xl bg-[#0f5132] px-5 py-2.5 text-sm font-bold text-white">Clear filters</Link>
+                <Link href="/products" className="mt-5 inline-flex rounded-xl border border-[#123f2b] bg-[#123f2b] px-5 py-2.5 text-sm font-bold text-white transition-all duration-200 hover:border-[#f5a400] hover:bg-[#f5a400] hover:text-[#123f2b] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f5a400]/60">Clear filters</Link>
               )}
             </div>
           ) : (
