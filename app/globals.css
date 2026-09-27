@@ -55,3 +55,14 @@ select:focus-visible {
 input::placeholder {
   color: #9a9b98;
 }
+
+
+@keyframes supplier-progress-shimmer {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(300%); }
+}
+
+.supplier-progress-shimmer {
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.42), transparent);
+  animation: supplier-progress-shimmer 1.2s linear infinite;
+}
