@@ -47,7 +47,7 @@ export default async function SiteHeader() {
 
       <nav className="border-t border-slate-100 bg-white" aria-label="Product categories">
         <div className="mx-auto flex max-w-[1440px] gap-7 overflow-x-auto px-4 py-3 sm:px-6">
-          <Link href="/products" className="whitespace-nowrap rounded-sm px-2 py-1 text-xs font-bold text-slate-600 transition hover:bg-[#fff4d6] hover:text-[#123f2b] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f5a400]/60">All products</Link>
+          <Link href="/products" className="whitespace-nowrap rounded-sm border border-transparent px-2 py-1 text-xs font-bold text-[#345447] transition hover:border-[#f5a400] hover:bg-[#fff4d6] hover:text-[#123f2b] hover:shadow-[0_2px_8px_rgba(245,164,0,0.16)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f5a400]/60">All products</Link>
           {categories.map((category) => (
             <Link key={category.id} href={{ pathname: '/products', query: { category: category.id } }} className="whitespace-nowrap rounded-sm border border-transparent px-2 py-1 text-xs font-bold text-[#345447] transition hover:border-[#f5a400] hover:bg-[#fff4d6] hover:text-[#123f2b] hover:shadow-[0_2px_8px_rgba(245,164,0,0.16)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f5a400]/60">
               {category.name}
