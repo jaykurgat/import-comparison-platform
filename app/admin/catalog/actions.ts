@@ -6,6 +6,7 @@ import { prisma } from '@/lib/prisma'
 import { syncAliExpressCatalog } from '@/lib/aliexpress/catalogSync'
 import { repriceImportCatalog } from '@/lib/pricing/repriceImportCatalog'
 import { canPublishSupplierSku } from '@/lib/admin/catalogPublishability'
+import { synchronizeAliExpressSupplierCatalog } from '@/lib/aliexpress/supplierSynchronizer'
 
 export async function toggleImportPublished(id: string, published: boolean) {
   await requireAdmin()
