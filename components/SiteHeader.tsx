@@ -13,7 +13,7 @@ export default async function SiteHeader() {
       <div className="bg-[#123f2b] text-[11px] font-semibold text-white/90">
         <div className="mx-auto flex max-w-[1440px] items-center justify-between gap-4 px-4 py-2 sm:px-6">
           <span>Clear local prices. Verified import alternatives.</span>
-          <Link href="/cart" className="hidden hover:text-white sm:block">View cart →</Link>
+          <Link href="/cart" className="hidden rounded-sm px-2 py-1 transition hover:bg-white/10 hover:text-[#f5a400] sm:block">View cart →</Link>
         </div>
       </div>
 
@@ -32,7 +32,7 @@ export default async function SiteHeader() {
         </form>
 
         <nav className="hidden items-center gap-5 lg:flex">
-          <Link href="/products" className="text-sm font-bold text-slate-700 hover:text-[#123f2b]">Shop</Link>
+          <Link href="/products" className="rounded-sm px-2 py-1 text-sm font-bold text-slate-700 transition hover:bg-[#fff4d6] hover:text-[#123f2b] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f5a400]/60">Shop</Link>
           <CartHeaderLink />
         </nav>
       </div>
@@ -47,7 +47,7 @@ export default async function SiteHeader() {
 
       <nav className="border-t border-slate-100 bg-white" aria-label="Product categories">
         <div className="mx-auto flex max-w-[1440px] gap-7 overflow-x-auto px-4 py-3 sm:px-6">
-          <Link href="/products" className="whitespace-nowrap text-xs font-bold text-slate-600 transition hover:text-[#123f2b]">All products</Link>
+          <Link href="/products" className="whitespace-nowrap rounded-sm px-2 py-1 text-xs font-bold text-slate-600 transition hover:bg-[#fff4d6] hover:text-[#123f2b] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f5a400]/60">All products</Link>
           {categories.map((category) => (
             <Link key={category.id} href={{ pathname: '/products', query: { category: category.id } }} className="whitespace-nowrap text-xs font-bold text-slate-600 transition hover:text-[#123f2b]">
               {category.name}
