@@ -45,5 +45,15 @@ export async function GET(request: Request) {
       },
       { status: 500 },
     )
+  } finally {
+    try {
+      await redis.eval(
+        `if redis.call("get", KEYS[1]) == ARGV[1] then return redis.call("del", KEYS[1]) else return 0 end`,
+        [lockKey],
+        [lockToken],
+      )
+    } catch (error) {
+      console.error('[AliExpress supplier sync] Failed to release sync lock.', error)
+    }
   }
 }
