@@ -9,6 +9,7 @@ export default function ImportCheckoutSuccessPage() {
   const [message, setMessage] = useState('Waiting for the M-PESA payment confirmation…')
   const [orderTotal, setOrderTotal] = useState<number | null>(null)
   const [orderCurrency, setOrderCurrency] = useState('KES')
+  const [hasImportedItems, setHasImportedItems] = useState(false)
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
@@ -28,6 +29,7 @@ export default function ImportCheckoutSuccessPage() {
         if (stopped) return
 
         setStatus(body.status ?? 'PAYMENT_PENDING')
+        if (Array.isArray(body.items)) setHasImportedItems(body.items.some((item: { kind?: string }) => item?.kind === 'import'))
         if (typeof body.customerTotal === 'number') setOrderTotal(body.customerTotal)
         if (typeof body.currency === 'string') setOrderCurrency(body.currency)
         if (body.payment?.status === 'PAID' && typeof body.customerTotal === 'number') {
@@ -85,6 +87,7 @@ export default function ImportCheckoutSuccessPage() {
         </h1>
         <p className="mt-4 text-sm leading-6 text-slate-600">{message}</p>
         {orderTotal !== null && <p className="mt-3 text-sm font-bold text-slate-900">Order total: {orderCurrency} {orderTotal.toLocaleString()}</p>}
+        {hasImportedItems && <p className="mt-3 text-[10px] leading-4 text-slate-400">Imported items are estimated to arrive within 14–45 days. Delivery times may vary.</p>}
         {status === 'SUBMITTED' && (
           <button
             type="button"
