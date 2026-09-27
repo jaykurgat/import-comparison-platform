@@ -115,6 +115,11 @@ export async function synchronizeAliExpressSupplierCatalog(): Promise<SupplierSy
         repricedSkus++
       }
 
+      await prisma.aliExpressSKU.updateMany({
+        where: { productId, isPublished: true },
+        data: { lastSupplierSyncAt: new Date() },
+      })
+
       return {
         ok: true,
         changedSkus,
