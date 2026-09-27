@@ -30,7 +30,7 @@ export default function CatalogControls({
         <select
           defaultValue={sort}
           onChange={(event) => submit(event.target.value as CatalogSort)}
-          className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-700 outline-none focus:border-[#123f2b]"
+          className="rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-bold text-slate-700 outline-none transition hover:border-[#f5a400] hover:bg-[#fffaf0] focus:border-[#123f2b] focus:ring-2 focus:ring-[#f5a400]/40"
           aria-label="Sort products"
         >
           <option value="featured">Featured</option>
