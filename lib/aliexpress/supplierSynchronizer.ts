@@ -3,7 +3,6 @@ import { refreshAliExpressProduct } from '@/lib/aliexpress/product'
 import { repriceImportSku } from '@/lib/pricing/repriceImportSku'
 
 const PRODUCT_LIMIT = 100
-const CANDIDATE_LIMIT = 500
 const CONCURRENCY = 3
 
 export interface SupplierSyncSummary {
@@ -41,22 +40,24 @@ async function mapWithConcurrency<T>(
 /**
  * Refreshes the oldest-synced published AliExpress products first.
  *
- * The daily job intentionally rotates through the catalog instead of always
- * taking the same first N products. If the catalog grows beyond one run's
- * capacity, the remaining products move to the front of the next run.
+ * The cron runs repeatedly throughout the day in 100-product batches. Because
+ * candidates are ordered by lastSupplierSyncAt, the next invocation continues
+ * from the products that have gone the longest without a supplier refresh.
+ * Once the catalogue is exhausted, the cycle starts again with the oldest
+ * refreshed products.
  */
 export async function synchronizeAliExpressSupplierCatalog(): Promise<SupplierSyncSummary> {
   const candidates = await prisma.aliExpressSKU.findMany({
     where: { isPublished: true },
     select: { productId: true },
+    distinct: ['productId'],
     orderBy: [
       { lastSupplierSyncAt: { sort: 'asc', nulls: 'first' } },
       { productId: 'asc' },
     ],
-    take: CANDIDATE_LIMIT,
   })
 
-  const productIds = [...new Set(candidates.map((sku) => sku.productId))].slice(0, PRODUCT_LIMIT)
+  const productIds = candidates.map((sku) => sku.productId).slice(0, PRODUCT_LIMIT)
 
   const results = await mapWithConcurrency(productIds, async (productId) => {
     let changedSkus = 0
