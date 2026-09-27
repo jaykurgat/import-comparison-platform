@@ -10,6 +10,29 @@ import type { AliExpressProductGetResponse } from './types'
 
 const PRODUCT_TTL_SECONDS = 18 * 60 * 60
 
+async function fetchFreshAliExpressProduct(
+  productId: string,
+  shipToCountry: string,
+): Promise<MappedAliExpressProduct> {
+  const credentials = getAliExpressCredentials()
+  const response = await callAliExpressSync<AliExpressProductGetResponse>(
+    'aliexpress.ds.product.get',
+    {
+      product_id: productId,
+      ship_to_country: shipToCountry,
+      target_language: 'EN',
+    },
+    credentials,
+  )
+
+  const result = response.aliexpress_ds_product_get_response?.result
+  if (!result) {
+    throw new Error(`Unexpected response shape for product ${productId} — no result field present.`)
+  }
+
+  return mapProductResult(result)
+}
+
 export async function getAliExpressProduct(
   productId: string,
   shipToCountry = 'KE',
@@ -19,25 +42,7 @@ export async function getAliExpressProduct(
     ttlSeconds: PRODUCT_TTL_SECONDS,
     serviceName: 'aliexpress',
 
-    fetchFresh: async () => {
-      const credentials = getAliExpressCredentials()
-      const response = await callAliExpressSync<AliExpressProductGetResponse>(
-        'aliexpress.ds.product.get',
-        {
-          product_id: productId,
-          ship_to_country: shipToCountry,
-          target_language: 'EN',
-        },
-        credentials,
-      )
-
-      const result = response.aliexpress_ds_product_get_response?.result
-      if (!result) {
-        throw new Error(`Unexpected response shape for product ${productId} — no result field present.`)
-      }
-
-      return mapProductResult(result)
-    },
+    fetchFresh: () => fetchFreshAliExpressProduct(productId, shipToCountry),
 
     fetchFallback: async () => fetchProductFallback(productId),
 
@@ -46,6 +51,24 @@ export async function getAliExpressProduct(
       await refreshProductFreight(data, shipToCountry)
     },
   })
+}
+
+/**
+ * Forces a live AliExpress supplier refresh, bypassing the normal product
+ * cache. The scheduled supplier synchronizer uses this so promotional price
+ * changes cannot remain hidden behind the 18-hour storefront cache.
+ */
+export async function refreshAliExpressProduct(
+  productId: string,
+  shipToCountry = 'KE',
+): Promise<{ data: MappedAliExpressProduct; asOf: Date }> {
+  const data = await fetchFreshAliExpressProduct(productId, shipToCountry)
+  const asOf = new Date()
+
+  await persistProduct(data)
+  await refreshProductFreight(data, shipToCountry)
+
+  return { data, asOf }
 }
 
 async function fetchProductFallback(
@@ -166,6 +189,7 @@ async function persistProduct(data: MappedAliExpressProduct): Promise<void> {
         priceIncludeTax: sku.priceIncludeTax,
         skuCode: sku.skuCode,
         availableStock: sku.stock,
+        lastSupplierSyncAt: new Date(),
       },
       update: {
         title: data.title,
@@ -184,6 +208,7 @@ async function persistProduct(data: MappedAliExpressProduct): Promise<void> {
         priceIncludeTax: sku.priceIncludeTax,
         skuCode: sku.skuCode,
         availableStock: sku.stock,
+        lastSupplierSyncAt: new Date(),
       },
     })
 
