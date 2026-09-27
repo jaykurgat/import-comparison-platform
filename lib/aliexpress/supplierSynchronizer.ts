@@ -102,11 +102,16 @@ export async function synchronizeAliExpressSupplierCatalog(): Promise<SupplierSy
           continue
         }
 
-        if (beforeBySku.get(sku.skuId)?.itemPrice !== Number(sku.itemPrice)) {
+        const priced = await repriceImportSku(productId, sku.skuId)
+        const beforePrice = beforeBySku.get(sku.skuId)
+
+        if (
+          beforePrice?.itemPrice !== Number(sku.itemPrice) ||
+          beforePrice?.sellPrice !== priced.sellPrice
+        ) {
           changedSkus++
         }
 
-        await repriceImportSku(productId, sku.skuId)
         repricedSkus++
       }
 
