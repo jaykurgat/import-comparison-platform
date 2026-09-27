@@ -7,22 +7,9 @@ export const maxDuration = 300
 
 export async function GET(request: Request) {
   const cronSecret = process.env.CRON_SECRET
-  const authorization = request.headers.get('authorization')
-  const expectedAuthorization = cronSecret ? `Bearer ${cronSecret}` : null
 
-  if (!cronSecret || authorization !== expectedAuthorization) {
-    return Response.json(
-      {
-        ok: false,
-        error: 'Unauthorized',
-        diagnostic: {
-          serverSecretConfigured: Boolean(cronSecret),
-          serverSecretLength: cronSecret?.length ?? 0,
-          receivedAuthorizationLength: authorization?.length ?? 0,
-        },
-      },
-      { status: 401 },
-    )
+  if (!cronSecret || request.headers.get('authorization') !== `Bearer ${cronSecret}`) {
+    return new Response('Unauthorized', { status: 401 })
   }
 
   const lockKey = 'lock:cron:aliexpress-supplier-sync'
