@@ -64,19 +64,27 @@ export function BatchPriceUpdateButton({
         setCompleted(Math.min(products, totalProducts))
         setBatchRunning(false)
 
-        if (result.selectedProducts === 0 || result.syncedProducts === 0) break
+        if (result.selectedProducts === 0) break
+
+        if (result.syncedProducts === 0) {
+          setMessage(
+            `Stopped after this batch: ${result.failedProducts} product(s) failed. ${products} of ${totalProducts} products were checked.`,
+          )
+          break
+        }
 
         setMessage(
           `Batch complete — ${Math.min(products, totalProducts)} of ${totalProducts} products checked.`,
         )
       }
 
-      setCompleted(totalProducts)
+      const completedAll = products >= totalProducts && errors.length === 0
+      setCompleted(Math.min(products, totalProducts))
       setFinished(true)
       setMessage(
-        errors.length
-          ? `Finished: ${products} product(s) checked, ${repriced} SKU(s) repriced, ${changed} price change(s), ${unavailable} unavailable, ${errors.length} error(s).`
-          : `Finished: ${products} product(s) checked, ${repriced} SKU(s) repriced, ${changed} price change(s).`,
+        completedAll
+          ? `Finished: ${products} product(s) checked, ${repriced} SKU(s) repriced, ${changed} price change(s).`
+          : `Finished with errors: ${products} product(s) checked, ${repriced} SKU(s) repriced, ${changed} price change(s), ${unavailable} unavailable, ${errors.length} error(s).`,
       )
     } catch (error) {
       setBatchRunning(false)
