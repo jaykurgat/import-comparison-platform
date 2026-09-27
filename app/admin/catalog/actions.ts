@@ -47,3 +47,27 @@ export async function runCatalogReprice() {
   revalidatePath('/products')
   return result
 }
+
+
+export async function runManualSupplierPriceUpdate(beforeIso: string) {
+  await requireAdmin()
+
+  const before = new Date(beforeIso)
+  if (!Number.isFinite(before.getTime())) {
+    throw new Error('Invalid batch start time.')
+  }
+
+  const result = await synchronizeAliExpressSupplierCatalog({
+    productLimit: 10,
+    concurrency: 2,
+    before,
+  })
+
+  if (result.repricedSkus > 0 || result.changedSkus > 0) {
+    revalidatePath('/admin/catalog')
+    revalidatePath('/products')
+    revalidatePath('/')
+  }
+
+  return result
+}
