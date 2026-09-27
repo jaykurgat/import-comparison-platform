@@ -1,0 +1,35 @@
+name: AliExpress Supplier Price Sync
+
+on:
+  schedule:
+    - cron: '17 */2 * * *'
+  workflow_dispatch:
+
+concurrency:
+  group: aliexpress-supplier-price-sync
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 7
+    permissions:
+      contents: read
+
+    steps:
+      - name: Run supplier synchronization
+        env:
+          KIJICART_CRON_URL: ${{ secrets.KIJICART_CRON_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "$KIJICART_CRON_URL" ] || [ -z "$CRON_SECRET" ]; then
+            echo "KIJICART_CRON_URL and CRON_SECRET repository secrets are required."
+            exit 1
+          fi
+
+          curl --fail-with-body --silent --show-error \
+            --max-time 360 \
+            -H "Authorization: Bearer $CRON_SECRET" \
+            "$KIJICART_CRON_URL"
