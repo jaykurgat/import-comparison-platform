@@ -222,6 +222,11 @@ model AliExpressSKU {
   updatedAt DateTime @updatedAt
   createdAt DateTime @default(now())
 
+  // Last time KijijiCart fetched this SKU from the AliExpress supplier API.
+  // Used by the scheduled supplier synchronizer to rotate through the catalog
+  // without repeatedly refreshing the same products first.
+  lastSupplierSyncAt DateTime?
+
   // Explicit publish control: false by default. An AliExpress SKU only
   // becomes a real, browsable/sellable product on the storefront once
   // this is flipped to true — nothing goes live automatically just
@@ -249,6 +254,7 @@ model AliExpressSKU {
 
   @@unique([productId, skuId])
   @@index([productId])
+  @@index([lastSupplierSyncAt])
   @@index([categoryId])
   @@index([aliExpressCategoryId])
 }
