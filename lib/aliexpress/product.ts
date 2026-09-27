@@ -189,7 +189,6 @@ async function persistProduct(data: MappedAliExpressProduct): Promise<void> {
         priceIncludeTax: sku.priceIncludeTax,
         skuCode: sku.skuCode,
         availableStock: sku.stock,
-        lastSupplierSyncAt: new Date(),
       },
       update: {
         title: data.title,
@@ -208,7 +207,6 @@ async function persistProduct(data: MappedAliExpressProduct): Promise<void> {
         priceIncludeTax: sku.priceIncludeTax,
         skuCode: sku.skuCode,
         availableStock: sku.stock,
-        lastSupplierSyncAt: new Date(),
       },
     })
 
