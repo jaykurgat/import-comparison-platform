@@ -4,6 +4,9 @@ on:
   schedule:
     - cron: '17 */2 * * *'
   workflow_dispatch:
+  push:
+    branches:
+      - main
 
 concurrency:
   group: aliexpress-supplier-price-sync
@@ -29,7 +32,6 @@ jobs:
             exit 1
           fi
 
-          curl --fail-with-body --silent --show-error \
-            --max-time 360 \
-            -H "Authorization: Bearer $CRON_SECRET" \
-            "$KIJICART_CRON_URL"
+          echo "GitHub CRON_SECRET length: ${#CRON_SECRET}"
+
+          curl --fail-with-body --silent --show-error             --max-time 360             -H "Authorization: Bearer $CRON_SECRET"             "$KIJICART_CRON_URL"
