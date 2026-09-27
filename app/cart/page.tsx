@@ -5,6 +5,7 @@ import { useCart } from '@/components/cart/CartProvider'
 
 export default function CartPage() {
   const { items, subtotal, updateQuantity, removeItem } = useCart()
+  const hasImportedItems = items.some((item) => item.kind === 'import')
 
   return (
     <main className="min-h-screen bg-[#f7f7f3] text-slate-950">
@@ -31,6 +32,9 @@ export default function CartPage() {
                   <div className="min-w-0 flex-1">
                     <h2 className="font-black leading-5">{item.title}</h2>
                     {Object.entries(item.options).length > 0 && <div className="mt-2 flex flex-wrap gap-1.5">{Object.entries(item.options).map(([name,value]) => <span key={name} className="bg-slate-100 px-2 py-1 text-[10px] font-bold text-slate-600">{name}: {value}</span>)}</div>}
+                    {item.kind === 'import' && (
+                      <p className="mt-2 text-[10px] leading-4 text-slate-400">Estimated delivery: 14–45 days. Delivery times may vary.</p>
+                    )}
                     <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
                       <span className="font-black tabular-nums">{item.currency} {item.price.toLocaleString()}</span>
                       <div className="flex items-center gap-2">
