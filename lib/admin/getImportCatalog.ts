@@ -22,14 +22,37 @@ export interface ImportCatalogRow {
   } | null
 }
 
-export async function getImportCatalog(): Promise<ImportCatalogRow[]> {
+export interface ImportCatalogPage {
+  rows: ImportCatalogRow[]
+  total: number
+  page: number
+  pageSize: number
+  totalPages: number
+}
+
+export async function getImportCatalog(
+  requestedPage = 1,
+  requestedPageSize = 30,
+): Promise<ImportCatalogPage> {
+  const pageSize = [20, 30, 50].includes(requestedPageSize) ? requestedPageSize : 30
+
+  const total = await prisma.aliExpressSKU.count()
+  const totalPages = Math.max(1, Math.ceil(total / pageSize))
+  const page = Math.min(Math.max(1, requestedPage), totalPages)
+  const skip = (page - 1) * pageSize
+
   const skus = await prisma.aliExpressSKU.findMany({
-    include: { importListingPrice: true, category: { include: { parent: true } }, aliExpressCategory: true },
+    include: {
+      importListingPrice: true,
+      category: { include: { parent: true } },
+      aliExpressCategory: true,
+    },
     orderBy: { updatedAt: 'desc' },
-    take: 250,
+    skip,
+    take: pageSize,
   })
 
-  return skus.map((sku) => ({
+  const rows = skus.map((sku) => ({
     id: sku.id,
     productId: sku.productId,
     skuId: sku.skuId,
@@ -40,7 +63,9 @@ export async function getImportCatalog(): Promise<ImportCatalogRow[]> {
     stock: sku.availableStock,
     isPublished: sku.isPublished,
     shipFromCountry: sku.shipFromCountry,
-    categoryName: sku.category ? [sku.category.parent?.name, sku.category.name].filter(Boolean).join(' / ') : sku.aliExpressCategory?.name ?? null,
+    categoryName: sku.category
+      ? [sku.category.parent?.name, sku.category.name].filter(Boolean).join(' / ')
+      : sku.aliExpressCategory?.name ?? null,
     price: sku.importListingPrice
       ? {
           landed: Number(sku.importListingPrice.landedImportPrice),
@@ -52,4 +77,6 @@ export async function getImportCatalog(): Promise<ImportCatalogRow[]> {
         }
       : null,
   }))
+
+  return { rows, total, page, pageSize, totalPages }
 }
