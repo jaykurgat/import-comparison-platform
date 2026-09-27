@@ -50,6 +50,28 @@ export async function runCatalogReprice() {
 }
 
 
+export async function getManualSupplierPriceUpdateTotal(beforeIso: string) {
+  await requireAdmin()
+
+  const before = new Date(beforeIso)
+  if (!Number.isFinite(before.getTime())) {
+    throw new Error('Invalid batch start time.')
+  }
+
+  const products = await prisma.aliExpressSKU.groupBy({
+    by: ['productId'],
+    where: {
+      isPublished: true,
+      OR: [
+        { lastSupplierSyncAt: null },
+        { lastSupplierSyncAt: { lt: before } },
+      ],
+    },
+  })
+
+  return products.length
+}
+
 export async function runManualSupplierPriceUpdate(beforeIso: string) {
   await requireAdmin()
 
