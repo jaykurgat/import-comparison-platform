@@ -33,15 +33,28 @@ export interface ImportCatalogPage {
 export async function getImportCatalog(
   requestedPage = 1,
   requestedPageSize = 30,
+  requestedSearch = '',
 ): Promise<ImportCatalogPage> {
   const pageSize = [20, 30, 50].includes(requestedPageSize) ? requestedPageSize : 30
+  const search = requestedSearch.trim()
 
-  const total = await prisma.aliExpressSKU.count()
+  const where = search
+    ? {
+        OR: [
+          { title: { contains: search, mode: 'insensitive' as const } },
+          { skuId: { contains: search, mode: 'insensitive' as const } },
+          { productId: { contains: search, mode: 'insensitive' as const } },
+        ],
+      }
+    : undefined
+
+  const total = await prisma.aliExpressSKU.count({ where })
   const totalPages = Math.max(1, Math.ceil(total / pageSize))
   const page = Math.min(Math.max(1, requestedPage), totalPages)
   const skip = (page - 1) * pageSize
 
   const skus = await prisma.aliExpressSKU.findMany({
+    where,
     include: {
       importListingPrice: true,
       category: { include: { parent: true } },
