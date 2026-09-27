@@ -2,8 +2,14 @@ import { prisma } from '@/lib/prisma'
 import { refreshAliExpressProduct } from '@/lib/aliexpress/product'
 import { repriceImportSku } from '@/lib/pricing/repriceImportSku'
 
-const PRODUCT_LIMIT = 100
-const CONCURRENCY = 3
+const DEFAULT_PRODUCT_LIMIT = 10
+const DEFAULT_CONCURRENCY = 2
+
+export interface SupplierSyncOptions {
+  productLimit?: number
+  concurrency?: number
+  before?: Date
+}
 
 export interface SupplierSyncSummary {
   selectedProducts: number
@@ -18,6 +24,7 @@ export interface SupplierSyncSummary {
 async function mapWithConcurrency<T>(
   values: string[],
   worker: (value: string) => Promise<T>,
+  concurrency: number,
 ): Promise<T[]> {
   const results: T[] = new Array(values.length)
   let nextIndex = 0
@@ -31,7 +38,7 @@ async function mapWithConcurrency<T>(
   }
 
   await Promise.all(
-    Array.from({ length: Math.min(CONCURRENCY, values.length) }, () => runWorker()),
+    Array.from({ length: Math.min(concurrency, values.length) }, () => runWorker()),
   )
 
   return results
@@ -46,9 +53,23 @@ async function mapWithConcurrency<T>(
  * Once the catalogue is exhausted, the cycle starts again with the oldest
  * refreshed products.
  */
-export async function synchronizeAliExpressSupplierCatalog(): Promise<SupplierSyncSummary> {
+export async function synchronizeAliExpressSupplierCatalog(
+  options: SupplierSyncOptions = {},
+): Promise<SupplierSyncSummary> {
+  const productLimit = clamp(options.productLimit ?? DEFAULT_PRODUCT_LIMIT, 1, 100)
+  const concurrency = clamp(options.concurrency ?? DEFAULT_CONCURRENCY, 1, 5)
   const candidates = await prisma.aliExpressSKU.findMany({
-    where: { isPublished: true },
+    where: {
+      isPublished: true,
+      ...(options.before
+        ? {
+            OR: [
+              { lastSupplierSyncAt: null },
+              { lastSupplierSyncAt: { lt: options.before } },
+            ],
+          }
+        : {}),
+    },
     select: { productId: true },
     distinct: ['productId'],
     orderBy: [
@@ -57,7 +78,7 @@ export async function synchronizeAliExpressSupplierCatalog(): Promise<SupplierSy
     ],
   })
 
-  const productIds = candidates.map((sku) => sku.productId).slice(0, PRODUCT_LIMIT)
+  const productIds = candidates.map((sku) => sku.productId).slice(0, productLimit)
 
   const results = await mapWithConcurrency(productIds, async (productId) => {
     let changedSkus = 0
@@ -150,4 +171,8 @@ export async function synchronizeAliExpressSupplierCatalog(): Promise<SupplierSy
     unavailableSkus: results.reduce((total, result) => total + result.unavailableSkus, 0),
     errors,
   }
+}
+
+function clamp(value: number, min: number, max: number): number {
+  return Math.min(Math.max(Math.trunc(value), min), max)
 }
