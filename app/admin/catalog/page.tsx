@@ -12,6 +12,8 @@ import {
 import { PublishToggle } from './PublishToggle'
 import { BatchPriceUpdateButton } from './BatchPriceUpdateButton'
 import { SyncButton } from './SyncButton'
+import { CategoryEditor } from './CategoryEditor'
+import { prisma } from '@/lib/prisma'
 
 const PAGE_SIZES = [20, 30, 50]
 
@@ -29,7 +31,13 @@ export default async function CatalogAdminPage({
     : 30
   const search = params.search?.trim() ?? ''
 
-  const catalog = await getImportCatalog(page, pageSize, search)
+  const [catalog, categories] = await Promise.all([
+    getImportCatalog(page, pageSize, search),
+    prisma.category.findMany({
+      select: { id: true, name: true, parent: { select: { name: true } } },
+      orderBy: { name: 'asc' },
+    }),
+  ])
 
   function pageHref(nextPage: number, nextPageSize = catalog.pageSize) {
     const query = new URLSearchParams({
@@ -157,11 +165,15 @@ export default async function CatalogAdminPage({
                     </div>
                   </td>
                   <td className="px-4 py-4">
-                    {item.categoryName ? (
-                      <span className="text-xs font-semibold text-slate-700">{item.categoryName}</span>
-                    ) : (
-                      <span className="text-xs text-[#8A8A8E]">Not resolved</span>
-                    )}
+                    <CategoryEditor
+                      skuId={item.id}
+                      categoryId={item.categoryId}
+                      categories={categories.map((category) => ({
+                        id: category.id,
+                        name: category.name,
+                        parentName: category.parent?.name ?? null,
+                      }))}
+                    />
                   </td>
                   <td className="px-4 py-4 tabular-nums">
                     {item.currency} {item.itemPrice.toFixed(2)}
