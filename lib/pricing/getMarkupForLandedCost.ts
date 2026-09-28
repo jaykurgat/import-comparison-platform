@@ -1,14 +1,13 @@
 /**
- * Tiered markup applied PER PRODUCT to its landed cost — never on a
- * cumulative cart total, per the explicit decision. Each product gets the
- * markup for its own landed-cost tier independently.
+ * Markup applied per product to its landed cost.
  *
- * Markup starts at 200 KES and increases by 200 KES for each successive tier.
+ * Fixed KES markup applies through KES 14,999.
+ * From KES 15,000 upward, markup is 11.5% of landed cost.
  */
 
 export interface MarkupTier {
   minLandedCost: number
-  maxLandedCost: number | null // null = no upper bound
+  maxLandedCost: number | null
   markup: number
 }
 
@@ -19,18 +18,32 @@ export const MARKUP_TIERS: MarkupTier[] = [
   { minLandedCost: 4000, maxLandedCost: 6999, markup: 800 },
   { minLandedCost: 7000, maxLandedCost: 9999, markup: 1000 },
   { minLandedCost: 10000, maxLandedCost: 14999, markup: 1200 },
-  { minLandedCost: 15000, maxLandedCost: 24999, markup: 1400 },
-  { minLandedCost: 25000, maxLandedCost: 49999, markup: 1600 },
-  { minLandedCost: 50000, maxLandedCost: null, markup: 1800 },
 ]
 
+const PERCENTAGE_MARKUP_START = 15000
+const PERCENTAGE_MARKUP_RATE = 0.115
+
 export function getMarkupForLandedCost(landedCost: number): number {
+  if (!Number.isFinite(landedCost) || landedCost < 0) {
+    throw new Error('Landed cost must be a finite, non-negative number.')
+  }
+
+  if (landedCost >= PERCENTAGE_MARKUP_START) {
+    return Math.round(landedCost * PERCENTAGE_MARKUP_RATE)
+  }
+
   const tier = MARKUP_TIERS.find(
-    (t) => landedCost >= t.minLandedCost && (t.maxLandedCost === null || landedCost <= t.maxLandedCost)
+    (t) =>
+      landedCost >= t.minLandedCost &&
+      (t.maxLandedCost === null || landedCost <= t.maxLandedCost),
   )
 
   if (!tier) {
-    throw new Error('No markup tier covers landed cost ' + landedCost + ' — check MARKUP_TIERS for a gap.')
+    throw new Error(
+      'No markup tier covers landed cost ' +
+        landedCost +
+        ' — check MARKUP_TIERS for a gap.',
+    )
   }
 
   return tier.markup
