@@ -94,3 +94,16 @@ export async function runManualSupplierPriceUpdate(beforeIso: string) {
 
   return result
 }
+
+export async function updateImportSkuCategory(id: string, categoryId: string | null) {
+  await requireAdmin()
+  const sku = await prisma.aliExpressSKU.findUnique({ where: { id }, select: { id: true } })
+  if (!sku) throw new Error('Supplier SKU not found.')
+  if (categoryId) {
+    const category = await prisma.category.findUnique({ where: { id: categoryId }, select: { id: true } })
+    if (!category) throw new Error('Selected category was not found.')
+  }
+  await prisma.aliExpressSKU.update({ where: { id }, data: { categoryId } })
+  revalidatePath('/admin/catalog')
+  revalidatePath('/products')
+}
