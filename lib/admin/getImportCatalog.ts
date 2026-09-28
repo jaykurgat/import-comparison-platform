@@ -11,6 +11,7 @@ export interface ImportCatalogRow {
   stock: number
   isPublished: boolean
   shipFromCountry: string | null
+  categoryId: string | null
   categoryName: string | null
   price: {
     landed: number
@@ -76,6 +77,7 @@ export async function getImportCatalog(
     stock: sku.availableStock,
     isPublished: sku.isPublished,
     shipFromCountry: sku.shipFromCountry,
+    categoryId: sku.categoryId,
     categoryName: sku.category
       ? [sku.category.parent?.name, sku.category.name].filter(Boolean).join(' / ')
       : sku.aliExpressCategory?.name ?? null,
