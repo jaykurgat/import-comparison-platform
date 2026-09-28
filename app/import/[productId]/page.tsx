@@ -99,7 +99,7 @@ export default async function ImportProductGroupPage({ params }: { params: Promi
 
           <ImportVariantProvider variants={data.variants}>
             <div className="grid items-start gap-5 lg:grid-cols-[1.08fr_.92fr] xl:grid-cols-[1.12fr_.88fr]">
-              <section className="min-w-0 lg:sticky lg:top-[190px] lg:h-[calc(100vh-205px)] lg:self-start lg:overflow-y-auto lg:overscroll-y-auto">
+              <section className="min-w-0 lg:sticky lg:top-[190px] lg:h-[calc(100vh-205px)] lg:self-start lg:overflow-y-auto lg:overscroll-auto">
                 <ImportVariantGallery title={data.title} fallbackImages={data.imageUrls} />
               </section>
 
