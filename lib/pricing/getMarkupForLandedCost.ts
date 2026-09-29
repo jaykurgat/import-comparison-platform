@@ -2,7 +2,7 @@
  * Markup applied per product to its landed cost.
  *
  * Fixed KES markup applies through KES 14,999.
- * From KES 15,000 upward, markup is 15.5% of landed cost.
+ * From KES 15,000 upward, markup is 11.5% of landed cost.
  */
 
 export interface MarkupTier {
@@ -21,7 +21,7 @@ export const MARKUP_TIERS: MarkupTier[] = [
 ]
 
 const PERCENTAGE_MARKUP_START = 15000
-const PERCENTAGE_MARKUP_RATE = 0.155
+const PERCENTAGE_MARKUP_RATE = 0.115
 
 export function getMarkupForLandedCost(landedCost: number): number {
   if (!Number.isFinite(landedCost) || landedCost < 0) {
