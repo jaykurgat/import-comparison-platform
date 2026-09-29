@@ -3,6 +3,7 @@ import type { ReactNode } from 'react'
 import './globals.css'
 import Analytics from '@/components/Analytics'
 import AnalyticsConsent from '@/components/AnalyticsConsent'
+import NavigationProgress from '@/components/NavigationProgress'
 import { CartProvider } from '@/components/cart/CartProvider'
 
 export const metadata: Metadata = {
@@ -16,6 +17,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
     <html lang="en" className="antialiased">
       <head>{verification && <meta name="google-site-verification" content={verification} />}<link rel="icon" href="/kijijcart-mark.svg" /></head>
       <body className="min-h-screen bg-[#f5f6f7]">
+        <NavigationProgress />
         <CartProvider>{children}</CartProvider>
         <Analytics />
         <AnalyticsConsent />
