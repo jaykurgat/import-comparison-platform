@@ -143,6 +143,7 @@ export default async function CatalogAdminPage({
                 <th className="px-4 py-3">Sell</th>
                 <th className="px-4 py-3">Price data</th>
                 <th className="px-4 py-3">Storefront</th>
+                <th className="px-4 py-3">Supplier listing</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[#E3E3DF]">
@@ -205,11 +206,21 @@ export default async function CatalogAdminPage({
                       canPublish={Boolean(item.price) && !item.price?.isStale && Boolean(item.title.trim()) && Boolean(item.imageUrl)}
                     />
                   </td>
+                  <td className="px-4 py-4">
+                    <a
+                      href={`https://www.aliexpress.com/item/${item.productId}.html`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center border border-[#D8D8D3] bg-white px-3 py-1.5 text-xs font-semibold text-[#123F2B] hover:border-[#F5A400] hover:bg-[#FFF4D6]"
+                    >
+                      View listing ↗
+                    </a>
+                  </td>
                 </tr>
               ))}
               {catalog.rows.length === 0 && (
                 <tr>
-                  <td colSpan={8} className="px-4 py-12 text-center text-[#6B6B6E]">
+                  <td colSpan={9} className="px-4 py-12 text-center text-[#6B6B6E]">
                     {search
                       ? `No supplier products match “${search}”.`
                       : 'No supplier products yet. Run a catalog sync after local products have been ingested.'}
