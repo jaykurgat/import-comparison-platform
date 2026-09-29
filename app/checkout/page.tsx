@@ -51,7 +51,7 @@ export default function CheckoutPage() {
 
   if (items.length === 0) return <main className="min-h-screen bg-[#f7f7f3] p-8 text-center"><h1 className="text-2xl font-black">Your cart is empty</h1><Link href="/products" className="mt-4 inline-flex font-bold text-emerald-800">Shop products</Link></main>
 
-  const hasImportedItems = items.some((item) => item.kind === 'import')
+  const hasImportedItems = items.some((item) => item.kind === 'supplier')
 
   return (
     <main className="min-h-screen bg-[#f7f7f3] text-slate-950">
