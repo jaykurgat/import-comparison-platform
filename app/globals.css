@@ -66,3 +66,22 @@ input::placeholder {
   background: linear-gradient(90deg, transparent, rgba(255,255,255,0.42), transparent);
   animation: supplier-progress-shimmer 1.2s linear infinite;
 }
+
+
+@keyframes navigation-progress {
+  0% { transform: translateX(-140%); }
+  50% { transform: translateX(170%); }
+  100% { transform: translateX(360%); }
+}
+
+.navigation-progress-bar {
+  animation: navigation-progress 1.05s ease-in-out infinite;
+  will-change: transform;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .navigation-progress-bar {
+    animation: none;
+    width: 100%;
+  }
+}
