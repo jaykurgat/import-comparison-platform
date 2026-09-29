@@ -22,7 +22,7 @@ export function PublishToggle({
       try {
         await toggleImportPublished(id, !published)
         router.refresh()
-        requestAnimationFrame(() => window.scrollTo({ top: scrollY, behavior: 'instant' }))
+        requestAnimationFrame(() => window.scrollTo({ top: scrollY, behavior: 'auto' }))
       } catch {
         // Keep the current row state if the server action fails.
       }
