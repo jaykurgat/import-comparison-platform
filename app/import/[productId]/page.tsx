@@ -135,7 +135,6 @@ export default async function ImportProductGroupPage({ params }: { params: Promi
 
                 <ProductDescription description={data.description} coreFeatures={data.coreFeatures} />
 
-                <a href={data.aliExpressUrl} target="_blank" rel="noopener noreferrer" className="mt-4 inline-flex w-full items-center justify-center rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm font-bold text-slate-700 hover:border-slate-300">View supplier listing →</a>
               </section>
             </div>
           </ImportVariantProvider>
