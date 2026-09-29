@@ -9,10 +9,9 @@ import {
   runManualSupplierPriceUpdate,
   getManualSupplierPriceUpdateTotal,
 } from './actions'
-import { PublishToggle } from './PublishToggle'
+import { CatalogTable } from './CatalogTable'
 import { BatchPriceUpdateButton } from './BatchPriceUpdateButton'
 import { SyncButton } from './SyncButton'
-import { CategoryEditor } from './CategoryEditor'
 import { prisma } from '@/lib/prisma'
 
 const PAGE_SIZES = [20, 30, 50]
@@ -131,104 +130,15 @@ export default async function CatalogAdminPage({
           </div>
         </div>
 
-        <div className="mt-4 overflow-x-auto rounded-lg border border-[#E3E3DF] bg-white">
-          <table className="w-full min-w-[980px] text-sm">
-            <thead className="border-b border-[#E3E3DF] bg-[#FAFAF9] text-left text-xs uppercase tracking-wide text-[#8A8A8E]">
-              <tr>
-                <th className="px-4 py-3">Product</th>
-                <th className="px-4 py-3">Category</th>
-                <th className="px-4 py-3">Supplier</th>
-                <th className="px-4 py-3">Stock</th>
-                <th className="px-4 py-3">Landed</th>
-                <th className="px-4 py-3">Sell</th>
-                <th className="px-4 py-3">Price data</th>
-                <th className="px-4 py-3">Storefront</th>
-                <th className="px-4 py-3">Supplier listing</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-[#E3E3DF]">
-              {catalog.rows.map((item) => (
-                <tr key={item.id} className="align-middle">
-                  <td className="px-4 py-4">
-                    <div className="flex items-center gap-3">
-                      {item.imageUrl ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img src={item.imageUrl} alt="" className="h-12 w-12 rounded object-cover" />
-                      ) : (
-                        <div className="h-12 w-12 rounded bg-[#F0F0EC]" />
-                      )}
-                      <div className="max-w-sm">
-                        <div className="font-medium leading-snug">{item.title}</div>
-                        <div className="mt-1 text-xs text-[#8A8A8E]">
-                          {item.productId} · SKU {item.skuId}
-                        </div>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-4 py-4">
-                    <CategoryEditor
-                      skuId={item.id}
-                      categoryId={item.categoryId}
-                      categories={categories.map((category) => ({
-                        id: category.id,
-                        name: category.name,
-                        parentName: category.parent?.name ?? null,
-                      }))}
-                    />
-                  </td>
-                  <td className="px-4 py-4 tabular-nums">
-                    {item.currency} {item.itemPrice.toFixed(2)}
-                    <div className="mt-1 text-xs text-[#8A8A8E]">{item.shipFromCountry ?? '—'}</div>
-                  </td>
-                  <td className="px-4 py-4 tabular-nums">{item.stock}</td>
-                  <td className="px-4 py-4 tabular-nums">
-                    {item.price ? `${item.price.currency} ${item.price.landed.toLocaleString()}` : '—'}
-                  </td>
-                  <td className="px-4 py-4 font-medium tabular-nums">
-                    {item.price ? `${item.price.currency} ${item.price.sell.toLocaleString()}` : '—'}
-                  </td>
-                  <td className="px-4 py-4">
-                    {item.price ? (
-                      <div>
-                        <span className={item.price.isStale ? 'font-medium text-[#A6432D]' : 'text-[#2F6B4F]'}>
-                          {item.price.isStale ? 'Stale' : 'Current'}
-                        </span>
-                        <div className="mt-1 text-xs text-[#8A8A8E]">{item.price.priceDataAsOf.toLocaleString()}</div>
-                      </div>
-                    ) : (
-                      <span className="text-[#8A8A8E]">Not priced</span>
-                    )}
-                  </td>
-                  <td className="px-4 py-4">
-                    <PublishToggle
-                      id={item.id}
-                      published={item.isPublished}
-                      canPublish={Boolean(item.price) && !item.price?.isStale && Boolean(item.title.trim()) && Boolean(item.imageUrl)}
-                    />
-                  </td>
-                  <td className="px-4 py-4">
-                    <a
-                      href={`https://www.aliexpress.com/item/${item.productId}.html`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center border border-[#D8D8D3] bg-white px-3 py-1.5 text-xs font-semibold text-[#123F2B] hover:border-[#F5A400] hover:bg-[#FFF4D6]"
-                    >
-                      View listing ↗
-                    </a>
-                  </td>
-                </tr>
-              ))}
-              {catalog.rows.length === 0 && (
-                <tr>
-                  <td colSpan={9} className="px-4 py-12 text-center text-[#6B6B6E]">
-                    {search
-                      ? `No supplier products match “${search}”.`
-                      : 'No supplier products yet. Run a catalog sync after local products have been ingested.'}
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+        <div className="mt-4">
+          <CatalogTable
+            rows={catalog.rows}
+            categories={categories.map((category) => ({
+              id: category.id,
+              name: category.name,
+              parentName: category.parent?.name ?? null,
+            }))}
+          />
         </div>
 
         {catalog.totalPages > 1 && (
