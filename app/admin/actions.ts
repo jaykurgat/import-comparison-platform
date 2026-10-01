@@ -4,10 +4,12 @@ import { redirect } from 'next/navigation'
 import { clearAdminSession, createAdminSession } from '@/lib/admin/auth'
 
 export async function loginAdmin(formData: FormData): Promise<void> {
+  const email = String(formData.get('email') ?? '').trim().toLowerCase()
   const password = String(formData.get('password') ?? '')
-  const expected = process.env.ADMIN_PASSWORD
+  const expectedEmail = process.env.ADMIN_EMAIL?.trim().toLowerCase()
+  const expectedPassword = process.env.ADMIN_PASSWORD
 
-  if (!expected || password !== expected) {
+  if (!expectedEmail || !expectedPassword || email !== expectedEmail || password !== expectedPassword) {
     redirect('/admin/login?error=1')
   }
 
