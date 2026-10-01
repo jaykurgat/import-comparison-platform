@@ -1,5 +1,6 @@
 'use client'
 
+import { usePathname } from 'next/navigation'
 import { useSyncExternalStore } from 'react'
 import AnalyticsConsentActions from './AnalyticsConsentActions'
 
@@ -21,9 +22,10 @@ function getServerSnapshot() {
 }
 
 export default function AnalyticsConsent() {
+  const pathname = usePathname()
   const visible = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot)
 
-  if (!visible) return null
+  if (pathname.startsWith('/admin') || !visible) return null
 
   return (
     <aside className="fixed inset-x-3 bottom-3 z-[100] mx-auto max-w-2xl rounded-2xl border border-slate-200 bg-white p-5 shadow-2xl sm:inset-x-auto sm:bottom-5 sm:right-5">
