@@ -16,6 +16,18 @@ import { prisma } from '@/lib/prisma'
 
 const PAGE_SIZES = [20, 30, 50]
 
+function getCategoryPath(id: string, categories: Array<{ id: string; name: string; parentId: string | null }>) {
+  const byId = new Map(categories.map((category) => [category.id, category]))
+  const parts: string[] = []
+  const seen = new Set<string>()
+  let current = byId.get(id)
+  while (current && !seen.has(current.id)) {
+    seen.add(current.id); parts.unshift(current.name)
+    current = current.parentId ? byId.get(current.parentId) : undefined
+  }
+  return parts.join(' / ')
+}
+
 export default async function CatalogAdminPage({
   searchParams,
 }: {
@@ -33,7 +45,7 @@ export default async function CatalogAdminPage({
   const [catalog, categories] = await Promise.all([
     getImportCatalog(page, pageSize, search),
     prisma.category.findMany({
-      select: { id: true, name: true, parent: { select: { name: true } } },
+      select: { id: true, name: true, parentId: true },
       orderBy: { name: 'asc' },
     }),
   ])
@@ -136,7 +148,7 @@ export default async function CatalogAdminPage({
             categories={categories.map((category) => ({
               id: category.id,
               name: category.name,
-              parentName: category.parent?.name ?? null,
+              path: getCategoryPath(category.id, categories),
             }))}
           />
         </div>

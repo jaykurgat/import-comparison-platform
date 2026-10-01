@@ -437,7 +437,12 @@ model ImportOrder {
   payment          ImportPayment?
   items            ImportOrderItem[]
   shipments        ImportShipment[]
+  couponId         String?
+  coupon           Coupon?           @relation(fields: [couponId], references: [id])
+  discountAmount   Decimal           @default(0) @db.Decimal(12, 2)
+  couponDiscountPercent Decimal?      @db.Decimal(5, 2)
   @@index([status, createdAt])
+  @@index([couponId])
 }
 
 model ImportPayment {
@@ -536,6 +541,34 @@ model HomepageHero {
   config    Json
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model StorefrontAnnouncement {
+  id                   String   @id @default(cuid())
+  key                  String   @unique @default("top-bar")
+  enabled              Boolean  @default(true)
+  message              String
+  showCouponPercentages Boolean  @default(true)
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+}
+
+model Coupon {
+  id              String        @id @default(cuid())
+  code            String        @unique
+  name            String?
+  discountPercent Decimal       @db.Decimal(5, 2)
+  enabled         Boolean       @default(true)
+  startsAt        DateTime?
+  endsAt          DateTime?
+  appliesToAll    Boolean       @default(false)
+  productKeys     String[]      @default([])
+  categoryIds     String[]      @default([])
+  orders          ImportOrder[]
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  @@index([enabled, startsAt, endsAt])
 }
 
 model ExchangeRateSnapshot {

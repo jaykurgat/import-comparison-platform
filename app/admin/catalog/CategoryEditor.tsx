@@ -6,7 +6,7 @@ import { updateImportSkuCategory } from './actions'
 export interface CategoryOption {
   id: string
   name: string
-  parentName: string | null
+  path: string
 }
 
 export function CategoryEditor({ skuId, categoryId, categories }: { skuId: string; categoryId: string | null; categories: CategoryOption[] }) {
@@ -34,7 +34,7 @@ export function CategoryEditor({ skuId, categoryId, categories }: { skuId: strin
         <option value="">Not resolved</option>
         {categories.map((category) => (
           <option key={category.id} value={category.id}>
-            {category.parentName ? category.parentName + ' / ' + category.name : category.name}
+            {category.path}
           </option>
         ))}
       </select>

@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { getAliExpressFreight } from '@/lib/aliexpress/freight'
 import { createPaystackMpesaCharge } from '@/lib/payments/paystack'
 import { createOrderAccessToken } from '@/lib/checkout/orderAccess'
+import { getCouponDiscount } from '@/lib/checkout/coupons'
 
 export const runtime = 'nodejs'
 
@@ -10,7 +11,7 @@ type CartInput = { kind: 'local' | 'supplier'; productId?: string; skuId?: strin
 
 export async function POST(request: Request) {
   try {
-    const body = await request.json() as { items?: CartInput[]; fullName?: string; email?: string; mobileNo?: string; country?: string; province?: string; city?: string; address?: string; address2?: string; zip?: string }
+    const body = await request.json() as { items?: CartInput[]; couponCode?: string; fullName?: string; email?: string; mobileNo?: string; country?: string; province?: string; city?: string; address?: string; address2?: string; zip?: string }
     const items = body.items ?? []
     if (!items.length) throw new Error('Your cart is empty.')
     if (items.length > 20) throw new Error('Your cart contains too many different products.')
@@ -26,13 +27,16 @@ export async function POST(request: Request) {
     if (!fullName || !email || !mobileNo || !province || !city || !address) throw new Error('Please complete your delivery details.')
     if (!/^\S+@\S+\.\S+$/.test(email)) throw new Error('Enter a valid email address.')
     const orderItems: Array<{ aliExpressSkuId?: string; localSkuId?: string; productId: string; skuId: string; quantity: number; unitSellPrice: number }> = []
+    const couponLines: Array<{ key: string; categoryId: string | null; lineTotal: number }> = []
     for (const item of items) {
       const quantity = Math.min(20, Math.max(1, Math.trunc(Number(item.quantity) || 0)))
       if (!quantity) throw new Error('Invalid quantity.')
       if (item.kind === 'local') {
         const sku = await prisma.localSKU.findUnique({ where: { sku: String(item.sku ?? '') } })
         if (!sku || !sku.inStock) throw new Error('One of the local products is unavailable.')
-        orderItems.push({ localSkuId: sku.id, productId: sku.sku, skuId: sku.sku, quantity, unitSellPrice: Number(sku.currentPrice) })
+        const unitSellPrice = Number(sku.currentPrice)
+        orderItems.push({ localSkuId: sku.id, productId: sku.sku, skuId: sku.sku, quantity, unitSellPrice })
+        couponLines.push({ key: 'local:' + sku.sku, categoryId: sku.categoryId, lineTotal: unitSellPrice * quantity })
         continue
       }
       const productId = String(item.productId ?? '')
@@ -41,10 +45,21 @@ export async function POST(request: Request) {
       if (!sku || !sku.isPublished || sku.availableStock < quantity || !sku.importListingPrice || sku.importListingPrice.isStale) throw new Error('One of the supplier products is no longer available at the current price.')
       const freight = await getAliExpressFreight({ productId, skuId, shipToCountry: country, quantity, currency: 'USD' })
       if (!freight.data.options[0] || freight.data.options[0].currency !== 'USD') throw new Error('Delivery is not currently available for one of the supplier products.')
-      orderItems.push({ aliExpressSkuId: sku.id, productId, skuId, quantity, unitSellPrice: Number(sku.importListingPrice.sellPrice) })
+      const unitSellPrice = Number(sku.importListingPrice.sellPrice)
+      orderItems.push({ aliExpressSkuId: sku.id, productId, skuId, quantity, unitSellPrice })
+      couponLines.push({ key: 'supplier:' + productId + ':' + skuId, categoryId: sku.categoryId, lineTotal: unitSellPrice * quantity })
     }
-    const customerTotal = orderItems.reduce((sum, item) => sum + item.unitSellPrice * item.quantity, 0)
-    const order = await prisma.importOrder.create({ data: { outOrderId: 'KC-' + crypto.randomUUID().slice(0, 8).toUpperCase(), status: 'PAYMENT_PENDING', country, province, city, address, address2: address2 || null, fullName, email, mobileNo, zip: zip || null, customerTotal, items: { create: orderItems } } })
+    const subtotal = orderItems.reduce((sum, item) => sum + item.unitSellPrice * item.quantity, 0)
+    const couponCode = String(body.couponCode ?? '').trim()
+    const discount = couponCode ? await getCouponDiscount(couponCode, couponLines) : { couponId: null, discountAmount: 0, discountPercent: null }
+    const customerTotal = Math.max(0, Math.round((subtotal - discount.discountAmount) * 100) / 100)
+    const order = await prisma.importOrder.create({ data: {
+      outOrderId: 'KC-' + crypto.randomUUID().slice(0, 8).toUpperCase(),
+      status: 'PAYMENT_PENDING', country, province, city, address, address2: address2 || null,
+      fullName, email, mobileNo, zip: zip || null, customerTotal,
+      couponId: discount.couponId, discountAmount: discount.discountAmount, couponDiscountPercent: discount.discountPercent,
+      items: { create: orderItems }
+    } })
     try {
       const payment = await createPaystackMpesaCharge({
         amountKes: Math.round(customerTotal),

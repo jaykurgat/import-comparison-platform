@@ -25,6 +25,7 @@ export default async function AdminCategoriesPage() {
           <Link href="/admin" className="border border-[#D8D8D3] bg-white px-4 py-2 text-sm font-medium">Dashboard</Link>
           <Link href="/admin/catalog" className="border border-[#D8D8D3] bg-white px-4 py-2 text-sm font-medium">Supplier catalog</Link>
           <Link href="/admin/import" className="border border-[#D8D8D3] bg-white px-4 py-2 text-sm font-medium">Local import</Link>
+          <Link href="/admin/promotions" className="border border-[#D8D8D3] bg-white px-4 py-2 text-sm font-medium">Promotions</Link>
         </nav>
         <div className="mt-8">
           <CategoryManager categories={categories} />
