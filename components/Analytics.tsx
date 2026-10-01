@@ -1,6 +1,7 @@
 'use client'
 
 import Script from 'next/script'
+import { usePathname } from 'next/navigation'
 import { useEffect, useState } from 'react'
 
 declare global {
@@ -11,6 +12,7 @@ declare global {
 }
 
 export default function Analytics() {
+  const pathname = usePathname()
   const measurementId = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID
   const [consent, setConsent] = useState<'granted' | 'denied' | 'unset'>('unset')
 
@@ -24,7 +26,7 @@ export default function Analytics() {
     return () => window.removeEventListener('kijijicart-consent-change', sync)
   }, [])
 
-  if (!measurementId || consent !== 'granted') return null
+  if (pathname.startsWith('/admin') || !measurementId || consent !== 'granted') return null
 
   const configScript = [
     'window.dataLayer = window.dataLayer || [];',
