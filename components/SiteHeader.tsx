@@ -24,7 +24,7 @@ export default async function SiteHeader() {
   const percentages = announcement?.showCouponPercentages === false ? [] : activeCoupons.map((coupon) => Number(coupon.discountPercent))
 
   return (
-    <header className="sticky top-0 z-50 border-b border-[#dfe5e0] bg-[#fffefa]/95 shadow-[0_2px_14px_rgba(15,32,24,.04)] backdrop-blur-xl">
+    <header className="sticky top-0 z-50 border-b border-[#dfe5e0] bg-[#fffefa]/95 shadow-[0_2px_14px_rgba(15,32,24,.045)] backdrop-blur-xl">
       {showBar && (
         <div className="bg-[#123f2b] text-[11px] font-semibold text-white/90">
           <div className="mx-auto flex min-h-9 max-w-[1440px] items-center justify-center gap-2 px-3 py-2 sm:justify-between sm:px-6">
@@ -47,10 +47,10 @@ export default async function SiteHeader() {
         </div>
       )}
 
-      <div className="mx-auto flex max-w-[1440px] items-center gap-2.5 px-3 py-2.5 sm:gap-4 sm:px-6 sm:py-3">
+      <div className="mx-auto flex max-w-[1440px] items-center gap-2 px-3 py-2.5 sm:gap-4 sm:px-6 sm:py-3">
         <Link href="/" className="flex shrink-0 items-center gap-2 rounded-md bg-[#0b2a21] px-2 py-1.5" aria-label="KijijiCart home">
           <Image src="/kijijcart-mark.svg" alt="" width={32} height={32} className="h-8 w-8 sm:h-9 sm:w-9" priority />
-          <span className="hidden text-[1.35rem] font-extrabold tracking-[-0.055em] text-white min-[480px]:inline sm:text-[1.45rem]">
+          <span className="hidden text-[1.25rem] font-extrabold tracking-[-0.055em] text-white min-[480px]:inline sm:text-[1.45rem]">
             Kijiji<span className="text-[#f4b942]">Cart</span>
           </span>
         </Link>
@@ -61,9 +61,9 @@ export default async function SiteHeader() {
             id="site-search"
             name="q"
             placeholder="Search products, brands and categories"
-            className="h-11 min-w-0 flex-1 rounded-l-lg border border-slate-200 bg-[#f3f5f1] px-4 text-sm text-slate-900 outline-none transition focus:border-[#123f2b] focus:bg-white"
+            className="h-10 min-w-0 flex-1 rounded-l-xl border border-slate-200 bg-[#f3f5f1] px-4 text-sm text-slate-900 outline-none transition focus:border-[#123f2b] focus:bg-white sm:h-11"
           />
-          <button className="h-11 shrink-0 rounded-r-lg bg-[#f4b942] px-5 text-sm font-black text-[#182017] transition hover:bg-[#eab02f]">
+          <button className="h-10 shrink-0 rounded-r-xl bg-[#f4b942] px-4 text-xs font-black text-[#182017] transition hover:bg-[#eab02f] sm:h-11 sm:px-5 sm:text-sm">
             Search
           </button>
         </form>
@@ -91,7 +91,7 @@ export default async function SiteHeader() {
         </form>
       </div>
 
-      <nav className="border-t border-slate-100 bg-white" aria-label="Product categories">
+      <nav className="border-t border-slate-100 bg-white/95" aria-label="Product categories">
         <div className="kc-scroll-row mx-auto flex max-w-[1440px] gap-1 overflow-x-auto px-3 py-2 sm:gap-2 sm:px-6">
           <Link href="/products" className="shrink-0 rounded-md border border-transparent px-2.5 py-1.5 text-[11px] font-extrabold text-[#345447] transition hover:border-[#f4b942] hover:bg-[#fff7e2] hover:text-[#123f2b]">
             All products
