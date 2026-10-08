@@ -2,44 +2,10 @@
 
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
-import type { HeroConfig, HeroSlide, HeroColumn } from '@/lib/homepage/hero'
+import type { HeroConfig, HeroSlide } from '@/lib/homepage/hero'
+import type { StorefrontCategory } from '@/lib/storefront/getCategories'
 
-function Buttons({ buttons = [] }: { buttons?: HeroSlide['buttons'] }) {
-  return <div className="mt-4 flex max-w-full flex-wrap gap-2 sm:mt-5">
-    {buttons.map((button, i) => <Link key={i} href={button.href || '#'} className="inline-flex min-h-10 max-w-full items-center justify-center truncate rounded-md border border-[#123f2b] bg-[#123f2b] px-4 text-xs font-extrabold text-white shadow-sm transition hover:bg-[#0b2a21] sm:px-5 sm:text-sm">{button.label}</Link>)}
-  </div>
-}
-
-function Column({ column }: { column: HeroColumn }) {
-  const opacity = Math.max(0, Math.min(1, column.overlayOpacity ?? 0))
-  const justify = column.verticalAlign === 'top' ? 'flex-start' : column.verticalAlign === 'bottom' ? 'flex-end' : 'center'
-  return <div className="relative min-h-0 min-w-0 overflow-hidden" style={{ backgroundColor: column.backgroundColor || '#eef2ed' }}>
-    {column.imageUrl && <img src={column.imageUrl} alt="" className="absolute inset-0 h-full w-full object-cover" style={{ objectPosition: column.imagePosition || 'center' }} />}
-    {column.imageUrl && opacity > 0 && <div className="absolute inset-0 bg-black" style={{ opacity }} />}
-    <div className="relative flex h-full min-h-0 flex-col overflow-hidden p-5 sm:p-7" style={{ color: column.textColor || '#10241d', textAlign: column.textAlign || 'left', justifyContent: justify }}>
-      {column.heading && <h2 className="max-w-full break-words text-xl font-black tracking-tight sm:text-3xl">{column.heading}</h2>}
-      {column.description && <p className="mt-2 max-w-xl overflow-hidden text-xs leading-5 opacity-90 sm:mt-3 sm:text-sm sm:leading-6">{column.description}</p>}
-      <Buttons buttons={column.buttons} />
-    </div>
-  </div>
-}
-
-function Slide({ slide }: { slide: HeroSlide }) {
-  const opacity = Math.max(0, Math.min(1, slide.overlayOpacity ?? 0))
-  const justify = slide.verticalAlign === 'top' ? 'flex-start' : slide.verticalAlign === 'bottom' ? 'flex-end' : 'center'
-  if ((slide.columns || []).length > 0) return <div className="grid h-full w-full grid-cols-1 sm:flex" style={{ backgroundColor: slide.backgroundColor || '#e8efe9' }}>{slide.columns!.map((column, i) => <div key={i} className="min-h-0 min-w-0 flex-1"><Column column={column} /></div>)}</div>
-  return <div className="relative h-full w-full overflow-hidden" style={{ backgroundColor: slide.backgroundColor || '#e8efe9' }}>
-    {slide.imageUrl && <img src={slide.imageUrl} alt="" className="absolute inset-0 h-full w-full object-cover" style={{ objectPosition: slide.imagePosition || 'center' }} />}
-    {slide.imageUrl && opacity > 0 && <div className="absolute inset-0 bg-black" style={{ opacity }} />}
-    <div className="relative flex h-full min-w-0 flex-col overflow-hidden p-6 sm:p-9 lg:p-12" style={{ color: slide.textColor || '#10241d', textAlign: slide.textAlign || 'left', justifyContent: justify }}>
-      {slide.heading && <h1 className="max-w-3xl break-words text-2xl font-black leading-[1.08] tracking-[-0.035em] sm:text-4xl lg:text-5xl">{slide.heading}</h1>}
-      {slide.description && <p className="mt-3 max-w-2xl overflow-hidden text-xs leading-5 opacity-90 sm:mt-4 sm:text-base sm:leading-6">{slide.description}</p>}
-      <Buttons buttons={slide.buttons} />
-    </div>
-  </div>
-}
-
-export default function HomepageHero({ config }: { config: HeroConfig }) {
+export default function HomepageHero({ config, categories }: { config: HeroConfig; categories: StorefrontCategory[] }) {
   const slides = config.slides?.length ? config.slides : []
   const [index, setIndex] = useState(0)
   useEffect(() => {
@@ -48,13 +14,48 @@ export default function HomepageHero({ config }: { config: HeroConfig }) {
     return () => clearInterval(timer)
   }, [config.mode, config.autoplay, config.autoplaySeconds, slides.length])
   if (!config.enabled || !slides.length) return null
-  const active = slides[index % slides.length]
-  return <section className="relative h-[260px] overflow-hidden rounded-xl border border-[#dfe5e0] bg-white shadow-[0_6px_24px_rgba(18,32,24,.06)] sm:h-[340px] lg:h-[420px]" style={{ maxHeight: Math.max(220, config.height || 420), backgroundColor: config.backgroundColor }}>
-    <Slide slide={active} />
-    {config.mode === 'carousel' && slides.length > 1 && config.showArrows && <>
-      <button type="button" aria-label="Previous hero slide" onClick={() => setIndex((index - 1 + slides.length) % slides.length)} className="absolute left-2 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full border border-white/50 bg-black/30 text-xl font-bold text-white backdrop-blur-sm sm:left-3">‹</button>
-      <button type="button" aria-label="Next hero slide" onClick={() => setIndex((index + 1) % slides.length)} className="absolute right-2 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full border border-white/50 bg-black/30 text-xl font-bold text-white backdrop-blur-sm sm:right-3">›</button>
-    </>}
-    {config.mode === 'carousel' && slides.length > 1 && config.showDots && <div className="absolute bottom-3 left-1/2 flex -translate-x-1/2 gap-1.5">{slides.map((_, i) => <button key={i} type="button" aria-label={'Show hero slide ' + (i + 1)} onClick={() => setIndex(i)} className={'h-1.5 rounded-full transition ' + (i === index ? 'w-7 bg-white' : 'w-1.5 bg-white/60')} />)}</div>}
-  </section>
+  const slide = slides[index % slides.length]
+  const opacity = Math.max(0, Math.min(1, slide.overlayOpacity ?? 0))
+
+  return (
+    <section className="grid min-w-0 grid-cols-1 gap-2 lg:grid-cols-[190px_minmax(0,1fr)_165px]">
+      <aside className="hidden overflow-hidden rounded-sm border border-[#d5d9d9] bg-white lg:block">
+        <div className="border-b border-[#e7e7e7] px-3 py-2 text-[13px] font-extrabold text-[#0f1111]">Shop by category</div>
+        {categories.slice(0, 8).map((category) => (
+          <Link key={category.id} href={{ pathname: '/products', query: { category: category.id } }} className="flex items-center gap-2 border-b border-[#e7e7e7] px-3 py-2 text-[12px] text-[#0f1111] transition hover:bg-[#f0f2f2] hover:text-[#007185]">
+            <span className="h-1.5 w-1.5 rounded-full bg-[#ff9900]" /> <span className="min-w-0 flex-1 truncate">{category.name}</span><span className="text-[#aaa]">›</span>
+          </Link>
+        ))}
+      </aside>
+
+      <div className="relative min-w-0 overflow-hidden rounded-sm border border-[#2d3e50] bg-[#131921] shadow-sm">
+        {slide.imageUrl && <img src={slide.imageUrl} alt="" className="absolute inset-0 h-full w-full object-cover" style={{ objectPosition: slide.imagePosition || 'center' }} />}
+        {slide.imageUrl && opacity > 0 && <div className="absolute inset-0 bg-black" style={{ opacity }} />}
+        <div className="relative flex min-h-[250px] flex-col justify-center overflow-hidden p-6 text-white sm:min-h-[300px] sm:p-9 lg:min-h-[300px]">
+          <span className="mb-3 inline-flex w-fit rounded-sm bg-[#ff9900] px-2 py-1 text-[9px] font-black uppercase tracking-[.14em] text-[#131921]">⚡ New arrivals & deals</span>
+          {slide.heading && <h1 className="max-w-2xl break-words text-3xl font-black leading-[1.08] tracking-[-.035em] sm:text-4xl">{slide.heading}</h1>}
+          {slide.description && <p className="mt-3 max-w-xl text-xs leading-5 text-[#c8d0d8] sm:text-sm sm:leading-6">{slide.description}</p>}
+          <div className="mt-5 flex flex-wrap gap-2">
+            {(slide.buttons || []).map((button, i) => <Link key={i} href={button.href || '#'} className="inline-flex min-h-9 items-center rounded-sm bg-[#ff9900] px-4 text-xs font-extrabold text-[#131921] transition hover:bg-[#e47911]">{button.label}</Link>)}
+            <Link href="/products" className="inline-flex min-h-9 items-center rounded-sm border border-white/50 bg-white/10 px-4 text-xs font-bold text-white transition hover:bg-white/20">Shop all</Link>
+          </div>
+        </div>
+        {slides.length > 1 && config.showArrows && <>
+          <button type="button" aria-label="Previous hero slide" onClick={() => setIndex((index - 1 + slides.length) % slides.length)} className="absolute left-2 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-lg font-bold text-[#131921]">‹</button>
+          <button type="button" aria-label="Next hero slide" onClick={() => setIndex((index + 1) % slides.length)} className="absolute right-2 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-lg font-bold text-[#131921]">›</button>
+        </>}
+      </div>
+
+      <div className="hidden gap-2 lg:flex lg:flex-col">
+        <Link href="/products?sort=newest" className="relative flex min-h-[145px] flex-1 overflow-hidden rounded-sm bg-gradient-to-br from-[#0d2136] to-[#1a3a52] p-3 text-white">
+          <div><h3 className="text-[13px] font-extrabold">New arrivals</h3><p className="mt-1 text-[10px] text-white/65">Fresh products added regularly</p><span className="mt-4 inline-flex rounded-sm bg-[#ff9900] px-2 py-1 text-[9px] font-black text-[#131921]">Shop →</span></div>
+          <span className="absolute bottom-1 right-2 text-4xl opacity-20">📦</span>
+        </Link>
+        <Link href="/products" className="relative flex min-h-[145px] flex-1 overflow-hidden rounded-sm bg-gradient-to-br from-[#1a1a2e] to-[#16213e] p-3 text-white">
+          <div><h3 className="text-[13px] font-extrabold">Smart shopping</h3><p className="mt-1 text-[10px] text-white/65">Great prices, shipped to Kenya</p><span className="mt-4 inline-flex rounded-sm bg-[#ff9900] px-2 py-1 text-[9px] font-black text-[#131921]">Explore →</span></div>
+          <span className="absolute bottom-1 right-2 text-4xl opacity-20">🛍️</span>
+        </Link>
+      </div>
+    </section>
+  )
 }
