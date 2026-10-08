@@ -9,7 +9,7 @@ export default async function AdminLoginPage({
   const params = await searchParams
 
   return (
-    <main className="min-h-screen bg-[#F7F7F3] text-[#171B18]">
+    <main className="kc-admin min-h-screen bg-[#F7F7F3] text-[#171B18]">
       <div className="mx-auto flex min-h-screen w-full max-w-6xl items-center px-5 py-10 sm:px-8">
         <div className="grid w-full overflow-hidden border border-[#DCE1DC] bg-white shadow-[0_18px_60px_rgba(18,63,43,0.08)] lg:grid-cols-[1.05fr_0.95fr]">
           <section className="hidden bg-[#123F2B] p-10 text-white lg:flex lg:min-h-[620px] lg:flex-col lg:justify-between xl:p-14">
