@@ -56,7 +56,7 @@ export default function ProductGallery({
         </div>
 
         <div
-          className="kc-gallery-stage relative flex min-h-0 min-w-0 flex-1 touch-pan-y select-none items-center justify-center overflow-hidden rounded-sm border border-slate-200 bg-[#f7f8f8] aspect-square lg:aspect-auto lg:h-[min(560px,calc(100vh-230px))]"
+          className="kc-gallery-stage relative flex min-h-0 min-w-0 flex-1 touch-pan-y select-none items-center justify-center overflow-hidden rounded-sm border border-slate-200 bg-[#f7f8f8] aspect-square lg:aspect-auto lg:h-[min(500px,calc(100vh-300px))]"
           onTouchStart={handleTouchStart}
           onTouchEnd={handleTouchEnd}
         >
