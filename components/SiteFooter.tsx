@@ -2,13 +2,13 @@ import Link from 'next/link'
 
 export default function SiteFooter() {
   return (
-    <footer className="mt-14 bg-[#10261d] text-slate-300 sm:mt-20">
-      <div className="mx-auto grid max-w-[1440px] gap-8 px-4 py-10 sm:px-6 sm:py-14 md:grid-cols-[1.5fr_1fr_1fr_1fr]">
+    <footer className="mt-12 bg-[#10261d] text-slate-300 sm:mt-16">
+      <div className="mx-auto grid max-w-[1440px] gap-7 px-4 py-9 sm:px-6 sm:py-12 md:grid-cols-[1.5fr_1fr_1fr_1fr]">
         <div>
-          <div className="text-2xl font-black tracking-[-0.05em] text-white">
+          <div className="text-xl font-black tracking-[-0.05em] text-white sm:text-2xl">
             Kijiji<span className="text-[#f4b942]">Cart</span>
           </div>
-          <p className="mt-3 max-w-sm text-sm leading-6 text-slate-400">
+          <p className="mt-2 max-w-sm text-xs leading-5 text-slate-400 sm:mt-3 sm:text-sm sm:leading-6">
             A Kenyan marketplace for local products and direct import options.
           </p>
         </div>
