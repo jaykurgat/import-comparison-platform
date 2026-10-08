@@ -28,7 +28,7 @@ export default async function HomePage() {
       <main className="min-h-screen bg-[#eaeded] text-[#0f1111]">
         <div className="kc-shell pb-10 sm:pb-14">
           <section className="pt-3 sm:pt-3 lg:pt-3">
-            <HomepageHero config={hero} />
+            <HomepageHero config={hero} categories={categories} />
           </section>
 
           <section className="mt-3 rounded-sm border border-[#d5d9d9] bg-white p-3 sm:p-4"><CategoryGrid categories={categories} /></section>
