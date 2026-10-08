@@ -242,12 +242,6 @@ input::placeholder { color: #9a9b98; }
   }
 }
 
-@media (min-width: 1024px) {
-  .kc-gallery-stage {
-    min-height: 520px;
-  }
-}
-
 
 /* KijijiCart brand remap — Kurgo-inspired structure, KijijiCart identity */
 [class*="bg-[#131921]"] { background-color: #0e4f3a !important; }
