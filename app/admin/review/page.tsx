@@ -10,7 +10,7 @@ export default async function ReviewPage() {
   const queue = await getReviewQueue()
 
   return (
-    <main className="min-h-screen bg-[#F7F7F5] px-6 py-10 text-[#1C1C1E]">
+    <main className="kc-admin min-h-screen bg-[#F7F7F5] px-6 py-10 text-[#1C1C1E]">
       <div className="mx-auto max-w-3xl">
         <div className="flex items-start justify-between gap-4">
           <div>
