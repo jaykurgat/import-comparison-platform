@@ -54,10 +54,10 @@ export default async function ProductsPage({
     <>
       <SearchTracker query={query} />
       <SiteHeader />
-      <main className="kc-page min-h-screen bg-[#f7f7f3]">
+      <main className="kc-page min-h-screen bg-[#eaeded]">
         <div className="mx-auto max-w-[1440px] px-4 py-7 sm:px-6 lg:py-10">
-          <section className="kc-catalog-header overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-            <div className="bg-[#0b2a21] px-5 py-6 text-white sm:px-8 sm:py-8">
+          <section className="kc-catalog-header overflow-hidden rounded-sm border border-[#d5d9d9] bg-white shadow-none">
+            <div className="bg-[#131921] px-5 py-6 text-white sm:px-8 sm:py-8">
               <div className="flex flex-wrap items-end justify-between gap-4">
                 <div>
                   <p className="text-[10px] font-black uppercase tracking-[0.22em] text-emerald-200">KijijiCart marketplace</p>
@@ -66,7 +66,7 @@ export default async function ProductsPage({
                   </h1>
 
                 </div>
-                <Link href="/" className="rounded-sm px-2 py-1 text-sm font-bold text-white/80 transition hover:bg-white/10 hover:text-[#f5a400] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f5a400]/70">← Home</Link>
+                <Link href="/" className="rounded-sm px-2 py-1 text-sm font-bold text-white/80 transition hover:bg-white/10 hover:text-[#ff9900] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ff9900]/70">← Home</Link>
               </div>
             </div>
 
@@ -76,7 +76,7 @@ export default async function ProductsPage({
                   <div className="flex max-w-full gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
                   <Link
                     href={{ pathname: '/products', query: { ...(query ? { q: query } : {}), ...(sort !== 'featured' ? { sort } : {}) } }}
-                    className={'whitespace-nowrap rounded-full border px-4 py-2 text-xs font-bold transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f5a400]/60 ' + (!categoryId ? 'border-[#123f2b] bg-[#123f2b] text-white shadow-sm' : 'border-[#dfe4df] bg-[#f7f7f3] text-[#345447] hover:border-[#f5a400] hover:bg-[#fff4d6] hover:text-[#123f2b] hover:shadow-[0_2px_10px_rgba(245,164,0,0.16)]')}
+                    className={'whitespace-nowrap rounded-sm border px-4 py-2 text-xs font-bold transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ff9900]/60 ' + (!categoryId ? 'border-[#131921] bg-[#131921] text-white shadow-sm' : 'border-[#d5d9d9] bg-[#eaeded] text-[#565959] hover:border-[#ff9900] hover:bg-[#fff3cd] hover:text-[#131921] hover:shadow-[0_2px_10px_rgba(245,164,0,0.16)]')}
                   >
                     All categories
                   </Link>
@@ -85,7 +85,7 @@ export default async function ProductsPage({
                     <Link
                       key={category.id}
                       href={{ pathname: '/products', query: { ...(query ? { q: query } : {}), category: category.id, ...(sort !== 'featured' ? { sort } : {}) } }}
-                      className={'whitespace-nowrap rounded-full border px-4 py-2 text-xs font-bold transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f5a400]/60 ' + (category.id === categoryId ? 'border-[#123f2b] bg-[#123f2b] text-white shadow-sm' : 'border-[#dfe4df] bg-[#f7f7f3] text-[#345447] hover:border-[#f5a400] hover:bg-[#fff4d6] hover:text-[#123f2b] hover:shadow-[0_2px_10px_rgba(245,164,0,0.16)]')}
+                      className={'whitespace-nowrap rounded-full border px-4 py-2 text-xs font-bold transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ff9900]/60 ' + (category.id === categoryId ? 'border-[#131921] bg-[#131921] text-white shadow-sm' : 'border-[#d5d9d9] bg-[#eaeded] text-[#565959] hover:border-[#ff9900] hover:bg-[#fff3cd] hover:text-[#131921] hover:shadow-[0_2px_10px_rgba(245,164,0,0.16)]')}
                     >
 {category.name}
                     </Link>
@@ -99,14 +99,14 @@ export default async function ProductsPage({
           </section>
 
           {products.length === 0 ? (
-            <div className="mt-5 rounded-2xl border border-dashed border-slate-300 bg-white px-5 py-16 text-center shadow-sm sm:px-6 sm:py-20">
-              <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-[#eef7f2] text-xl text-[#123f2b]">⌕</div>
+            <div className="mt-5 rounded-sm border border-dashed border-slate-300 bg-white px-5 py-16 text-center shadow-sm sm:px-6 sm:py-20">
+              <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-[#eef7f2] text-xl text-[#131921]">⌕</div>
               <p className="mt-4 font-bold text-slate-900">No products found</p>
               <p className="mt-2 text-sm text-slate-500">
                 {query || categoryId ? 'Try a different search or category.' : 'Products will appear here once they are published.'}
               </p>
               {(query || categoryId) && (
-                <Link href="/products" className="mt-5 inline-flex rounded-xl border border-[#123f2b] bg-[#123f2b] px-5 py-2.5 text-sm font-bold text-white transition-all duration-200 hover:border-[#f5a400] hover:bg-[#f5a400] hover:text-[#123f2b] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f5a400]/60">Clear filters</Link>
+                <Link href="/products" className="mt-5 inline-flex rounded-xl border border-[#131921] bg-[#131921] px-5 py-2.5 text-sm font-bold text-white transition-all duration-200 hover:border-[#ff9900] hover:bg-[#ff9900] hover:text-[#131921] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ff9900]/60">Clear filters</Link>
               )}
             </div>
           ) : (
