@@ -3,44 +3,59 @@ import type { ProductTeaser } from '@/lib/storefront/productTeaser'
 
 export default function ProductCard({ product }: { product: ProductTeaser }) {
   return (
-    <Link href={product.href} className="group block h-full">
-      <article className="flex h-full flex-col overflow-hidden rounded-sm border border-slate-200/90 bg-white shadow-[0_4px_18px_rgba(15,23,42,0.04)] transition duration-300 hover:-translate-y-1 hover:border-emerald-200 hover:shadow-[0_16px_36px_rgba(15,23,42,0.10)]">
-        <div className="relative aspect-[.94] overflow-hidden bg-[#f1f2ee]">
+    <Link href={product.href} className="kc-product-card group block">
+      <article className="flex h-full min-w-0 flex-col overflow-hidden rounded-lg border border-[#e2e6e1] bg-white shadow-[0_2px_10px_rgba(18,32,24,0.035)] transition duration-200 hover:-translate-y-0.5 hover:border-[#c9d9cf] hover:shadow-[0_12px_28px_rgba(18,32,24,0.10)]">
+        <div className="kc-product-image relative overflow-hidden">
           {product.imageUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={product.imageUrl} alt={product.title} className="h-full w-full object-cover transition duration-700 group-hover:scale-[1.035]" loading="lazy" />
+            <img
+              src={product.imageUrl}
+              alt={product.title}
+              className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.035]"
+              loading="lazy"
+            />
           ) : (
-            <div className="flex h-full items-center justify-center px-5 text-center text-xs font-semibold text-slate-400">Image unavailable</div>
+            <div className="flex h-full items-center justify-center px-3 text-center text-[11px] font-bold text-slate-400">
+              Image unavailable
+            </div>
+          )}
+
+          {product.freeShipping && (
+            <span className="absolute left-2 top-2 rounded-sm bg-[#f4b942] px-1.5 py-1 text-[9px] font-black uppercase tracking-wide text-[#182017] shadow-sm">
+              Free shipping
+            </span>
           )}
         </div>
 
-        <div className="flex flex-1 flex-col p-4 sm:p-4.5">
+        <div className="flex min-w-0 flex-1 flex-col p-3 sm:p-3.5">
           {product.categoryName && (
-            <p className="text-[10px] font-bold uppercase tracking-[0.13em] text-slate-400">{product.categoryName}</p>
+            <p className="truncate text-[9px] font-extrabold uppercase tracking-[0.13em] text-slate-400">
+              {product.categoryName}
+            </p>
           )}
-          <h2 className="mt-1 line-clamp-2 min-h-10 text-sm font-bold leading-5 text-slate-800">{product.title}</h2>
 
-          <div className="mt-auto pt-4">
-            <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
-              <span className="text-base font-black tabular-nums text-slate-950">
+          <h2 className="kc-product-title mt-1 min-h-[2.65rem] text-[12px] font-bold leading-[1.35] text-slate-800 sm:text-[12.5px]">
+            {product.title}
+          </h2>
+
+          <div className="mt-auto pt-3">
+            <div className="flex min-w-0 flex-wrap items-baseline gap-x-1.5 gap-y-0.5">
+              <span className="truncate text-[15px] font-black tabular-nums text-slate-950 sm:text-base">
                 {product.source === 'import' && product.variantCount > 1 ? 'From ' : ''}{product.currency} {product.price.toLocaleString()}
               </span>
             </div>
 
             {product.freeShipping && (
-              <>
-                <p className="mt-2 text-xs font-bold text-[#F5A400]">Free shipping</p>
-                <p className="mt-0.5 text-[10px] leading-4 text-slate-400">Estimated delivery: 14–45 days</p>
-              </>
+              <p className="mt-1 text-[10px] font-semibold text-emerald-700">Ships from China · 14–45 days</p>
             )}
 
-            <div className="mt-3 flex items-center justify-between border-t border-slate-100 pt-3 text-xs font-bold text-slate-400 transition group-hover:text-[#123f2b]">
-              <span>
+            <div className="mt-2.5 flex items-center justify-between gap-2 border-t border-slate-100 pt-2.5 text-[10px] font-bold text-slate-400 transition group-hover:text-[#123f2b]">
+              <span className="truncate">
                 {product.variantCount > 1
                   ? 'More options'
-                  : product.inStock ? 'Available' : 'Currently unavailable'}
+                  : product.inStock ? 'Available' : 'Unavailable'}
               </span>
-              <span aria-hidden="true">→</span>
+              <span aria-hidden="true" className="shrink-0 text-sm">→</span>
             </div>
           </div>
         </div>
