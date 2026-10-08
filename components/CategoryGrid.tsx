@@ -5,23 +5,25 @@ export default function CategoryGrid({ categories }: { categories: StorefrontCat
   if (!categories.length) return null
 
   return (
-    <section className="mt-10">
-      <div className="flex items-end justify-between gap-4">
+    <section className="kc-section">
+      <div className="kc-section-heading">
         <div>
-          <p className="text-xs font-black uppercase tracking-[0.18em] text-emerald-700">Shop by category</p>
-          <h2 className="mt-2 text-2xl font-black tracking-tight text-slate-950 sm:text-3xl">What are you shopping for?</h2>
+          <p className="kc-section-kicker">Shop by category</p>
+          <h2 className="kc-section-title">What are you shopping for?</h2>
         </div>
-        <Link href="/products" className="hidden text-sm font-bold text-emerald-800 hover:underline sm:block">View all categories →</Link>
+        <Link href="/products" className="hidden text-xs font-black text-[#176043] hover:underline sm:block">
+          View all →
+        </Link>
       </div>
 
-      <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
+      <div className="kc-scroll-row mt-4 flex gap-2.5 overflow-x-auto pb-1 sm:grid sm:grid-cols-3 sm:gap-3 md:grid-cols-4 lg:grid-cols-6">
         {categories.map((category) => (
           <Link
             key={category.id}
             href={{ pathname: '/products', query: { category: category.id } }}
-            className="group overflow-hidden rounded-sm border border-slate-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:border-emerald-200 hover:shadow-md"
+            className="group w-[140px] shrink-0 overflow-hidden rounded-lg border border-[#e2e6e1] bg-white shadow-[0_2px_8px_rgba(18,32,24,.035)] transition hover:-translate-y-0.5 hover:border-[#c9d9cf] hover:shadow-md sm:w-auto"
           >
-            <div className="relative aspect-square overflow-hidden bg-[#f0f1ec]">
+            <div className="relative aspect-square overflow-hidden bg-[#f0f2ee]">
               {category.imageUrl ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
@@ -31,14 +33,16 @@ export default function CategoryGrid({ categories }: { categories: StorefrontCat
                   loading="lazy"
                 />
               ) : (
-                <div className="flex h-full items-center justify-center text-xs font-black uppercase tracking-wider text-slate-400">
-                  Browse products
+                <div className="flex h-full items-center justify-center px-3 text-center text-[10px] font-black uppercase tracking-wider text-slate-400">
+                  Browse
                 </div>
               )}
             </div>
-            <div className="p-4">
-              <h3 className="line-clamp-2 text-sm font-extrabold leading-5 text-slate-900">{category.name}</h3>
-              <span className="mt-2 inline-flex text-xs font-black text-emerald-800">Shop now →</span>
+            <div className="p-3 sm:p-3.5">
+              <h3 className="line-clamp-2 min-h-[2.5rem] text-xs font-extrabold leading-5 text-slate-900 sm:text-sm">
+                {category.name}
+              </h3>
+              <span className="mt-1.5 inline-flex text-[10px] font-black text-[#176043] sm:text-xs">Shop now →</span>
             </div>
           </Link>
         ))}
