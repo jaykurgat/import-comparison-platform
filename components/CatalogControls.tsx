@@ -24,13 +24,13 @@ export default function CatalogControls({
   }
 
   return (
-    <div className="flex flex-col gap-3 border-t border-slate-100 pt-5 sm:flex-row sm:items-center sm:justify-end">
-      <label className="flex shrink-0 items-center gap-2 text-xs font-bold text-slate-500">
+    <div className="flex flex-col gap-2 border-t border-[#e6ebe7] pt-4 sm:flex-row sm:items-center sm:justify-end">
+      <label className="flex items-center justify-between gap-2 text-[11px] font-extrabold text-slate-500 sm:justify-start">
         Sort
         <select
           defaultValue={sort}
           onChange={(event) => submit(event.target.value as CatalogSort)}
-          className="rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-bold text-slate-700 outline-none transition hover:border-[#f5a400] hover:bg-[#fffaf0] focus:border-[#123f2b] focus:ring-2 focus:ring-[#f5a400]/40"
+          className="min-w-[150px] rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-bold text-slate-700 outline-none transition hover:border-[#f4b942] focus:border-[#123f2b] focus:ring-2 focus:ring-[#f4b942]/40"
           aria-label="Sort products"
         >
           <option value="featured">Featured</option>
