@@ -39,12 +39,12 @@ export default function ProductGallery({
   return (
     <div className="kc-gallery space-y-3">
       <div
-        className="kc-gallery-stage relative aspect-square w-full touch-pan-y select-none overflow-hidden rounded-sm border border-slate-200 bg-[#f7f8f8] lg:h-[min(560px,calc(100vh-230px))] lg:aspect-auto"
+        className="kc-gallery-stage relative aspect-square w-full touch-pan-y select-none overflow-hidden rounded-sm border border-slate-200 bg-[#f7f8f8] lg:aspect-square"
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={images[active]} alt={title} className="mx-auto h-full w-full max-h-full object-contain p-6 sm:p-8 lg:p-10" draggable={false} />
+        <img src={images[active]} alt={title} className="mx-auto h-full w-full max-h-full object-contain p-8 sm:p-10 lg:p-12" draggable={false} />
       </div>
 
       <div className="flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
