@@ -70,9 +70,9 @@ export default async function ProductPage({ params }: { params: Promise<{ sku: s
         }}
       />
 
-      <main className="min-h-screen bg-[#f7f7f3] text-slate-950">
+      <main className="kc-page min-h-screen bg-[#f7f7f3] text-slate-950">
         <div className="mx-auto max-w-[1440px] px-4 py-6 sm:px-6 lg:py-9">
-          <div className="sticky top-[215px] z-30 -mx-4 mb-5 max-w-[100vw] min-w-0 overflow-x-auto border-b border-slate-200 bg-[#f7f7f3]/95 px-4 py-3 text-xs text-slate-500 backdrop-blur sm:-mx-6 sm:px-6 md:top-[145px]">
+          <div className="sticky top-[120px] z-30 -mx-4 mb-4 max-w-[100vw] min-w-0 overflow-x-auto border-b border-slate-200 bg-[#f7f7f3]/95 px-4 py-2.5 text-xs text-slate-500 backdrop-blur sm:-mx-6 sm:px-6 md:top-[145px]">
             <div className="flex min-w-max items-center gap-2 whitespace-nowrap">
             <Link href="/products" className="font-bold text-emerald-800 hover:underline">Products</Link>
             {local.categoryName && (
@@ -86,21 +86,21 @@ export default async function ProductPage({ params }: { params: Promise<{ sku: s
             </div>
           </div>
 
-          <div className="grid items-start gap-8 lg:grid-cols-[1.2fr_.8fr] xl:grid-cols-[1.25fr_.75fr]">
-            <section className="min-w-0 lg:sticky lg:top-[190px] lg:h-[calc(100vh-205px)] lg:self-start lg:overflow-y-auto lg:overscroll-contain">
+          <div className="grid items-start gap-5 lg:grid-cols-[1.15fr_.85fr] lg:gap-7 xl:grid-cols-[1.2fr_.8fr]">
+            <section className="min-w-0 lg:sticky lg:top-[165px] lg:h-[calc(100vh-180px)] lg:self-start lg:overflow-y-auto lg:overscroll-contain">
               <ProductGallery title={local.title} imageUrls={local.imageUrls} />
             </section>
 
-            <section className="min-w-0 bg-white p-5 shadow-sm sm:p-7 lg:rounded-sm">
+            <section className="kc-product-detail min-w-0 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6 lg:p-7">
               <div className="flex flex-wrap gap-2 text-[10px] font-black uppercase tracking-[0.16em]">
                 <span className="rounded-full bg-slate-100 px-3 py-1.5 text-slate-600">Local listing</span>
                 {local.categoryName && <span className="rounded-full bg-[#eef7f2] px-3 py-1.5 text-emerald-800">{local.categoryName}</span>}
                 {comparison && <span className="rounded-full bg-slate-100 px-3 py-1.5 text-slate-600">Supplier option available</span>}
               </div>
 
-              <h1 className="mt-5 text-3xl font-black leading-[1.08] tracking-[-0.035em] sm:text-4xl">{local.title}</h1>
+              <h1 className="mt-4 text-2xl font-black leading-[1.1] tracking-[-0.035em] sm:text-3xl lg:text-4xl">{local.title}</h1>
 
-              <div className="mt-6 flex flex-wrap items-end gap-x-3 gap-y-1">
+              <div className="mt-5 flex flex-wrap items-end gap-x-3 gap-y-1">
                 <span className="text-3xl font-black tabular-nums">{local.currency} {local.price.toLocaleString()}</span>
                 <span className={local.inStock ? 'text-sm font-bold text-emerald-700' : 'text-sm font-bold text-slate-500'}>
                   {local.inStock ? 'In stock' : 'Currently unavailable'}
@@ -114,7 +114,7 @@ export default async function ProductPage({ params }: { params: Promise<{ sku: s
                 </div>
               )}
 
-              <div className="mt-6 rounded-2xl bg-[#f7f7f3] p-4">
+              <div className="mt-5 rounded-2xl border border-slate-200 bg-[#fbfbf8] p-4">
                 <div className="flex items-center justify-between gap-4">
                   <span className="text-sm font-black">Local availability</span>
                   <span className="text-xs font-bold text-slate-500">{local.inStock ? 'Available now' : 'Currently unavailable'}</span>
@@ -150,11 +150,11 @@ export default async function ProductPage({ params }: { params: Promise<{ sku: s
             </section>
           </div>
 
-          <section className="mt-6 rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
+          <section className="mt-5 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6 lg:p-8">
             <div className="flex flex-wrap items-end justify-between gap-4">
               <div>
                 <p className="text-xs font-black uppercase tracking-[0.18em] text-emerald-700">More ways to shop</p>
-                <h2 className="mt-2 text-2xl font-black tracking-tight sm:text-3xl">Other ways to get this product</h2>
+                <h2 className="mt-2 text-xl font-black tracking-tight sm:text-2xl lg:text-3xl">Other ways to get this product</h2>
                 <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500">We keep supplier pricing and availability in the background and surface a matching option here when one is verified.</p>
               </div>
               {comparison?.isStale && <span className="text-xs font-semibold text-slate-400">Last confirmed {comparison.priceDataAsOf.toLocaleDateString()}</span>}
