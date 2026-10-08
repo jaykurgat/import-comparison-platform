@@ -61,7 +61,7 @@ export default async function ProductsPage({
               <div className="flex flex-wrap items-end justify-between gap-4">
                 <div>
                   <p className="text-[10px] font-black uppercase tracking-[0.22em] text-emerald-200">KijijiCart marketplace</p>
-                  <h1 className="mt-2 text-2xl font-black tracking-[-0.035em] sm:text-3xl lg:text-4xl">
+                  <h1 className="mt-2 text-2xl font-black tracking-[-0.035em] sm:text-3xl lg:text-3xl">
                     {selectedCategory?.name ?? (query ? 'Search results' : 'All products')}
                   </h1>
 
