@@ -58,30 +58,30 @@ export default async function ImportProductPage({ params }: { params: Promise<{ 
         }}
       />
 
-      <main className="min-h-screen bg-[#f7f7f3] text-slate-950">
-        <div className="mx-auto max-w-[1440px] px-4 py-6 sm:px-6 lg:py-9">
+      <main className="kc-page min-h-screen bg-[#f7f7f3] text-slate-950">
+        <div className="mx-auto max-w-[1440px] px-4 py-5 sm:px-6 lg:py-8">
           <div className="mb-5 flex flex-wrap items-center gap-2 text-xs text-slate-500">
             <Link href="/products" className="font-bold text-emerald-800 hover:underline">Products</Link>
             <span>/</span>
             <span className="truncate">Supplier product</span>
           </div>
 
-          <div className="grid gap-6 lg:grid-cols-[1.08fr_.92fr]">
-            <section className="rounded-[2rem] border border-slate-200 bg-white p-4 shadow-sm sm:p-6">
+          <div className="grid gap-5 lg:grid-cols-[1.08fr_.92fr] lg:gap-7">
+            <section className="rounded-2xl border border-slate-200 bg-white p-3 shadow-sm sm:p-5 lg:p-6">
               <ProductGallery title={data.title} imageUrls={data.imageUrls} />
             </section>
 
-            <section className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
+            <section className="kc-product-detail rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6 lg:p-7">
               <div className="flex flex-wrap gap-2 text-[10px] font-black uppercase tracking-[0.16em]">
                 <span className="rounded-full bg-[#eef7f2] px-3 py-1.5 text-emerald-800">Supplier product</span>
                 {data.categoryName && <span className="rounded-full bg-slate-100 px-3 py-1.5 text-slate-600">{data.categoryName}</span>}
               </div>
 
-              <h1 className="mt-5 text-3xl font-black leading-[1.08] tracking-[-0.035em] sm:text-4xl">{data.title}</h1>
+              <h1 className="mt-4 text-2xl font-black leading-[1.1] tracking-[-0.035em] sm:text-3xl lg:text-4xl">{data.title}</h1>
               <div className="mt-6 text-3xl font-black tracking-tight tabular-nums">{data.currency} {data.sellPrice.toLocaleString()}</div>
               <p className="mt-2 text-sm text-slate-500">Current supplier price based on landed cost and marketplace pricing.</p>
 
-              <div className="mt-6 grid grid-cols-2 gap-3">
+              <div className="mt-5 grid grid-cols-2 gap-2.5 sm:gap-3">
                 <div className="rounded-2xl bg-[#f7f7f3] p-4">
                   <div className="text-[10px] font-black uppercase tracking-wider text-slate-400">Stock</div>
                   <div className="mt-2 text-sm font-bold text-emerald-800">{data.availableStock} available</div>
