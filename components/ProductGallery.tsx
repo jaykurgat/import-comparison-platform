@@ -47,7 +47,7 @@ export default function ProductGallery({
               onClick={() => setActive(index)}
               aria-label={`View product image ${index + 1}`}
               aria-pressed={active === index}
-              className={`h-16 w-16 shrink-0 overflow-hidden rounded-md border-2 bg-[#f7f8f8] p-0.5 transition ${active === index ? 'border-[#0e4f3a]' : 'border-slate-200 hover:border-slate-300'}`}
+              className={`h-16 w-16 shrink-0 overflow-hidden rounded-md border-2 bg-white p-0.5 transition ${active === index ? 'border-[#0e4f3a]' : 'border-slate-200 hover:border-slate-300'}`}
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={src} alt="" className="h-full w-full object-contain" loading={index === 0 ? 'eager' : 'lazy'} />
@@ -56,7 +56,7 @@ export default function ProductGallery({
         </div>
 
         <div
-          className="kc-gallery-stage relative flex min-h-0 min-w-0 flex-1 touch-pan-y select-none items-center justify-center overflow-hidden rounded-sm border border-slate-200 bg-[#f7f8f8] aspect-square lg:aspect-auto lg:h-[min(500px,calc(100vh-300px))]"
+          className="kc-gallery-stage relative flex min-h-0 min-w-0 flex-1 touch-pan-y select-none items-center justify-center overflow-hidden rounded-sm border border-slate-200 bg-white aspect-square lg:aspect-auto lg:h-[min(500px,calc(100vh-300px))]"
           onTouchStart={handleTouchStart}
           onTouchEnd={handleTouchEnd}
         >
@@ -73,7 +73,7 @@ export default function ProductGallery({
             onClick={() => setActive(index)}
             aria-label={`View product image ${index + 1}`}
             aria-pressed={active === index}
-            className={`h-14 w-14 shrink-0 overflow-hidden rounded-lg border-2 bg-[#f7f8f8] p-0.5 transition sm:h-16 sm:w-16 ${active === index ? 'border-[#0e4f3a]' : 'border-slate-200 hover:border-slate-300'}`}
+            className={`h-14 w-14 shrink-0 overflow-hidden rounded-lg border-2 bg-white p-0.5 transition sm:h-16 sm:w-16 ${active === index ? 'border-[#0e4f3a]' : 'border-slate-200 hover:border-slate-300'}`}
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={src} alt="" className="h-full w-full object-contain" loading={index === 0 ? 'eager' : 'lazy'} />
