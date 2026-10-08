@@ -87,7 +87,7 @@ export default async function ProductPage({ params }: { params: Promise<{ sku: s
           </div>
 
           <div className="grid items-start gap-5 lg:grid-cols-[1.15fr_.85fr] lg:gap-7 xl:grid-cols-[1.2fr_.8fr]">
-            <section className="min-w-0 lg:sticky lg:top-[165px] lg:h-[calc(100vh-180px)] lg:self-start lg:overflow-y-auto lg:overscroll-contain">
+            <section className="min-w-0 lg:sticky lg:top-[165px] lg:self-start">
               <ProductGallery title={local.title} imageUrls={local.imageUrls} />
             </section>
 
