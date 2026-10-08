@@ -157,3 +157,93 @@ input::placeholder { color: #9a9b98; }
 @media (prefers-reduced-motion: reduce) {
   .navigation-progress-bar { animation: none; width: 100%; }
 }
+
+/* Kurgo-inspired responsive finishing layer — presentation only */
+.kc-page {
+  min-width: 0;
+}
+
+.kc-page button,
+.kc-page a,
+.kc-page input,
+.kc-page select,
+.kc-page textarea {
+  -webkit-tap-highlight-color: transparent;
+}
+
+.kc-page input,
+.kc-page select,
+.kc-page textarea {
+  border-radius: 0.75rem;
+}
+
+.kc-page input:focus,
+.kc-page select:focus,
+.kc-page textarea:focus {
+  outline: 2px solid rgb(245 164 0 / 0.28);
+  outline-offset: 1px;
+}
+
+.kc-product-detail h1,
+.kc-recommendation-rail h2 {
+  overflow-wrap: anywhere;
+}
+
+.kc-gallery-stage img {
+  max-height: 100%;
+}
+
+.kc-option-panel button {
+  max-width: 100%;
+}
+
+.kc-option-panel section {
+  min-width: 0;
+}
+
+.kc-admin {
+  min-width: 0;
+  overflow-x: hidden;
+}
+
+.kc-admin > div {
+  width: min(100%, 1280px);
+}
+
+.kc-admin input,
+.kc-admin select,
+.kc-admin textarea {
+  border-radius: 0.75rem;
+}
+
+.kc-admin input:focus,
+.kc-admin select:focus,
+.kc-admin textarea:focus {
+  outline: 2px solid rgb(245 164 0 / 0.28);
+  outline-offset: 1px;
+}
+
+.kc-admin table {
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+@media (max-width: 639px) {
+  .kc-product-detail {
+    box-shadow: 0 4px 18px rgb(15 23 42 / 0.04);
+  }
+
+  .kc-gallery-stage {
+    border-radius: 1rem;
+  }
+
+  .kc-info-section {
+    margin-top: 1.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .kc-gallery-stage {
+    min-height: 520px;
+  }
+}
