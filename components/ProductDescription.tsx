@@ -10,16 +10,16 @@ export default function ProductDescription({
   const paragraphs = description.split(/\n{2,}/).map((paragraph) => paragraph.trim()).filter(Boolean)
 
   return (
-    <section className="mt-7 border-t border-slate-100 pt-6">
+    <section className="kc-info-section mt-7 border-t border-slate-100 pt-6">
       <div>
-        <p className="text-[10px] font-black uppercase tracking-[0.18em] text-emerald-700">Product information</p>
+        <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#007600]">Product information</p>
         <h2 className="mt-2 text-xl font-black tracking-tight text-slate-950">Product description</h2>
       </div>
-      <div className="mt-4 space-y-3 text-sm leading-7 text-slate-600">
+      <div className="mt-4 space-y-3 text-sm leading-6 text-slate-600">
         {paragraphs.map((paragraph, index) => <p key={index} className="whitespace-pre-line">{paragraph}</p>)}
       </div>
       {coreFeatures.length > 0 && (
-        <div className="mt-6 rounded-2xl bg-[#f7f7f3] p-5">
+        <div className="mt-6 rounded-sm border border-slate-200 bg-[#f7f8f8] p-4 sm:p-5">
           <h3 className="text-sm font-black text-slate-900">Core features</h3>
           <dl className="mt-4 divide-y divide-slate-200/70">
             {coreFeatures.map((feature) => (

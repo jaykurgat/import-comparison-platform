@@ -24,7 +24,7 @@ export default async function AdminDashboardPage() {
   const [catalog, operations] = await Promise.all([getCatalogHealth(), getOperationalHealth()])
 
   return (
-    <main className="min-h-screen bg-[#F7F7F5] px-6 py-10 text-[#1C1C1E]">
+    <main className="kc-admin min-h-screen bg-[#F7F7F5] px-6 py-10 text-[#1C1C1E]">
       <div className="mx-auto max-w-7xl">
         <header className="flex flex-wrap items-start justify-between gap-4 border-b border-[#E3E3DF] pb-6">
           <div>

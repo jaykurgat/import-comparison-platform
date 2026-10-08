@@ -1,11 +1,17 @@
 @import "tailwindcss";
 
 :root {
-  --background: #f7f7f3;
-  --foreground: #171b18;
-  --brand: #123f2b;
-  --brand-soft: #eef7f2;
-  --accent: #f4b942;
+  --background: #f4f5f3;
+  --foreground: #18201d;
+  --brand: #0e4f3a;
+  --brand-deep: #176b4d;
+  --brand-soft: #e8f3ee;
+  --accent: #e8a317;
+  --accent-soft: #fff5d9;
+  --surface: #ffffff;
+  --surface-muted: #f7f8f6;
+  --border: #d9e0dc;
+  --muted: #5d6862;
 }
 
 @theme inline {
@@ -15,12 +21,11 @@
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 }
 
-* {
-  box-sizing: border-box;
-}
+* { box-sizing: border-box; }
 
 html {
   scroll-behavior: smooth;
+  overflow-x: hidden;
 }
 
 body {
@@ -30,58 +35,230 @@ body {
   font-family: var(--font-retail-sans), Arial, Helvetica, sans-serif;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
+  overflow-x: hidden;
 }
 
 ::selection {
-  background: #d6eadf;
-  color: #123f2b;
+  background: #e8a317;
+  color: #0e4f3a;
 }
 
-button,
-a,
-input,
-select {
+button, a, input, select, textarea {
   -webkit-tap-highlight-color: transparent;
 }
 
-a:focus-visible,
-button:focus-visible,
-input:focus-visible,
-select:focus-visible {
-  outline: 3px solid rgba(18, 63, 43, 0.28);
+a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible {
+  outline: 3px solid rgba(232, 163, 23, 0.35);
   outline-offset: 2px;
 }
 
-input::placeholder {
-  color: #9a9b98;
-}
-
+input::placeholder { color: #9a9b98; }
 
 @keyframes supplier-progress-shimmer {
   from { transform: translateX(-100%); }
   to { transform: translateX(300%); }
 }
-
 .supplier-progress-shimmer {
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.42), transparent);
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.42), transparent);
   animation: supplier-progress-shimmer 1.2s linear infinite;
 }
-
 
 @keyframes navigation-progress {
   0% { transform: translateX(-140%); }
   50% { transform: translateX(170%); }
   100% { transform: translateX(360%); }
 }
-
 .navigation-progress-bar {
   animation: navigation-progress 1.05s ease-in-out infinite;
   will-change: transform;
 }
 
+.kc-shell {
+  width: min(100% - 32px, 1440px);
+  margin-inline: auto;
+}
+
+.kc-section {
+  margin-top: clamp(28px, 4vw, 52px);
+}
+
+.kc-section-heading {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.kc-section-kicker {
+  color: #176043;
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+}
+
+.kc-section-title {
+  margin-top: 6px;
+  color: #111814;
+  font-size: clamp(20px, 2.2vw, 30px);
+  line-height: 1.08;
+  letter-spacing: -.035em;
+  font-weight: 900;
+}
+
+.kc-scroll-row {
+  scrollbar-width: none;
+  overscroll-behavior-x: contain;
+}
+.kc-scroll-row::-webkit-scrollbar { display: none; }
+
+.kc-product-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.kc-product-card {
+  min-width: 0;
+  height: 100%;
+}
+
+.kc-product-image {
+  aspect-ratio: 1 / 1;
+  background: #f0f2ee;
+}
+
+.kc-product-title {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+}
+
+@media (min-width: 640px) {
+  .kc-product-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+}
+
+@media (min-width: 1024px) {
+  .kc-product-grid { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 14px; }
+}
+
+@media (min-width: 1280px) {
+  .kc-product-grid { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+}
+
+@media (max-width: 639px) {
+  .kc-shell { width: min(100% - 20px, 1440px); }
+  .kc-section { margin-top: 30px; }
+  .kc-section-heading { align-items: center; }
+  .kc-section-title { font-size: 20px; }
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .navigation-progress-bar {
-    animation: none;
-    width: 100%;
+  .navigation-progress-bar { animation: none; width: 100%; }
+}
+
+/* Kurgo-inspired responsive finishing layer — presentation only */
+.kc-page {
+  min-width: 0;
+}
+
+.kc-page button,
+.kc-page a,
+.kc-page input,
+.kc-page select,
+.kc-page textarea {
+  -webkit-tap-highlight-color: transparent;
+}
+
+.kc-page input,
+.kc-page select,
+.kc-page textarea {
+  border-radius: 0.75rem;
+}
+
+.kc-page input:focus,
+.kc-page select:focus,
+.kc-page textarea:focus {
+  outline: 2px solid rgb(232 163 23 / 0.28);
+  outline-offset: 1px;
+}
+
+.kc-product-detail h1,
+.kc-recommendation-rail h2 {
+  overflow-wrap: anywhere;
+}
+
+.kc-gallery-stage img {
+  max-height: 100%;
+}
+
+.kc-option-panel button {
+  max-width: 100%;
+}
+
+.kc-option-panel section {
+  min-width: 0;
+}
+
+.kc-admin {
+  min-width: 0;
+  overflow-x: hidden;
+}
+
+.kc-admin > div {
+  width: min(100%, 1280px);
+}
+
+.kc-admin input,
+.kc-admin select,
+.kc-admin textarea {
+  border-radius: 0.75rem;
+}
+
+.kc-admin input:focus,
+.kc-admin select:focus,
+.kc-admin textarea:focus {
+  outline: 2px solid rgb(245 164 0 / 0.28);
+  outline-offset: 1px;
+}
+
+.kc-admin table {
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+@media (max-width: 639px) {
+  .kc-product-detail {
+    box-shadow: 0 4px 18px rgb(15 23 42 / 0.04);
+  }
+
+  .kc-gallery-stage {
+    border-radius: 1rem;
+  }
+
+  .kc-info-section {
+    margin-top: 1.5rem;
   }
 }
+
+@media (min-width: 1024px) {
+  .kc-gallery-stage {
+    min-height: 520px;
+  }
+}
+
+
+/* KijijiCart brand remap — Kurgo-inspired structure, KijijiCart identity */
+[class*="bg-[#131921]"] { background-color: #0e4f3a !important; }
+[class*="bg-[#232f3e]"] { background-color: #176b4d !important; }
+[class*="bg-[#ff9900]"] { background-color: #e8a317 !important; }
+[class*="hover:bg-[#e47911]"]:hover { background-color: #c98b12 !important; }
+[class*="text-[#ff9900]"] { color: #e8a317 !important; }
+[class*="text-[#131921]"] { color: #0e4f3a !important; }
+[class*="text-[#0f1111]"] { color: #18201d !important; }
+[class*="border-[#ff9900]"] { border-color: #e8a317 !important; }
+[class*="border-[#3a4553]"] { border-color: #2b7258 !important; }
+[class*="border-[#d5d9d9]"] { border-color: #d9e0dc !important; }
+[class*="bg-[#f3f3f3]"] { background-color: #eef3f0 !important; }
+[class*="text-[#565959]"] { color: #5d6862 !important; }

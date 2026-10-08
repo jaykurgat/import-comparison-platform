@@ -17,12 +17,12 @@ export default async function AdminSettingsPage() {
   ] as const
 
   return (
-    <main className="min-h-screen bg-[#F7F7F5] px-6 py-10 text-[#1C1C1E]">
+    <main className="kc-admin min-h-screen bg-[#F7F7F5] px-6 py-10 text-[#1C1C1E]">
       <div className="mx-auto max-w-5xl">
         <header className="flex flex-wrap items-start justify-between gap-4 border-b border-[#E3E3DF] pb-6">
           <div>
             <p className="text-xs font-black uppercase tracking-[0.18em] text-[#2F6B4F]">Administration</p>
-            <h1 className="mt-2 text-3xl font-black tracking-tight">Platform settings</h1>
+            <h1 className="mt-2 text-2xl font-black tracking-tight">Platform settings</h1>
             <p className="mt-2 max-w-2xl text-sm leading-6 text-[#6B6B6E]">Integration status for analytics and search visibility. IDs remain environment configuration rather than database data.</p>
           </div>
           <form action={logoutAdmin}><button type="submit" className="rounded border border-[#D8D8D3] px-4 py-2 text-sm font-medium hover:bg-white">Sign out</button></form>
