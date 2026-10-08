@@ -72,7 +72,7 @@ export default async function ProductPage({ params }: { params: Promise<{ sku: s
 
       <main className="kc-page min-h-screen bg-[#eaeded] text-slate-950">
         <div className="mx-auto max-w-[1440px] px-4 py-6 sm:px-6 lg:py-9">
-          <div className="sticky top-[120px] z-30 -mx-4 mb-4 max-w-[100vw] min-w-0 overflow-x-auto border-b border-slate-200 bg-[#eaeded]/95 px-4 py-2.5 text-xs text-slate-500 backdrop-blur sm:-mx-6 sm:px-6 md:top-[145px]">
+          <div className="sticky top-[120px] z-30 mb-5 max-w-[100vw] min-w-0 overflow-x-auto rounded-sm border border-slate-200 bg-white px-4 py-2.5 text-xs text-slate-500 shadow-sm backdrop-blur sm:px-6 md:top-[145px]">
             <div className="flex min-w-max items-center gap-2 whitespace-nowrap">
             <Link href="/products" className="font-bold text-[#007185] hover:underline">Products</Link>
             {local.categoryName && (
