@@ -25,21 +25,21 @@ export default async function HomePage() {
   return (
     <>
       <SiteHeader />
-      <main className="min-h-screen bg-[#f6f7f3] text-slate-950">
-        <div className="kc-shell pb-12 sm:pb-16">
-          <section className="pt-3 sm:pt-5 lg:pt-6">
+      <main className="min-h-screen bg-[#eaeded] text-[#0f1111]">
+        <div className="kc-shell pb-10 sm:pb-14">
+          <section className="pt-3 sm:pt-3 lg:pt-3">
             <HomepageHero config={hero} />
           </section>
 
-          <CategoryGrid categories={categories} />
+          <section className="mt-3 rounded-sm border border-[#d5d9d9] bg-white p-3 sm:p-4"><CategoryGrid categories={categories} /></section>
 
-          <section className="kc-section">
+          <section className="kc-section rounded-sm border border-[#d5d9d9] bg-white p-3 sm:p-4">
             <div className="kc-section-heading">
               <div>
                 <p className="kc-section-kicker">Featured</p>
                 <h2 className="kc-section-title">Featured products</h2>
               </div>
-              <Link href="/products" className="shrink-0 text-xs font-black text-[#176043] hover:underline sm:text-sm">View all →</Link>
+              <Link href="/products" className="shrink-0 text-xs font-black text-[#007185] hover:underline sm:text-sm">View all →</Link>
             </div>
 
             {featuredProducts.length > 0 ? (
@@ -47,7 +47,7 @@ export default async function HomePage() {
                 {featuredProducts.map((product) => <ProductCard key={product.sku} product={product} />)}
               </div>
             ) : (
-              <div className="mt-4 rounded-xl border border-dashed border-slate-300 bg-white p-10 text-center text-sm text-slate-500">
+              <div className="mt-4 rounded-xl border border-dashed border-[#d5d9d9] bg-white p-10 text-center text-sm text-[#565959]">
                 Products will appear here as the catalog fills.
               </div>
             )}
