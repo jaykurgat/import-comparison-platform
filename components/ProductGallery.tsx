@@ -30,7 +30,7 @@ export default function ProductGallery({
 
   if (!images.length) {
     return (
-      <div className="flex aspect-square items-center justify-center bg-[#f7f7f3] text-sm font-semibold text-slate-400">
+      <div className="flex aspect-square items-center justify-center bg-[#eaeded] text-sm font-semibold text-slate-400">
         Image unavailable
       </div>
     )
@@ -39,7 +39,7 @@ export default function ProductGallery({
   return (
     <div className="kc-gallery space-y-3">
       <div
-        className="kc-gallery-stage relative aspect-square w-full touch-pan-y select-none overflow-hidden rounded-2xl border border-slate-200 bg-[#fbfbf8] lg:h-[min(720px,calc(100vh-250px))] lg:aspect-auto"
+        className="kc-gallery-stage relative aspect-square w-full touch-pan-y select-none overflow-hidden rounded-sm border border-slate-200 bg-[#f7f8f8] lg:h-[min(720px,calc(100vh-250px))] lg:aspect-auto"
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
       >
@@ -55,7 +55,7 @@ export default function ProductGallery({
             onClick={() => setActive(index)}
             aria-label={`View product image ${index + 1}`}
             aria-pressed={active === index}
-            className={`h-14 w-14 shrink-0 overflow-hidden rounded-lg border-2 bg-[#fbfbf8] p-0.5 transition sm:h-16 sm:w-16 ${active === index ? 'border-[#123f2b]' : 'border-slate-200 hover:border-slate-300'}`}
+            className={`h-14 w-14 shrink-0 overflow-hidden rounded-lg border-2 bg-[#f7f8f8] p-0.5 transition sm:h-16 sm:w-16 ${active === index ? 'border-[#131921]' : 'border-slate-200 hover:border-slate-300'}`}
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={src} alt="" className="h-full w-full object-contain" loading={index === 0 ? 'eager' : 'lazy'} />
@@ -66,7 +66,7 @@ export default function ProductGallery({
       {images.length > 1 && (
         <div className="pointer-events-none flex justify-center gap-1.5 sm:hidden">
           {images.slice(0, 8).map((_, index) => (
-            <span key={index} className={`h-1.5 w-1.5 rounded-full ${active === index ? 'bg-[#123f2b]' : 'bg-slate-300'}`} />
+            <span key={index} className={`h-1.5 w-1.5 rounded-full ${active === index ? 'bg-[#131921]' : 'bg-slate-300'}`} />
           ))}
         </div>
       )}
