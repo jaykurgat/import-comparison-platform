@@ -35,7 +35,7 @@ export default function ImportVariantSelector({ productId, title }: { productId:
   if (!selectedVariant) return null
 
   return (
-    <div className="mt-7 border-t border-slate-100 pt-6">
+    <div className="kc-option-panel mt-7 border-t border-slate-100 pt-6">
       <div className="flex items-end justify-between gap-4">
         <div>
           <h2 className="text-sm font-black text-slate-900">
@@ -62,7 +62,7 @@ export default function ImportVariantSelector({ productId, title }: { productId:
         </div>
       )}
 
-      <div className="mt-5 border border-slate-200 bg-[#f7f7f3] p-4">
+      <div className="mt-5 rounded-2xl border border-slate-200 bg-[#fbfbf8] p-3.5 sm:p-4">
         <div className="flex items-start gap-3">
           {selectedVariant.imageUrl && (
             // eslint-disable-next-line @next/next/no-img-element
@@ -100,7 +100,7 @@ export default function ImportVariantSelector({ productId, title }: { productId:
                 <span className="text-xs font-bold text-slate-400">{selectedOptions[group.name] ?? 'Choose'}</span>
               </div>
 
-              <div className="mt-3 flex flex-wrap gap-2">
+              <div className="mt-3 flex flex-wrap gap-1.5">
                 {group.values.map((value) => {
                   const active = selectedOptions[group.name] === value
                   const imageUrl = getOptionImage(variants, selectedOptions, group.name, value)
