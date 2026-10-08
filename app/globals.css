@@ -1,17 +1,17 @@
 @import "tailwindcss";
 
 :root {
-  --background: #eaeded;
-  --foreground: #0f1111;
-  --brand: #131921;
-  --brand-deep: #232f3e;
-  --brand-soft: #f3f3f3;
-  --accent: #ff9900;
-  --accent-soft: #fff3cd;
+  --background: #f4f5f3;
+  --foreground: #18201d;
+  --brand: #0e4f3a;
+  --brand-deep: #176b4d;
+  --brand-soft: #e8f3ee;
+  --accent: #e8a317;
+  --accent-soft: #fff5d9;
   --surface: #ffffff;
-  --surface-muted: #f7f8f8;
-  --border: #d5d9d9;
-  --muted: #565959;
+  --surface-muted: #f7f8f6;
+  --border: #d9e0dc;
+  --muted: #5d6862;
 }
 
 @theme inline {
@@ -39,8 +39,8 @@ body {
 }
 
 ::selection {
-  background: #ff9900;
-  color: #131921;
+  background: #e8a317;
+  color: #0e4f3a;
 }
 
 button, a, input, select, textarea {
@@ -48,7 +48,7 @@ button, a, input, select, textarea {
 }
 
 a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible {
-  outline: 3px solid rgba(255, 153, 0, 0.35);
+  outline: 3px solid rgba(232, 163, 23, 0.35);
   outline-offset: 2px;
 }
 
@@ -180,7 +180,7 @@ input::placeholder { color: #9a9b98; }
 .kc-page input:focus,
 .kc-page select:focus,
 .kc-page textarea:focus {
-  outline: 2px solid rgb(245 164 0 / 0.28);
+  outline: 2px solid rgb(232 163 23 / 0.28);
   outline-offset: 1px;
 }
 
@@ -247,3 +247,18 @@ input::placeholder { color: #9a9b98; }
     min-height: 520px;
   }
 }
+
+
+/* KijijiCart brand remap — Kurgo-inspired structure, KijijiCart identity */
+[class*="bg-[#131921]"] { background-color: #0e4f3a !important; }
+[class*="bg-[#232f3e]"] { background-color: #176b4d !important; }
+[class*="bg-[#ff9900]"] { background-color: #e8a317 !important; }
+[class*="hover:bg-[#e47911]"]:hover { background-color: #c98b12 !important; }
+[class*="text-[#ff9900]"] { color: #e8a317 !important; }
+[class*="text-[#131921]"] { color: #0e4f3a !important; }
+[class*="text-[#0f1111]"] { color: #18201d !important; }
+[class*="border-[#ff9900]"] { border-color: #e8a317 !important; }
+[class*="border-[#3a4553]"] { border-color: #2b7258 !important; }
+[class*="border-[#d5d9d9]"] { border-color: #d9e0dc !important; }
+[class*="bg-[#f3f3f3]"] { background-color: #eef3f0 !important; }
+[class*="text-[#565959]"] { color: #5d6862 !important; }
