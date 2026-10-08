@@ -9,21 +9,21 @@ export default function CategoryGrid({ categories }: { categories: StorefrontCat
       <div className="kc-section-heading">
         <div>
           <p className="kc-section-kicker">Shop by category</p>
-          <h2 className="kc-section-title">What are you shopping for?</h2>
+          <h2 className="kc-section-title">Shop by category</h2>
         </div>
-        <Link href="/products" className="hidden text-xs font-black text-[#176043] hover:underline sm:block">
+        <Link href="/products" className="hidden text-xs font-bold text-[#007185] hover:underline sm:block">
           View all →
         </Link>
       </div>
 
-      <div className="kc-scroll-row mt-4 flex gap-2.5 overflow-x-auto pb-1 sm:grid sm:grid-cols-3 sm:gap-3 md:grid-cols-4 lg:grid-cols-6">
+      <div className="kc-scroll-row mt-3 grid grid-cols-4 gap-2 sm:grid-cols-6 md:grid-cols-8">
         {categories.map((category) => (
           <Link
             key={category.id}
             href={{ pathname: '/products', query: { category: category.id } }}
-            className="group w-[140px] shrink-0 overflow-hidden rounded-lg border border-[#e2e6e1] bg-white shadow-[0_2px_8px_rgba(18,32,24,.035)] transition hover:-translate-y-0.5 hover:border-[#c9d9cf] hover:shadow-md sm:w-auto"
+            className="group flex min-w-0 flex-col items-center rounded-md border border-transparent p-2 transition hover:border-[#d5d9d9] hover:bg-[#f0f2f2]"
           >
-            <div className="relative aspect-square overflow-hidden bg-[#f0f2ee]">
+            <div className="relative flex h-14 w-14 items-center justify-center overflow-hidden rounded-full border-2 border-[#e7e7e7] bg-[#f0f2f2] sm:h-16 sm:w-16">
               {category.imageUrl ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
@@ -33,16 +33,16 @@ export default function CategoryGrid({ categories }: { categories: StorefrontCat
                   loading="lazy"
                 />
               ) : (
-                <div className="flex h-full items-center justify-center px-3 text-center text-[10px] font-black uppercase tracking-wider text-slate-400">
+                <div className="flex h-full items-center justify-center px-2 text-center text-[9px] font-black uppercase tracking-wider text-[#565959]">
                   Browse
                 </div>
               )}
             </div>
-            <div className="p-3 sm:p-3.5">
-              <h3 className="line-clamp-2 min-h-[2.5rem] text-xs font-extrabold leading-5 text-slate-900 sm:text-sm">
+            <div className="w-full p-1.5 text-center">
+              <h3 className="line-clamp-2 min-h-0 text-[10px] font-bold leading-4 text-[#0f1111] sm:text-[11px]">
                 {category.name}
               </h3>
-              <span className="mt-1.5 inline-flex text-[10px] font-black text-[#176043] sm:text-xs">Shop now →</span>
+              <span className="mt-0.5 inline-flex text-[9px] font-semibold text-[#007185] sm:text-[10px]">Shop now →</span>
             </div>
           </Link>
         ))}
