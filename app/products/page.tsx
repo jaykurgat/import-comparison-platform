@@ -54,14 +54,14 @@ export default async function ProductsPage({
     <>
       <SearchTracker query={query} />
       <SiteHeader />
-      <main className="min-h-screen bg-[#f7f7f3]">
+      <main className="kc-page min-h-screen bg-[#f7f7f3]">
         <div className="mx-auto max-w-[1440px] px-4 py-7 sm:px-6 lg:py-10">
-          <section className="overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-[0_8px_30px_rgba(15,23,42,0.04)]">
-            <div className="bg-[#123f2b] px-5 py-7 text-white sm:px-8 sm:py-8">
+          <section className="kc-catalog-header overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+            <div className="bg-[#0b2a21] px-5 py-6 text-white sm:px-8 sm:py-8">
               <div className="flex flex-wrap items-end justify-between gap-4">
                 <div>
                   <p className="text-[10px] font-black uppercase tracking-[0.22em] text-emerald-200">KijijiCart marketplace</p>
-                  <h1 className="mt-2 text-3xl font-black tracking-[-0.035em] sm:text-4xl">
+                  <h1 className="mt-2 text-2xl font-black tracking-[-0.035em] sm:text-3xl lg:text-4xl">
                     {selectedCategory?.name ?? (query ? 'Search results' : 'All products')}
                   </h1>
 
@@ -70,7 +70,7 @@ export default async function ProductsPage({
               </div>
             </div>
 
-            <div className="p-5 sm:p-7">
+            <div className="p-4 sm:p-6 lg:p-7">
               {categories.length > 0 && (
                 <div className="min-w-0 max-w-full overflow-hidden">
                   <div className="flex max-w-full gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
@@ -99,7 +99,7 @@ export default async function ProductsPage({
           </section>
 
           {products.length === 0 ? (
-            <div className="mt-5 rounded-[1.75rem] border border-dashed border-slate-300 bg-white px-6 py-20 text-center shadow-sm">
+            <div className="mt-5 rounded-2xl border border-dashed border-slate-300 bg-white px-5 py-16 text-center shadow-sm sm:px-6 sm:py-20">
               <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-[#eef7f2] text-xl text-[#123f2b]">⌕</div>
               <p className="mt-4 font-bold text-slate-900">No products found</p>
               <p className="mt-2 text-sm text-slate-500">
@@ -110,7 +110,7 @@ export default async function ProductsPage({
               )}
             </div>
           ) : (
-            <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
+            <div className="kc-product-grid mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
               {products.map((product) => <ProductCard key={product.sku} product={product} />)}
             </div>
           )}
