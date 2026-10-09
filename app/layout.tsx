@@ -2,7 +2,6 @@ import type { Metadata } from 'next'
 import type { ReactNode } from 'react'
 import './globals.css'
 import Analytics from '@/components/Analytics'
-import AnalyticsConsent from '@/components/AnalyticsConsent'
 import NavigationProgress from '@/components/NavigationProgress'
 import { CartProvider } from '@/components/cart/CartProvider'
 
@@ -20,7 +19,6 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <NavigationProgress />
         <CartProvider>{children}</CartProvider>
         <Analytics />
-        <AnalyticsConsent />
       </body>
     </html>
   )
