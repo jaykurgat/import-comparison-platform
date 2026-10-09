@@ -78,7 +78,7 @@ export default async function ImportProductGroupPage({ params }: { params: Promi
 
       <main className="kc-page min-h-screen bg-[#f7f7f3] text-slate-950">
         <div className="mx-auto max-w-[1440px] px-4 py-5 sm:px-6 lg:py-6">
-          <div className="sticky top-[120px] z-30 -mx-4 mb-4 max-w-[100vw] min-w-0 overflow-x-auto border-b border-slate-200 bg-[#f7f7f3]/95 px-4 py-2.5 text-xs text-slate-500 backdrop-blur sm:-mx-6 sm:px-6 md:top-[145px]">
+          <div className="-mx-4 mb-4 max-w-[100vw] min-w-0 overflow-x-auto border-b border-slate-200 bg-[#f7f7f3] px-4 py-2.5 text-xs text-slate-500 sm:-mx-6 sm:px-6">
             <div className="flex min-w-max items-center gap-2 whitespace-nowrap">
             <Link href="/products" className="font-bold text-emerald-800 hover:underline">Products</Link>
             {data.categoryPath.length > 0 && (
