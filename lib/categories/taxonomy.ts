@@ -16,10 +16,11 @@ export interface CategoryClassification {
 }
 
 /** Titles alone are not reliable enough to assign a canonical category. */
-export function classifyCategory(_input: {
+export function classifyCategory(input: {
   title: string
   sourceCategoryName?: string | null
   specs?: Record<string, unknown> | null
 }): CategoryClassification | null {
+  void input
   return null
 }
