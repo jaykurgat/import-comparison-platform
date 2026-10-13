@@ -32,6 +32,7 @@ export async function getImportProductGroupPageData(productId: string): Promise<
     where: {
       productId,
       isPublished: true,
+      category: { isActive: true },
       importListingPrice: { isStale: false },
       matches: { none: { status: { in: ['AUTO_MATCHED', 'MANUAL_CONFIRMED'] } } },
     },
