@@ -8,7 +8,7 @@ import { isCatalogEligible } from './catalogEligibility'
  */
 export async function getFeaturedProducts(limit = 8): Promise<ProductTeaser[]> {
   const products = await prisma.localSKU.findMany({
-    where: { featuredOverride: true },
+    where: { featuredOverride: true, category: { isActive: true } },
     include: {
       matches: {
         where: { status: { in: ['AUTO_MATCHED', 'MANUAL_CONFIRMED'] } },
