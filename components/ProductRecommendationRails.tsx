@@ -16,17 +16,17 @@ function Rail({
   if (products.length === 0) return null
 
   return (
-    <section className="kc-recommendation-rail mt-6 rounded-sm border border-slate-200 bg-white p-4 shadow-sm sm:p-6 lg:p-8">
+    <section className="kc-recommendation-rail mt-5 rounded-xl border border-[#E3E7E0] bg-white p-4 sm:p-5">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <p className="text-xs font-black uppercase tracking-[0.18em] text-[#007600]">{eyebrow}</p>
-          <h2 className="mt-2 text-2xl font-black tracking-tight sm:text-3xl">{title}</h2>
-          <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500">{description}</p>
+          <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#55785A]">{eyebrow}</p>
+          <h2 className="mt-1 text-lg font-semibold tracking-tight text-[#203B29] sm:text-xl">{title}</h2>
+          <p className="mt-1.5 max-w-2xl text-xs leading-5 text-[#737D73]">{description}</p>
         </div>
-        <Link href="/products" className="text-sm font-bold text-[#007185] hover:underline">Browse all →</Link>
+        <Link href="/products" className="text-xs font-semibold text-[#315D40] hover:underline">Browse all →</Link>
       </div>
 
-      <div className="kc-product-grid mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+      <div className="kc-product-grid mt-4 grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
         {products.map((product) => (
           <ProductCard key={product.sku + product.href} product={product} />
         ))}
@@ -40,7 +40,7 @@ export function RelatedProductsRail({ products }: { products: ProductTeaser[] })
     <Rail
       eyebrow="Related"
       title="You may also like"
-      description="Products from the same canonical category, ordered using product and attribute similarity."
+      description="Products from this category and closely related categories, ranked by product title and attributes."
       products={products}
     />
   )

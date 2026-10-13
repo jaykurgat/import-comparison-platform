@@ -104,7 +104,7 @@ export async function withCache<T>(options: WithCacheOptions<T>): Promise<CacheR
   } catch (err) {
     console.error(`[withCache] Fresh fetch failed for ${cacheKey}:`, err)
     await recordFailure(serviceName)
-    return resolveFallback(cacheKey, fetchFallback)
+    return resolveFallback(cacheKey, fetchFallback, err)
   } finally {
     try {
       await redis.eval(
@@ -120,13 +120,21 @@ export async function withCache<T>(options: WithCacheOptions<T>): Promise<CacheR
 
 async function resolveFallback<T>(
   cacheKey: string,
-  fetchFallback: () => Promise<{ data: T; asOf: Date } | null>
+  fetchFallback: () => Promise<{ data: T; asOf: Date } | null>,
+  fetchError?: unknown,
 ): Promise<CacheResult<T>> {
   const fallback = await fetchFallback()
 
   if (!fallback) {
+    const cause = fetchError instanceof Error
+      ? fetchError.message
+      : fetchError === undefined
+        ? null
+        : String(fetchError)
+    const causeDetail = cause ? ` Live fetch error: ${cause}` : ''
+
     throw new Error(
-      `No cached, fresh, or fallback data available for "${cacheKey}". This product/rate has likely never been successfully fetched before.`
+      `No cached, fresh, or fallback data available for "${cacheKey}".${causeDetail} This product/rate has likely never been successfully fetched before.`
     )
   }
 

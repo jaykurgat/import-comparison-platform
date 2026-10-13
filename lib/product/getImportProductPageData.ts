@@ -26,7 +26,7 @@ export async function getImportProductPageData(productId: string, skuId: string)
     include: { category: true, importListingPrice: true },
   })
 
-  if (!aliExpressSku || !aliExpressSku.isPublished || aliExpressSku.availableStock <= 0 || !aliExpressSku.importListingPrice || aliExpressSku.importListingPrice.isStale) {
+  if (!aliExpressSku || !aliExpressSku.category?.isActive || !aliExpressSku.isPublished || aliExpressSku.availableStock <= 0 || !aliExpressSku.importListingPrice || aliExpressSku.importListingPrice.isStale) {
     return null
   }
 

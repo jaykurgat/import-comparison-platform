@@ -145,13 +145,23 @@ async function persistProduct(data: MappedAliExpressProduct): Promise<void> {
   }
 
   for (const sku of data.skus) {
-    const resolvedCategory = await resolveCanonicalCategory({
-      source: 'ALIEXPRESS',
-      sourceCategoryId: data.rawCategoryId,
-      sourceCategoryName: exactCategory?.nodes.at(-1)?.name ?? null,
-      title: data.title,
-      specs: sku.specs,
-    })
+    let resolvedCategory: Awaited<ReturnType<typeof resolveCanonicalCategory>> = null
+    try {
+      resolvedCategory = await resolveCanonicalCategory({
+        source: 'ALIEXPRESS',
+        sourceCategoryId: data.rawCategoryId,
+        sourceCategoryName: exactCategory?.nodes.at(-1)?.name ?? null,
+        title: data.title,
+        specs: sku.specs,
+      })
+    } catch (error) {
+      // Category enrichment must not prevent saving the supplier product itself.
+      // Persist it unpublished and let the admin assign a canonical leaf category.
+      console.warn(
+        `[AliExpress] Could not resolve canonical category for product ${data.productId}, SKU ${sku.skuId}; saving for admin category review.`,
+        error,
+      )
+    }
 
     const description = buildProductDescription({
       title: data.title,
@@ -195,7 +205,8 @@ async function persistProduct(data: MappedAliExpressProduct): Promise<void> {
         description,
         imageUrls,
         rawCategoryId: data.rawCategoryId,
-        ...(resolvedCategory ? { categoryId: resolvedCategory.categoryId } : {}),
+        categoryId: resolvedCategory?.categoryId ?? null,
+        ...(!resolvedCategory ? { isPublished: false } : {}),
         aliExpressCategoryId: exactCategory?.leafDbId ?? undefined,
         color: sku.color,
         size: sku.size,

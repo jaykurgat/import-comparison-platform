@@ -23,7 +23,8 @@ export async function createCategory(_previous: CategoryActionState, formData: F
   }
   const existing = await prisma.category.findFirst({ where: { name: { equals: name, mode: 'insensitive' }, parentId }, select: { id: true } })
   if (existing) return { ok: false, message: 'That category already exists at this level.' }
-  await prisma.category.create({ data: { name, parentId } })
+  const lastSibling = await prisma.category.findFirst({ where: { parentId }, orderBy: { sortOrder: 'desc' }, select: { sortOrder: true } })
+  await prisma.category.create({ data: { name, parentId, sortOrder: (lastSibling?.sortOrder ?? -10) + 10 } })
   invalidate()
   return { ok: true, message: parentId ? 'Subcategory created.' : 'Category created.' }
 }
@@ -55,5 +56,33 @@ export async function updateCategory(id: string, name: string, parentId: string 
   const duplicate = await prisma.category.findFirst({ where: { id: { not: id }, name: { equals: cleanName, mode: 'insensitive' }, parentId }, select: { id: true } })
   if (duplicate) throw new Error('That category already exists at this level.')
   await prisma.category.update({ where: { id }, data: { name: cleanName, parentId } })
+  invalidate()
+}
+
+
+export async function setCategoryActive(id: string, isActive: boolean) {
+  await requireAdmin()
+  const category = await prisma.category.findUnique({ where: { id }, select: { id: true } })
+  if (!category) throw new Error('Category not found.')
+  await prisma.category.update({ where: { id }, data: { isActive } })
+  invalidate()
+}
+
+export async function moveCategoryOrder(id: string, direction: 'up' | 'down') {
+  await requireAdmin()
+  const current = await prisma.category.findUnique({ where: { id }, select: { id: true, parentId: true, sortOrder: true } })
+  if (!current) throw new Error('Category not found.')
+  const siblings = await prisma.category.findMany({
+    where: { parentId: current.parentId },
+    orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }],
+    select: { id: true, sortOrder: true },
+  })
+  const index = siblings.findIndex((item) => item.id === id)
+  const other = siblings[index + (direction === 'up' ? -1 : 1)]
+  if (!other) return
+  await prisma.$transaction([
+    prisma.category.update({ where: { id: current.id }, data: { sortOrder: other.sortOrder } }),
+    prisma.category.update({ where: { id: other.id }, data: { sortOrder: current.sortOrder } }),
+  ])
   invalidate()
 }

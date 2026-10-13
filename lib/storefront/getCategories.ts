@@ -45,7 +45,8 @@ function getDescendantIds(categories: CategoryRow[], rootId: string): string[] {
 export async function getStorefrontCategories(limit = 24): Promise<StorefrontCategory[]> {
   const [categories, localProducts, importProducts] = await Promise.all([
     prisma.category.findMany({
-      orderBy: [{ parentId: 'asc' }, { name: 'asc' }],
+      where: { isActive: true },
+      orderBy: [{ parentId: 'asc' }, { sortOrder: 'asc' }, { name: 'asc' }],
       select: { id: true, name: true, parentId: true },
     }),
     prisma.localSKU.findMany({
@@ -111,7 +112,6 @@ export async function getStorefrontCategories(limit = 24): Promise<StorefrontCat
       level: 1,
       imageUrl: images.get(category.id) ?? null,
     }))
-    .sort((a, b) => a.name.localeCompare(b.name))
     .slice(0, limit)
 }
 
@@ -124,6 +124,7 @@ export async function getStorefrontCategoryFilterScope(categoryKey: string): Pro
   if (!normalized) return null
 
   const categories = await prisma.category.findMany({
+    where: { isActive: true },
     select: { id: true, name: true, parentId: true },
   })
 

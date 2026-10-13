@@ -32,6 +32,7 @@ export async function getImportProductGroupPageData(productId: string): Promise<
     where: {
       productId,
       isPublished: true,
+      category: { isActive: true },
       importListingPrice: { isStale: false },
       matches: { none: { status: { in: ['AUTO_MATCHED', 'MANUAL_CONFIRMED'] } } },
     },
@@ -51,9 +52,18 @@ export async function getImportProductGroupPageData(productId: string): Promise<
   if (priced.length === 0) return null
 
   const first = priced[0]
-  const categoryPath = first.category
-    ? [first.category.parent?.name, first.category.name].filter((value): value is string => Boolean(value))
+  const categoryRows = first.categoryId
+    ? await prisma.category.findMany({ select: { id: true, name: true, parentId: true } })
     : []
+  const categoryById = new Map(categoryRows.map((category) => [category.id, category]))
+  const categoryPath: string[] = []
+  const seenCategoryIds = new Set<string>()
+  let currentCategory = first.categoryId ? categoryById.get(first.categoryId) : undefined
+  while (currentCategory && !seenCategoryIds.has(currentCategory.id)) {
+    seenCategoryIds.add(currentCategory.id)
+    categoryPath.unshift(currentCategory.name)
+    currentCategory = currentCategory.parentId ? categoryById.get(currentCategory.parentId) : undefined
+  }
 
   const displayCategoryName = first.category?.name ?? first.aliExpressCategory?.name ?? null
 

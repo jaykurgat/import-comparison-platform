@@ -70,8 +70,10 @@ enum CategorySourceType {
 
 model Category {
   id       String    @id @default(cuid())
-  name     String // canonical name, e.g. "Sport Shoes" — TBD once real data exists
-  parentId String?
+  name      String
+  parentId  String?
+  isActive  Boolean @default(true)
+  sortOrder Int     @default(0)
   parent   Category? @relation("CategoryHierarchy", fields: [parentId], references: [id])
   children Category[] @relation("CategoryHierarchy")
 
@@ -83,6 +85,7 @@ model Category {
   updatedAt DateTime @updatedAt
 
   @@index([parentId])
+  @@index([parentId, sortOrder])
 }
 
 // The crosswalk: each row links ONE source platform's own category

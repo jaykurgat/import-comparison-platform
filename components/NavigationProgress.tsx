@@ -29,10 +29,15 @@ export default function NavigationProgress() {
   const hideTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
-    setVisible(false)
-
     if (showTimer.current) clearTimeout(showTimer.current)
     if (hideTimer.current) clearTimeout(hideTimer.current)
+
+    // Defer the reset until after the effect commits to avoid a synchronous
+    // state update inside the effect body.
+    hideTimer.current = setTimeout(() => setVisible(false), 0)
+    return () => {
+      if (hideTimer.current) clearTimeout(hideTimer.current)
+    }
   }, [pathname])
 
   useEffect(() => {

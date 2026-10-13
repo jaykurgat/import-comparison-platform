@@ -3,7 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/prisma'
 import { requireAdmin } from '@/lib/admin/auth'
-import { getAliExpressProduct } from '@/lib/aliexpress/product'
+import { getAliExpressProduct, refreshAliExpressProduct } from '@/lib/aliexpress/product'
 import { calculateImportOnlyPrice } from '@/lib/landedCost/calculateImportOnlyPrice'
 
 export type CategoryOption = {
@@ -11,6 +11,9 @@ export type CategoryOption = {
   name: string
   parentName: string | null
   isRoot: boolean
+  parentId: string | null
+  path: string
+  isLeaf: boolean
 }
 
 export type CategoryReview = {
@@ -40,16 +43,70 @@ function extractProductId(value: string): string | null {
   return match?.[1] ?? null
 }
 
-async function getCategoryOptions(): Promise<CategoryOption[]> {
-  const categories = await prisma.category.findMany({
-    orderBy: [{ parentId: 'asc' }, { name: 'asc' }],
-    include: { parent: { select: { name: true } } },
+type ImportProductSnapshot = {
+  data: {
+    productId: string
+    title: string
+    rawCategoryId: string
+    skus: Array<{ skuId: string }>
+  }
+}
+
+/**
+ * Category review is a second form submission. Reuse the supplier SKUs already
+ * persisted by the initial fetch instead of making another cache-dependent API
+ * call. Only force a live refresh if the previous attempt left no SKU rows.
+ */
+async function getProductForCategoryReview(productId: string): Promise<ImportProductSnapshot> {
+  const storedSkus = await prisma.aliExpressSKU.findMany({
+    where: { productId },
+    select: { productId: true, title: true, rawCategoryId: true, skuId: true },
   })
 
-  return categories.map((category) => ({
+  if (storedSkus.length > 0) {
+    return {
+      data: {
+        productId: storedSkus[0].productId,
+        title: storedSkus[0].title,
+        rawCategoryId: storedSkus[0].rawCategoryId ?? '',
+        skus: storedSkus.map((sku) => ({ skuId: sku.skuId })),
+      },
+    }
+  }
+
+  const refreshed = await refreshAliExpressProduct(productId, 'KE')
+  if (refreshed.data.skus.length === 0) {
+    throw new Error('AliExpress returned product details without any purchasable variants. Check the product ID and supplier listing.')
+  }
+
+  return { data: refreshed.data }
+}
+
+async function getCategoryOptions(): Promise<CategoryOption[]> {
+  const categories = await prisma.category.findMany({
+    orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }],
+    select: { id: true, name: true, parentId: true, isActive: true },
+  })
+  const byId = new Map(categories.map((category) => [category.id, category]))
+  const pathFor = (id: string) => {
+    const names: string[] = []
+    const seen = new Set<string>()
+    let current = byId.get(id)
+    while (current && !seen.has(current.id)) {
+      seen.add(current.id)
+      names.unshift(current.name)
+      current = current.parentId ? byId.get(current.parentId) : undefined
+    }
+    return names.join(' / ')
+  }
+  const parents = new Set(categories.flatMap((category) => category.parentId ? [category.parentId] : []))
+  return categories.filter((category) => category.isActive).map((category) => ({
     id: category.id,
     name: category.name,
-    parentName: category.parent?.name ?? null,
+    parentName: category.parentId ? byId.get(category.parentId)?.name ?? null : null,
+    parentId: category.parentId,
+    path: pathFor(category.id),
+    isLeaf: !parents.has(category.id),
     isRoot: category.parentId === null,
   }))
 }
@@ -104,6 +161,7 @@ async function completeImport(
       const price = await calculateImportOnlyPrice(productId, sku.skuId)
       const record = await prisma.aliExpressSKU.findUnique({
         where: { productId_skuId: { productId, skuId: sku.skuId } },
+        include: { category: { select: { isActive: true, parentId: true, _count: { select: { children: true } } } } },
       })
 
       if (!record) {
@@ -115,6 +173,9 @@ async function completeImport(
       // storefront product without a canonical KijijiCart category.
       const canPublish =
         Boolean(record.categoryId) &&
+        Boolean(record.category?.parentId) &&
+        (record.category?._count.children ?? 0) === 0 &&
+        record.category?.isActive !== false &&
         !price.isStale &&
         Boolean(record.title.trim()) &&
         record.imageUrls.length > 0
@@ -147,7 +208,7 @@ async function assignCategoryAndImport(
 ): Promise<AddImportState> {
   const category = await prisma.category.findUnique({
     where: { id: categoryId },
-    select: { id: true, name: true, parentId: true },
+    select: { id: true, name: true, parentId: true, _count: { select: { children: true } } },
   })
 
   if (!category) {
@@ -159,10 +220,10 @@ async function assignCategoryAndImport(
     }
   }
 
-  if (!category.parentId) {
+  if (!category.parentId || category._count.children > 0) {
     return {
       ok: false,
-      message: 'Choose a subcategory, not a top-level department.',
+      message: 'Choose a leaf category with no child categories.',
       productId,
       title: productTitle,
       categoryReview: await buildCategoryReview(
@@ -235,7 +296,7 @@ export async function addAliExpressProduct(
         return { ok: false, message: 'The category review session expired. Enter the product again.' }
       }
 
-      const product = await getAliExpressProduct(reviewProductId, 'KE')
+      const product = await getProductForCategoryReview(reviewProductId)
       const sourceCategory = await prisma.aliExpressCategory.findUnique({
         where: { categoryId: product.data.rawCategoryId },
         select: { categoryId: true, name: true },
@@ -263,19 +324,19 @@ export async function addAliExpressProduct(
 
         const parent = await prisma.category.findUnique({
           where: { id: parentCategoryId },
-          select: { id: true, name: true, parentId: true },
+          select: { id: true, name: true, parentId: true, isActive: true },
         })
 
-        if (!parent || parent.parentId !== null) {
+        if (!parent || !parent.isActive) {
           return {
             ok: false,
-            message: 'Choose an existing top-level department as the parent of the new category.',
+            message: 'Choose an active parent category for the new category.',
             productId: reviewProductId,
             title: product.data.title,
             categoryReview: await buildCategoryReview(
               reviewProductId,
               product.data.title,
-              'New categories should be specific subcategories under an existing department.',
+              'New categories can be nested under any active category that best describes the product type.',
             ),
           }
         }
@@ -302,10 +363,12 @@ export async function addAliExpressProduct(
           }
         }
 
+        const lastSibling = await prisma.category.findFirst({ where: { parentId: parent.id }, orderBy: { sortOrder: 'desc' }, select: { sortOrder: true } })
         const created = await prisma.category.create({
           data: {
             name: newCategoryName,
             parentId: parent.id,
+            sortOrder: (lastSibling?.sortOrder ?? -10) + 10,
           },
           select: { id: true },
         })
@@ -347,11 +410,22 @@ export async function addAliExpressProduct(
       }
     }
 
+    // Preserve the established importer behavior: use a valid cached product
+    // when available, fetch live on a miss, and use saved SKU data as fallback.
     const product = await getAliExpressProduct(productId, 'KE')
+
+    if (product.data.skus.length === 0) {
+      return {
+        ok: false,
+        message: 'AliExpress returned product details without any purchasable variants. Check the product ID and supplier listing.',
+        productId,
+        title: product.data.title,
+      }
+    }
 
     const persisted = await prisma.aliExpressSKU.findMany({
       where: { productId },
-      select: { categoryId: true },
+      select: { categoryId: true, category: { select: { parentId: true, _count: { select: { children: true } } } } },
     })
 
     const categoryIds = [...new Set(persisted.map((sku) => sku.categoryId).filter(Boolean))]
@@ -360,13 +434,13 @@ export async function addAliExpressProduct(
     // inconsistent category assignments.
     if (
       persisted.length === 0 ||
-      persisted.some((sku) => !sku.categoryId) ||
+      persisted.some((sku) => !sku.categoryId || !sku.category?.parentId || sku.category._count.children > 0) ||
       categoryIds.length !== 1
     ) {
       const reason =
         categoryIds.length > 1
           ? 'The product variants resolved to different categories. Choose one KijijiCart subcategory for the whole product.'
-          : 'We could not confidently place this product into an existing KijijiCart category.'
+          : 'The supplier category is too broad or its full hierarchy is unavailable. Choose a specific leaf category before importing.'
 
       return {
         ok: false,
