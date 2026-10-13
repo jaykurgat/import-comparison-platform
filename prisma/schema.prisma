@@ -85,6 +85,7 @@ model Category {
   updatedAt DateTime @updatedAt
 
   @@index([parentId])
+  @@index([parentId, sortOrder])
 }
 
 // The crosswalk: each row links ONE source platform's own category
