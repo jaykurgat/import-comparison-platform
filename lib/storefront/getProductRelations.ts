@@ -1,7 +1,6 @@
 import { prisma } from '../prisma'
 import { isCatalogEligible } from './catalogEligibility'
 import { titleSimilarity } from '../matching/similarity'
-import { getStorefrontCategoryFilterScope } from './getCategories'
 import type { ProductTeaser } from './productTeaser'
 
 const CONFIRMED_MATCH_STATUSES: Array<'AUTO_MATCHED' | 'MANUAL_CONFIRMED'> = ['AUTO_MATCHED', 'MANUAL_CONFIRMED']
@@ -51,6 +50,35 @@ function relatedScore(
   attrsB: { color: string | null; size: string | null; specs: unknown },
 ): number {
   return titleSimilarity(titleA, titleB) * 0.75 + attributeSimilarity(attrsA, attrsB) * 0.25
+}
+
+async function getRelatedCategoryIds(categoryId: string): Promise<string[]> {
+  const categories = await prisma.category.findMany({
+    where: { isActive: true },
+    select: { id: true, parentId: true },
+  })
+  const selected = categories.find((category) => category.id === categoryId)
+  if (!selected) return []
+  // For a leaf category, widen to its immediate family when necessary so a
+  // small catalogue can still offer useful alternatives without crossing the
+  // top-level department. Exact-category items receive a ranking bonus below.
+  const familyRootId = selected.parentId ?? selected.id
+  const children = new Map<string, string[]>()
+  for (const category of categories) {
+    if (!category.parentId) continue
+    children.set(category.parentId, [...(children.get(category.parentId) ?? []), category.id])
+  }
+  const result: string[] = []
+  const seen = new Set<string>()
+  const stack = [familyRootId]
+  while (stack.length) {
+    const current = stack.pop()!
+    if (seen.has(current)) continue
+    seen.add(current)
+    result.push(current)
+    for (const child of children.get(current) ?? []) stack.push(child)
+  }
+  return result
 }
 
 function toLocalTeaser(product: {
@@ -129,16 +157,19 @@ export async function getRelatedProductsForLocal(
 ): Promise<ProductTeaser[]> {
   if (!categoryId) return []
 
+  const relatedCategoryIds = await getRelatedCategoryIds(categoryId)
+  if (!relatedCategoryIds.length) return []
+
   const [locals, imports] = await Promise.all([
     prisma.localSKU.findMany({
-      where: { categoryId, sku: { not: localSku } },
+      where: { categoryId: { in: relatedCategoryIds }, sku: { not: localSku } },
       include: { category: true },
       orderBy: { createdAt: 'desc' },
       take: 60,
     }),
     prisma.aliExpressSKU.findMany({
       where: {
-        categoryId,
+        categoryId: { in: relatedCategoryIds },
         isPublished: true,
         importListingPrice: { isStale: false },
       },
@@ -159,7 +190,7 @@ export async function getRelatedProductsForLocal(
         color: product.color,
         size: product.size,
         specs: product.specs,
-      }),
+      }) + (product.categoryId === categoryId ? 0.15 : 0),
       product: toLocalTeaser(product),
     })
   }
@@ -173,7 +204,7 @@ export async function getRelatedProductsForLocal(
         color: sku.color,
         size: sku.size,
         specs: sku.specs,
-      }),
+      }) + (sku.categoryId === categoryId ? 0.15 : 0),
       product,
     })
   }
@@ -192,13 +223,13 @@ export async function getRelatedProductsForImport(
 ): Promise<ProductTeaser[]> {
   if (!categoryKey) return []
 
-  const categoryScope = await getStorefrontCategoryFilterScope(categoryKey)
-  if (!categoryScope || categoryScope.categoryIds.length === 0) return []
+  const categoryIds = await getRelatedCategoryIds(categoryKey)
+  if (categoryIds.length === 0) return []
 
   const imports = await prisma.aliExpressSKU.findMany({
     where: {
       productId: { not: productId },
-      categoryId: { in: categoryScope.categoryIds },
+      categoryId: { in: categoryIds },
       isPublished: true,
       importListingPrice: { isStale: false },
     },
@@ -218,7 +249,7 @@ export async function getRelatedProductsForImport(
           color: sku.color,
           size: sku.size,
           specs: sku.specs,
-        }),
+        }) + (sku.categoryId === categoryKey ? 0.15 : 0),
         product,
       }
     })
