@@ -123,7 +123,7 @@ async function completeImport(
       const price = await calculateImportOnlyPrice(productId, sku.skuId)
       const record = await prisma.aliExpressSKU.findUnique({
         where: { productId_skuId: { productId, skuId: sku.skuId } },
-        include: { category: { select: { isActive: true } } },
+        include: { category: { select: { isActive: true, parentId: true, _count: { select: { children: true } } } } },
       })
 
       if (!record) {
@@ -135,6 +135,8 @@ async function completeImport(
       // storefront product without a canonical KijijiCart category.
       const canPublish =
         Boolean(record.categoryId) &&
+        Boolean(record.category?.parentId) &&
+        (record.category?._count.children ?? 0) === 0 &&
         record.category?.isActive !== false &&
         !price.isStale &&
         Boolean(record.title.trim()) &&
@@ -168,7 +170,7 @@ async function assignCategoryAndImport(
 ): Promise<AddImportState> {
   const category = await prisma.category.findUnique({
     where: { id: categoryId },
-    select: { id: true, name: true, parentId: true },
+    select: { id: true, name: true, parentId: true, _count: { select: { children: true } } },
   })
 
   if (!category) {
@@ -180,10 +182,10 @@ async function assignCategoryAndImport(
     }
   }
 
-  if (!category.parentId) {
+  if (!category.parentId || category._count.children > 0) {
     return {
       ok: false,
-      message: 'Choose a subcategory, not a top-level department.',
+      message: 'Choose a leaf category with no child categories.',
       productId,
       title: productTitle,
       categoryReview: await buildCategoryReview(
@@ -374,7 +376,7 @@ export async function addAliExpressProduct(
 
     const persisted = await prisma.aliExpressSKU.findMany({
       where: { productId },
-      select: { categoryId: true },
+      select: { categoryId: true, category: { select: { parentId: true, _count: { select: { children: true } } } } },
     })
 
     const categoryIds = [...new Set(persisted.map((sku) => sku.categoryId).filter(Boolean))]
@@ -383,13 +385,13 @@ export async function addAliExpressProduct(
     // inconsistent category assignments.
     if (
       persisted.length === 0 ||
-      persisted.some((sku) => !sku.categoryId) ||
+      persisted.some((sku) => !sku.categoryId || !sku.category?.parentId || sku.category._count.children > 0) ||
       categoryIds.length !== 1
     ) {
       const reason =
         categoryIds.length > 1
           ? 'The product variants resolved to different categories. Choose one KijijiCart subcategory for the whole product.'
-          : 'We could not confidently place this product into an existing KijijiCart category.'
+          : 'The supplier category is too broad or its full hierarchy is unavailable. Choose a specific leaf category before importing.'
 
       return {
         ok: false,
