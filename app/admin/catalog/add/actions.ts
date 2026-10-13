@@ -11,6 +11,9 @@ export type CategoryOption = {
   name: string
   parentName: string | null
   isRoot: boolean
+  parentId: string | null
+  path: string
+  isLeaf: boolean
 }
 
 export type CategoryReview = {
@@ -42,14 +45,30 @@ function extractProductId(value: string): string | null {
 
 async function getCategoryOptions(): Promise<CategoryOption[]> {
   const categories = await prisma.category.findMany({
-    orderBy: [{ parentId: 'asc' }, { name: 'asc' }],
-    include: { parent: { select: { name: true } } },
+    where: { isActive: true },
+    orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }],
+    select: { id: true, name: true, parentId: true },
   })
-
+  const byId = new Map(categories.map((category) => [category.id, category]))
+  const pathFor = (id: string) => {
+    const names: string[] = []
+    const seen = new Set<string>()
+    let current = byId.get(id)
+    while (current && !seen.has(current.id)) {
+      seen.add(current.id)
+      names.unshift(current.name)
+      current = current.parentId ? byId.get(current.parentId) : undefined
+    }
+    return names.join(' / ')
+  }
+  const parents = new Set(categories.flatMap((category) => category.parentId ? [category.parentId] : []))
   return categories.map((category) => ({
     id: category.id,
     name: category.name,
-    parentName: category.parent?.name ?? null,
+    parentName: category.parentId ? byId.get(category.parentId)?.name ?? null : null,
+    parentId: category.parentId,
+    path: pathFor(category.id),
+    isLeaf: !parents.has(category.id),
     isRoot: category.parentId === null,
   }))
 }
@@ -104,6 +123,7 @@ async function completeImport(
       const price = await calculateImportOnlyPrice(productId, sku.skuId)
       const record = await prisma.aliExpressSKU.findUnique({
         where: { productId_skuId: { productId, skuId: sku.skuId } },
+        include: { category: { select: { isActive: true } } },
       })
 
       if (!record) {
@@ -115,6 +135,7 @@ async function completeImport(
       // storefront product without a canonical KijijiCart category.
       const canPublish =
         Boolean(record.categoryId) &&
+        record.category?.isActive !== false &&
         !price.isStale &&
         Boolean(record.title.trim()) &&
         record.imageUrls.length > 0
@@ -263,19 +284,19 @@ export async function addAliExpressProduct(
 
         const parent = await prisma.category.findUnique({
           where: { id: parentCategoryId },
-          select: { id: true, name: true, parentId: true },
+          select: { id: true, name: true, parentId: true, isActive: true },
         })
 
-        if (!parent || parent.parentId !== null) {
+        if (!parent || !parent.isActive) {
           return {
             ok: false,
-            message: 'Choose an existing top-level department as the parent of the new category.',
+            message: 'Choose an active parent category for the new category.',
             productId: reviewProductId,
             title: product.data.title,
             categoryReview: await buildCategoryReview(
               reviewProductId,
               product.data.title,
-              'New categories should be specific subcategories under an existing department.',
+              'New categories can be nested under any active category that best describes the product type.',
             ),
           }
         }
@@ -302,10 +323,12 @@ export async function addAliExpressProduct(
           }
         }
 
+        const lastSibling = await prisma.category.findFirst({ where: { parentId: parent.id }, orderBy: { sortOrder: 'desc' }, select: { sortOrder: true } })
         const created = await prisma.category.create({
           data: {
             name: newCategoryName,
             parentId: parent.id,
+            sortOrder: (lastSibling?.sortOrder ?? -10) + 10,
           },
           select: { id: true },
         })
