@@ -3,7 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/prisma'
 import { requireAdmin } from '@/lib/admin/auth'
-import { getAliExpressProduct } from '@/lib/aliexpress/product'
+import { refreshAliExpressProduct } from '@/lib/aliexpress/product'
 import { calculateImportOnlyPrice } from '@/lib/landedCost/calculateImportOnlyPrice'
 
 export type CategoryOption = {
@@ -41,6 +41,45 @@ function extractProductId(value: string): string | null {
   if (/^\d+$/.test(input)) return input
   const match = input.match(/\/item\/(\d+)/i) ?? input.match(/(?:product|item)[=\/]([0-9]+)/i)
   return match?.[1] ?? null
+}
+
+type ImportProductSnapshot = {
+  data: {
+    productId: string
+    title: string
+    rawCategoryId: string
+    skus: Array<{ skuId: string }>
+  }
+}
+
+/**
+ * Category review is a second form submission. Reuse the supplier SKUs already
+ * persisted by the initial fetch instead of making another cache-dependent API
+ * call. Only force a live refresh if the previous attempt left no SKU rows.
+ */
+async function getProductForCategoryReview(productId: string): Promise<ImportProductSnapshot> {
+  const storedSkus = await prisma.aliExpressSKU.findMany({
+    where: { productId },
+    select: { productId: true, title: true, rawCategoryId: true, skuId: true },
+  })
+
+  if (storedSkus.length > 0) {
+    return {
+      data: {
+        productId: storedSkus[0].productId,
+        title: storedSkus[0].title,
+        rawCategoryId: storedSkus[0].rawCategoryId ?? '',
+        skus: storedSkus.map((sku) => ({ skuId: sku.skuId })),
+      },
+    }
+  }
+
+  const refreshed = await refreshAliExpressProduct(productId, 'KE')
+  if (refreshed.data.skus.length === 0) {
+    throw new Error('AliExpress returned product details without any purchasable variants. Check the product ID and supplier listing.')
+  }
+
+  return { data: refreshed.data }
 }
 
 async function getCategoryOptions(): Promise<CategoryOption[]> {
@@ -257,7 +296,7 @@ export async function addAliExpressProduct(
         return { ok: false, message: 'The category review session expired. Enter the product again.' }
       }
 
-      const product = await getAliExpressProduct(reviewProductId, 'KE')
+      const product = await getProductForCategoryReview(reviewProductId)
       const sourceCategory = await prisma.aliExpressCategory.findUnique({
         where: { categoryId: product.data.rawCategoryId },
         select: { categoryId: true, name: true },
@@ -371,7 +410,19 @@ export async function addAliExpressProduct(
       }
     }
 
-    const product = await getAliExpressProduct(productId, 'KE')
+    // Admin import is an explicit action: bypass the storefront cache/circuit
+    // fallback so a new product is fetched live and persisted before category review.
+    const refreshed = await refreshAliExpressProduct(productId, 'KE')
+    const product = { data: refreshed.data }
+
+    if (product.data.skus.length === 0) {
+      return {
+        ok: false,
+        message: 'AliExpress returned product details without any purchasable variants. Check the product ID and supplier listing.',
+        productId,
+        title: product.data.title,
+      }
+    }
 
     const persisted = await prisma.aliExpressSKU.findMany({
       where: { productId },
