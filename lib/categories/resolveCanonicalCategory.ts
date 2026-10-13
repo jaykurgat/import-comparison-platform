@@ -120,13 +120,17 @@ export async function categorizeExistingCatalog(): Promise<{ localCategorized: n
   }
   for (const sku of imports) {
     const resolved = await resolveCanonicalCategory({
-      source: 'ALIEXPRESS', sourceCategoryId: sku.rawCategoryId,
-      sourceCategoryName: sku.aliExpressCategory?.name ?? null, title: sku.title,
-      specs: (sku.specs as Record<string, unknown> | null) ?? null,
+      source: 'ALIEXPRESS',
+      sourceCategoryId: sku.rawCategoryId,
+      sourceCategoryName: sku.aliExpressCategory?.name ?? null,
+      title: '',
     })
-    if (!resolved) continue
-    await prisma.aliExpressSKU.update({ where: { id: sku.id }, data: { categoryId: resolved.categoryId } })
-    importCategorized++
+    if (!resolved || !sku.rawCategoryId) continue
+    const updated = await prisma.aliExpressSKU.updateMany({
+      where: { rawCategoryId: sku.rawCategoryId, categoryId: { not: resolved.categoryId } },
+      data: { categoryId: resolved.categoryId },
+    })
+    importCategorized += updated.count
   }
   return { localCategorized, importCategorized }
 }
