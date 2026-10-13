@@ -3,7 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/prisma'
 import { requireAdmin } from '@/lib/admin/auth'
-import { refreshAliExpressProduct } from '@/lib/aliexpress/product'
+import { getAliExpressProduct, refreshAliExpressProduct } from '@/lib/aliexpress/product'
 import { calculateImportOnlyPrice } from '@/lib/landedCost/calculateImportOnlyPrice'
 
 export type CategoryOption = {
@@ -410,10 +410,9 @@ export async function addAliExpressProduct(
       }
     }
 
-    // Admin import is an explicit action: bypass the storefront cache/circuit
-    // fallback so a new product is fetched live and persisted before category review.
-    const refreshed = await refreshAliExpressProduct(productId, 'KE')
-    const product = { data: refreshed.data }
+    // Preserve the established importer behavior: use a valid cached product
+    // when available, fetch live on a miss, and use saved SKU data as fallback.
+    const product = await getAliExpressProduct(productId, 'KE')
 
     if (product.data.skus.length === 0) {
       return {
