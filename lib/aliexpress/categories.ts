@@ -210,7 +210,9 @@ export async function resolveAliExpressCategory(categoryId: string): Promise<Ali
     path = [detail]
   }
 
-  if (!path) path = [detail]
+  // Do not flatten an unresolved deep supplier category into a fake root.
+  // Without its ancestors the importer cannot safely infer the taxonomy path.
+  if (!path) return null
 
   const leafDbId = await persistPath(path)
   return { nodes: path, leafDbId }
