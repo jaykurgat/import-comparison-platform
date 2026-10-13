@@ -9,7 +9,7 @@ export default async function AdminCategoriesPage() {
   await requireAdmin()
 
   const categories = await prisma.category.findMany({
-    select: { id: true, name: true, parentId: true, isActive: true, sortOrder: true },
+    select: { id: true, name: true, parentId: true, isActive: true, sortOrder: true, _count: { select: { mappings: true, localSkus: true, aliExpressSkus: true } } },
     orderBy: [{ parentId: 'asc' }, { name: 'asc' }],
   })
 
