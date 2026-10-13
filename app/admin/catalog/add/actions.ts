@@ -45,9 +45,8 @@ function extractProductId(value: string): string | null {
 
 async function getCategoryOptions(): Promise<CategoryOption[]> {
   const categories = await prisma.category.findMany({
-    where: { isActive: true },
     orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }],
-    select: { id: true, name: true, parentId: true },
+    select: { id: true, name: true, parentId: true, isActive: true },
   })
   const byId = new Map(categories.map((category) => [category.id, category]))
   const pathFor = (id: string) => {
@@ -62,7 +61,7 @@ async function getCategoryOptions(): Promise<CategoryOption[]> {
     return names.join(' / ')
   }
   const parents = new Set(categories.flatMap((category) => category.parentId ? [category.parentId] : []))
-  return categories.map((category) => ({
+  return categories.filter((category) => category.isActive).map((category) => ({
     id: category.id,
     name: category.name,
     parentName: category.parentId ? byId.get(category.parentId)?.name ?? null : null,
