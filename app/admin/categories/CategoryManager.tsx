@@ -3,7 +3,7 @@
 import { useActionState, useState, useTransition } from 'react'
 import { createCategory, updateCategory, setCategoryActive, moveCategoryOrder, type CategoryActionState } from './actions'
 
-type Category = { id: string; name: string; parentId: string | null; isActive: boolean; sortOrder: number }
+type Category = { id: string; name: string; parentId: string | null; isActive: boolean; sortOrder: number; _count: { mappings: number; localSkus: number; aliExpressSkus: number } }
 const initialState: CategoryActionState = { ok: false, message: '' }
 
 export default function CategoryManager({ categories }: { categories: Category[] }) {
