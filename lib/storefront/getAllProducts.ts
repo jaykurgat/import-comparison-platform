@@ -33,6 +33,7 @@ export async function getAllProducts(
     ? []
     : await prisma.localSKU.findMany({
         where: {
+          category: { isActive: true },
           ...(textFilter ? { title: textFilter } : {}),
           ...(categoryScope ? { categoryId: { in: categoryIds } } : {}),
         },
@@ -53,6 +54,7 @@ export async function getAllProducts(
     ? []
     : await prisma.aliExpressSKU.findMany({
         where: {
+          category: { isActive: true },
           ...(textFilter ? { title: textFilter } : {}),
           ...(categoryScope ? { categoryId: { in: categoryIds } } : {}),
           isPublished: true,
