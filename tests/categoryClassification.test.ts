@@ -1,26 +1,22 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { classifyCategory } from '../lib/categories/taxonomy'
+import { classifyCategory, normalizeCategoryText } from '../lib/categories/taxonomy'
 
-test('classifies a product into the controlled canonical taxonomy from title evidence', () => {
-  const result = classifyCategory({ title: '500ml Stainless Steel Water Bottle Tumbler' })
-  assert.deepEqual(result?.path, ['Home & Kitchen', 'Drinkware'])
+test('normalizes category labels consistently for matching and deduplication', () => {
+  assert.equal(normalizeCategoryText('Women’s Clothing & Apparel'), 'womens clothing and apparel')
 })
 
-test('uses an explicit source category as stronger evidence', () => {
-  const result = classifyCategory({
+test('does not invent a canonical category from a product title', () => {
+  assert.equal(classifyCategory({ title: '500ml Stainless Steel Water Bottle Tumbler' }), null)
+})
+
+test('does not map a source leaf label to a fabricated hard-coded parent', () => {
+  assert.equal(classifyCategory({
     title: 'Portable laptop stand',
     sourceCategoryName: 'Computer Accessories',
-  })
-  assert.deepEqual(result?.path, ['Electronics', 'Computer Accessories'])
+  }), null)
 })
 
-test('leaves ambiguous products uncategorized instead of guessing', () => {
-  const result = classifyCategory({ title: 'Premium accessory' })
-  assert.equal(result, null)
-})
-
-test('does not use a generic word alone to classify drinkware', () => {
-  const result = classifyCategory({ title: 'Tempered glass screen protector for phone' })
-  assert.deepEqual(result?.path, ['Electronics', 'Mobile Accessories'])
+test('leaves ambiguous products unclassified until supplier metadata or admin mapping exists', () => {
+  assert.equal(classifyCategory({ title: 'Premium accessory' }), null)
 })
