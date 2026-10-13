@@ -44,7 +44,7 @@ export interface ProductPageData {
 
 export async function getProductPageData(sku: string): Promise<ProductPageData | null> {
   const localSku = await prisma.localSKU.findUnique({ where: { sku }, include: { category: true } })
-  if (!localSku || !isCatalogEligible(localSku)) return null
+  if (!localSku || localSku.category?.isActive === false || !isCatalogEligible(localSku)) return null
 
   const description = buildProductDescription({
     title: localSku.title,
