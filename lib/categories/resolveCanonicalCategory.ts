@@ -32,7 +32,7 @@ async function ensureCategoryPath(path: string[]): Promise<string> {
   for (const rawName of path) {
     const name = rawName.trim()
     if (!name) continue
-    const existing = await prisma.category.findFirst({
+    const existing: { id: string } | null = await prisma.category.findFirst({
       where: { name: { equals: name, mode: 'insensitive' }, parentId },
       select: { id: true },
     })
@@ -41,7 +41,7 @@ async function ensureCategoryPath(path: string[]): Promise<string> {
       leafId = existing.id
     } else {
       const lastSibling = await prisma.category.findFirst({ where: { parentId }, orderBy: { sortOrder: 'desc' }, select: { sortOrder: true } })
-      const created = await prisma.category.create({ data: { name, parentId, sortOrder: (lastSibling?.sortOrder ?? -10) + 10 }, select: { id: true } })
+      const created: { id: string } = await prisma.category.create({ data: { name, parentId, sortOrder: (lastSibling?.sortOrder ?? -10) + 10 }, select: { id: true } })
       parentId = created.id
       leafId = created.id
     }
