@@ -8,7 +8,7 @@ const initialState: AddImportState = { ok: true, message: '' }
 export default function AddAliExpressProductForm() {
   const [state, formAction, pending] = useActionState(addAliExpressProduct, initialState)
   const review = state.categoryReview
-  const categories = review?.categories.filter((category) => category.isActive !== false) ?? []
+  const categories = review?.categories ?? []
   const leaves = categories.filter((category) => category.isLeaf && !category.isRoot)
 
   return (
