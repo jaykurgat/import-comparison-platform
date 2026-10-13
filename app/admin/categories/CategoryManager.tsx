@@ -35,7 +35,9 @@ export default function CategoryManager({ categories }: { categories: Category[]
 
   const selected = selectedId ? byId.get(selectedId) : undefined
   const query = search.trim().toLocaleLowerCase()
-  const visible = (category: Category) => !query || path(category.id).toLocaleLowerCase().includes(query)
+  function visible(category: Category): boolean {
+    return !query || path(category.id).toLocaleLowerCase().includes(query) || (children.get(category.id) ?? []).some(visible)
+  }
 
   function beginEdit(category: Category) {
     setSelectedId(category.id)
