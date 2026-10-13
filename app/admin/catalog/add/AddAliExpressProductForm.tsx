@@ -8,8 +8,8 @@ const initialState: AddImportState = { ok: true, message: '' }
 export default function AddAliExpressProductForm() {
   const [state, formAction, pending] = useActionState(addAliExpressProduct, initialState)
   const review = state.categoryReview
-  const roots = review?.categories.filter((category) => category.isRoot) ?? []
-  const leaves = review?.categories.filter((category) => !category.isRoot) ?? []
+  const categories = review?.categories.filter((category) => category.isActive !== false) ?? []
+  const leaves = categories.filter((category) => category.isLeaf && !category.isRoot)
 
   return (
     <form action={formAction} className="mt-6 space-y-5">
@@ -105,10 +105,10 @@ export default function AddAliExpressProductForm() {
                 defaultValue=""
                 className="mt-2 w-full rounded-xl border border-[#D8D8D3] bg-white px-4 py-3 text-sm outline-none focus:border-[#2F6B4F]"
               >
-                <option value="">Select an existing subcategory…</option>
+                <option value="">Select an existing leaf category…</option>
                 {leaves.map((category) => (
                   <option key={category.id} value={category.id}>
-                    {category.parentName} → {category.name}
+                    {category.path}
                   </option>
                 ))}
               </select>
@@ -127,7 +127,7 @@ export default function AddAliExpressProductForm() {
             <div className="rounded-xl border border-[#D8D8D3] bg-white p-4">
               <h3 className="text-sm font-bold text-[#1C1C1E]">No existing category fits?</h3>
               <p className="mt-1 text-xs leading-5 text-[#6B6B6E]">
-                Create a new, specific subcategory when this represents a distinct shopping intent
+                Create a new, specific category beneath the most relevant parent when this represents a distinct shopping intent
                 and the existing categories would make the product hard to find. Do not create one
                 just for a color, size, material, brand, model, or other product option.
               </p>
@@ -143,16 +143,16 @@ export default function AddAliExpressProductForm() {
                 </label>
 
                 <label className="block text-sm font-semibold">
-                  Parent department
+                  Parent category
                   <select
                     name="parentCategoryId"
                     defaultValue=""
                     className="mt-2 w-full rounded-xl border border-[#D8D8D3] bg-white px-4 py-3 text-sm font-normal outline-none focus:border-[#2F6B4F]"
                   >
-                    <option value="">Select a department…</option>
-                    {roots.map((category) => (
+                    <option value="">Select a parent category…</option>
+                    {categories.map((category) => (
                       <option key={category.id} value={category.id}>
-                        {category.name}
+                        {category.path}
                       </option>
                     ))}
                   </select>
