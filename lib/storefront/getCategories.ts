@@ -46,7 +46,7 @@ export async function getStorefrontCategories(limit = 24): Promise<StorefrontCat
   const [categories, localProducts, importProducts] = await Promise.all([
     prisma.category.findMany({
       where: { isActive: true },
-      orderBy: [{ sortOrder: 'asc' }, { parentId: 'asc' }, { name: 'asc' }],
+      orderBy: [{ parentId: 'asc' }, { sortOrder: 'asc' }, { name: 'asc' }],
       select: { id: true, name: true, parentId: true },
     }),
     prisma.localSKU.findMany({
@@ -112,7 +112,6 @@ export async function getStorefrontCategories(limit = 24): Promise<StorefrontCat
       level: 1,
       imageUrl: images.get(category.id) ?? null,
     }))
-    .sort((a, b) => a.name.localeCompare(b.name))
     .slice(0, limit)
 }
 
